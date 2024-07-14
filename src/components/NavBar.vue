@@ -2,10 +2,8 @@
   <nav class="navbar">
     <div class="navbar-left">
       <ActionNotification class="nav-icon" @click="animateIcon($event)" />
-      <DeleteAllPostsButton class="nav-icon" @click="animateIcon($event)">
-        <font-awesome-icon :icon="['fas', 'trash-alt']" />
-        <span class="icon-label">Delete</span>
-      </DeleteAllPostsButton>
+    </div>
+    <div class="navbar-center">
       <div class="brandlogo">BloggaBug</div>
     </div>
     <div class="navbar-right">
@@ -36,24 +34,19 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
 import { useRouter } from 'vue-router';
-import DeleteAllPostsButton from './UserProfile/DeleteAllPostsButton.vue';
 import ActionNotification from './infofeatures/ActionNotification.vue';
 
 export default defineComponent({
   name: 'NavBar',
   components: {
-    DeleteAllPostsButton,
     ActionNotification,
   },
   setup(_, { emit }) {
     const router = useRouter();
 
     const logout = () => {
-      // Clear all data from local storage
       localStorage.clear();
-      // Emit logout event (if needed)
       emit('logout');
-      // Redirect to the login page
       router.push('/login');
     };
 
@@ -62,7 +55,7 @@ export default defineComponent({
       icon.classList.add('animate');
       setTimeout(() => {
         icon.classList.remove('animate');
-      }, 300); // Duration of the animation
+      }, 300);
     };
 
     return {
@@ -78,46 +71,56 @@ export default defineComponent({
 
 .navbar {
   display: flex;
-  justify-content: space-between; /* Space between left and right sections */
+  justify-content: space-between;
   align-items: center;
-  padding: 10px 0px 10px 10px; /* Padding for spacing */
+  padding: 10px 10px;
   background-color: #1e2127;
 }
 
-.navbar-left, .navbar-right {
+.navbar-left, .navbar-center, .navbar-right {
   display: flex;
   align-items: center;
 }
 
+.navbar-left {
+  justify-content: flex-start;
+  width: 20%;
+}
+
+.navbar-center {
+  justify-content: center;
+  width: 60%;
+}
+
 .navbar-right {
+  justify-content: center;
   background-color: rgba(43, 49, 56, 1);
   overflow: hidden;
   border-radius: 0px;
   height: 70px;
-  width: 25.2%;
+  width: 24.2%;
+  padding: 0px 10px 0px 10px;
 }
 
 .nav-icon {
   display: flex;
-  flex-direction: column; /* Column layout to place label below icon */
+  flex-direction: column;
   justify-content: center;
   align-items: center;
   color: rgb(255, 255, 255);
   text-decoration: none;
-  font-size: 14px; /* Adjust font size for icon */
+  font-size: 14px;
   margin: 0 10px;
-  width: 40px; /* Fixed width */
-  height: 40px; /* Fixed height */
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   transition: transform 0.3s;
 }
 
 .icon-label {
-  font-size: 12px; /* Smaller font size for label */
-  margin-top: 5px; /* Space between icon and label */
+  font-size: 12px;
+  margin-top: 5px;
 }
-
-
 
 .nav-icon:active {
   transform: scale(0.9);
@@ -140,6 +143,31 @@ export default defineComponent({
   }
   100% {
     transform: scale(1);
+  }
+}
+
+/* Media query for screen size 414px by 896px */
+@media (max-width: 430px) {
+  .navbar {
+    flex-direction: column;
+    align-items: center;
+  }
+  .navbar-left, .navbar-center, .navbar-right {
+    justify-content: center;
+    width: 100%;
+  }
+  .navbar-right {
+    flex-wrap: wrap;
+  }
+
+  .navbar-center{
+    padding-bottom: 20px;
+  }
+  .nav-icon {
+    margin: 5px;
+  }
+  .icon-label {
+    display: none;
   }
 }
 </style>

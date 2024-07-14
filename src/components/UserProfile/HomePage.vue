@@ -10,7 +10,7 @@
           :followingCount="followingCount" 
           :followersCount="followersCount"
         />
-        <button @click="toggleCreate">{{ isCreating ? 'Cancel' : 'Create Blug Post' }}</button>
+        <button @click="toggleCreate">{{ buttonText }}</button>
         <CreateBlogPost 
           v-if="isCreating" 
           :isModalVisible="isCreating" 
@@ -29,7 +29,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, onMounted } from 'vue';
+import { defineComponent, ref, onMounted, computed } from 'vue';
 import NavBar from '../NavBar.vue';
 import ProfileHeader from '../features/ProfileHeader.vue';
 import CreateBlogPost from '../features/CreateBlogPost.vue';
@@ -107,6 +107,10 @@ export default defineComponent({
       handleLoginEvent(); // Call the login event handler on mount
     });
 
+    const buttonText = computed(() => {
+      return window.innerWidth <= 414 ? 'Create' : isCreating.value ? 'Cancel' : 'Create Blug Post';
+    });
+
     return {
       userId,
       user,
@@ -117,6 +121,7 @@ export default defineComponent({
       followersCount,
       toggleCreate,
       onPublishContent,
+      buttonText,
     };
   },
 });
@@ -124,7 +129,6 @@ export default defineComponent({
 
 <style scoped>
 .new-user-page {
-  
   display: flex;
   flex-direction: column;
   height: 100vh;
@@ -150,11 +154,9 @@ export default defineComponent({
 }
 
 .feed-container {
-  
   background-color: #2b3138; /* Example background color for feed */
   padding: 10px;
   border: solid 5px #0c1118;
-  
 }
 
 .right-column {
@@ -181,4 +183,52 @@ button {
   right: 400px;
   top: 310px;
 }
+
+
+
+
+
+@media (max-width: 430px) {
+  .right-column {
+    display: none;
+  }
+
+  .left-column {
+    width: 100%;
+    overflow-y: auto;
+    height: 100%;
+  }
+
+  .new-user-page {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    background-color: #020202;
+    padding-right: 1px;
+    padding-left: 1px;
+  }
+
+  .navbar {
+    max-width: 100%;
+  }
+
+  button {
+    width: 30%;
+    padding: 10px;
+    margin-left: 15px;
+    font-size: 16px;
+    border: none;
+    border-radius: 20px;
+    cursor: pointer;
+    margin-top: 10px;
+    background-color: #fd662f; /* Button color */
+    color: white; /* White text */
+    position: absolute;
+    right: 40px;
+    top: 390px;
+  }
+}
+
+
+
 </style>

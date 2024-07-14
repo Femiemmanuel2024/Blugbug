@@ -1,69 +1,82 @@
+### README
 
-create a way to find other blog post by title
-correct the bookmark counter to counter like the likes
-create a book display on the right column
-Do you want to logout prompt.
-Case sensitivity for username chattername. add a info to remind user it is case sensitive
+This document provides an overview of the components used in the project, along with a brief description of their functionalities.
 
+#### `infofeatures` Directory
+- **ActionNotification.vue**
+  - Manages user notifications. Displays a list of notifications and plays a notification sound when a new notification is received. Allows users to mark notifications as read and clear all notifications.
 
-<!-- # chatter
+- **InfoData.vue**
+  - Displays various information data. (Detailed functionality needs to be specified based on the implementation.)
 
-This template should help get you started developing with Vue 3 in Vite.
+- **LatestBlogs.vue**
+  - Lists the latest blogs posted by users. (Detailed functionality needs to be specified based on the implementation.)
 
-## Recommended IDE Setup
+#### `UserProfile` Directory
+- **AnalyticsPage.vue**
+  - Provides analytics data related to user activities. (Detailed functionality needs to be specified based on the implementation.)
 
-[VSCode](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
+- **ChattersPage.vue**
+  - Manages and displays the list of users (Chatters). (Detailed functionality needs to be specified based on the implementation.)
 
-## Type Support for `.vue` Imports in TS
+- **LoginPage.vue**
+  - Handles user login functionality. Displays login form and manages authentication.
 
-TypeScript cannot handle type information for `.vue` imports by default, so we replace the `tsc` CLI with `vue-tsc` for type checking. In editors, we need [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) to make the TypeScript language service aware of `.vue` types.
+- **MarkdownEditor.vue**
+  - A markdown editor for creating and editing blog posts with markdown syntax.
 
-## Customize configuration
+- **NavBar.vue**
+  - A navigation bar component that provides links to different parts of the application.
 
-See [Vite Configuration Reference](https://vitejs.dev/config/).
+- **ProfileSettings.vue**
+  - Manages user profile settings. Allows users to update their profile information.
 
-## Project Setup
+- **QuillEditor.vue**
+  - A rich-text editor based on Quill for creating and editing blog posts.
 
-```sh
-npm install
-```
+- **ReadBlog.vue**
+  - Displays a full blog post for reading. Handles the presentation of the blog content.
 
-### Compile and Hot-Reload for Development
+- **SignUpConfirmation.vue**
+  - Handles the confirmation process after user signup. Displays confirmation messages and instructions.
 
-```sh
-npm run dev
-```
+- **SignUpPage.vue**
+  - Manages user signup functionality. Displays signup form and handles user registration.
 
-### Type-Check, Compile and Minify for Production
+#### `features` Directory
+- **BlogPosts.vue**
+  - Manages and displays a list of blog posts. Provides functionalities to like, bookmark, and interact with blog posts.
 
-```sh
-npm run build
-```
+- **CreateBlogPost.vue**
+  - Provides a form and functionality for creating new blog posts.
 
-### Run Unit Tests with [Vitest](https://vitest.dev/)
+- **Feed.vue**
+  - Displays a feed of blog posts from users that the current user is following. Allows users to like posts and view content.
 
-```sh
-npm run test:unit
-```
+- **FileUpload.vue**
+  - Manages file uploads for blog posts or user profile images. Provides functionality to upload and handle files.
 
-### Run End-to-End Tests with [Cypress](https://www.cypress.io/)
+- **ProfileHeader.vue**
+  - Displays the profile header for a user, including their profile picture, name, and other relevant information.
 
-```sh
-npm run test:e2e:dev
-```
+- **SearchBar.vue**
+  - Provides a search bar for finding users. Displays search results and manages user interactions with search results.
 
-This runs the end-to-end tests against the Vite development server.
-It is much faster than the production build.
+#### Additional Files
+- **supabase.ts**
+  - Contains the Supabase client setup and configuration for interacting with the Supabase backend.
 
-But it's still recommended to test the production build with `test:e2e` before deploying (e.g. in CI environments):
+### Usage
+Each component is used within the Vue.js application to provide specific functionalities. The components are organized based on their roles and the part of the application they serve. 
 
-```sh
-npm run build
-npm run test:e2e
-```
+For example:
+- **NavBar.vue** is used globally across the application to provide navigation.
+- **LoginPage.vue** and **SignUpPage.vue** handle user authentication and registration.
+- **BlogPosts.vue** and **Feed.vue** manage the display and interaction with blog content.
+- **ProfileHeader.vue** and **ProfileSettings.vue** manage user profiles and settings.
+- **ActionNotification.vue** handles user notifications.
 
-### Lint with [ESLint](https://eslint.org/)
+### Setup
+To set up and run the application, ensure you have the necessary dependencies installed and the Supabase backend configured. Then, start the Vue.js application using your preferred method (e.g., `npm run serve`).
 
-```sh
-npm run lint
-``` -->
+For further details on each component's functionality, refer to the component's implementation and the associated Vue.js documentation.

@@ -13,14 +13,13 @@
 import { defineComponent, ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import QuillEditor from '../QuillEditor.vue';
-import ActionNotification from '../infofeatures/ActionNotification.vue'; // Import ActionNotification
 import { supabase } from '../supabase';
+import { v4 as uuidv4 } from 'uuid'; // Import UUID
 
 export default defineComponent({
   name: 'CreateBlogPost',
   components: {
     QuillEditor,
-    ActionNotification, // Register the component
   },
   props: {
     isModalVisible: {
@@ -36,7 +35,6 @@ export default defineComponent({
     const createdBy = ref<string>('');
     const currentDate = ref<string>('');
     const quillEditor = ref<any>(null);
-    const notificationRef = ref<any>(null); // Reference to the ActionNotification component
 
     onMounted(() => {
       fetchUserInfo();
@@ -83,28 +81,43 @@ export default defineComponent({
         `;
 
         const fileName = `${Date.now()}.html`;
-        const { data, error } = await supabase.storage
+        const { data: uploadData, error: uploadError } = await supabase.storage
           .from('blog-post')
           .upload(`${userId}/${fileName}`, new Blob([htmlContent], { type: 'text/html' }));
 
-        if (error) {
-          console.error('Error uploading file:', error.message);
+        if (uploadError) {
+          console.error('Error uploading file:', uploadError.message);
         } else {
-          console.log('File uploaded:', data);
-          emit('publishContent', { title: title.value, content: htmlContent });
+          console.log('File uploaded:', uploadData);
+          const blogId = uuidv4(); // Generate a unique ID for the blog post
 
-          // Clear the inputs
-          title.value = '';
-          quillEditor.value.quillInstance.root.innerHTML = '';
+          // Insert blog post details into the blog-post table
+          const { data: insertData, error: insertError } = await supabase
+            .from('blog_post')
+            .insert([
+              {
+                user_id: userId,
+                blog_id: blogId,
+                title: title.value,
+                likes: 0,
+                comments: [],
+                bookmarks: 0,
+              },
+            ]);
 
-          // Send notification
-          if (notificationRef.value) {
-            console.log('Sending notification...');
-            notificationRef.value.sendNotification();
+          if (insertError) {
+            console.error('Error inserting blog post:', insertError.message);
+          } else {
+            console.log('Blog post inserted:', insertData);
+            emit('publishContent', { title: title.value, content: htmlContent });
+
+            // Clear the inputs
+            title.value = '';
+            quillEditor.value.quillInstance.root.innerHTML = '';
+
+            // Route back to homepage after successful upload
+            router.push('/home');
           }
-
-          // Route back to homepage after successful upload
-          router.push('/home');
         }
       } else {
         alert('Title and content are required!');
@@ -117,7 +130,6 @@ export default defineComponent({
       createdBy,
       currentDate,
       quillEditor,
-      notificationRef, // Return the reference
       publishContent,
     };
   },

@@ -2,14 +2,14 @@
   <div class="chatters-page">
     <NavBar />
     <div class="content">
-      <div class="container"> <!-- Added container with red background -->
+      <div class="container">
         <div class="left-column">
-          <!-- Wrap the all blogpost and the blog titles in another container -->
-          <div class="left-container">
-            <!-- Highlighted part to edit the h1 size -->
+          <div class="left-title">
             <h1 class="blog-header">All Blog Posts</h1>
+          </div>
+          <div class="left-container">
             <ul>
-              <li v-for="(post, index) in posts" :key="index">
+              <li class="list-container" v-for="(post, index) in posts" :key="index">
                 <span class="post-title" @click="viewPost(index)">{{ post.title }}</span>
                 <div class="post-actions">
                   <button @click="viewPost(index)">Read</button>
@@ -20,9 +20,10 @@
           </div>
         </div>
         <div class="right-column">
-          <div v-if="selectedPost">
+          <div v-if="selectedPost" :key="currentComponentKey">
             <h2>{{ selectedPost.title }}</h2>
-            <div class="postbody" v-html="selectedPost.bodyContent"></div>
+            <div v-html="selectedPost.bodyContent" class="postbody"></div>
+            <InteractivePage />
           </div>
         </div>
       </div>
@@ -34,6 +35,7 @@
 import { defineComponent, ref, onMounted } from 'vue';
 import NavBar from './NavBar.vue';
 import { supabase } from './supabase'; // Make sure the correct path is used
+import InteractivePage from './features/InteractionPage.vue'; // Import the InteractivePage component
 
 interface Post {
   id: number;
@@ -49,10 +51,12 @@ export default defineComponent({
   name: 'ChattersPage',
   components: {
     NavBar,
+    InteractivePage,
   },
   setup() {
     const posts = ref<Post[]>([]);
     const selectedPost = ref<Post | null>(null);
+    const currentComponentKey = ref<number>(0); // Key to force component re-render
 
     const fetchPostsFromBucket = async (userId: string) => {
       const { data, error } = await supabase.storage
@@ -123,8 +127,35 @@ export default defineComponent({
       posts.value = loadedPosts;
     };
 
-    const viewPost = (index: number) => {
-      selectedPost.value = posts.value[index];
+    const viewPost = async (index: number) => {
+      const post = posts.value[index];
+
+      const { data, error } = await supabase
+        .from('blog_post')
+        .select('id, user_id')
+        .eq('title', post.title)
+        .single();
+
+      if (error) {
+        console.error('Error fetching post details:', error.message);
+        return;
+      }
+
+      const { id, user_id } = data;
+
+      // Clear local storage and save new user.id and blog.id
+      localStorage.removeItem('user_id');
+      localStorage.removeItem('blog_id');
+      localStorage.setItem('user_id', user_id);
+      localStorage.setItem('blog_id', id);
+
+      // Log to verify
+      console.log(`User ID: ${user_id}, Blog Post ID: ${id}`);
+      console.log('Stored User ID:', localStorage.getItem('user_id'));
+      console.log('Stored Blog ID:', localStorage.getItem('blog_id'));
+
+      selectedPost.value = post;
+      currentComponentKey.value += 1; // Update the key to force re-render
     };
 
     const deletePost = async (index: number) => {
@@ -146,6 +177,24 @@ export default defineComponent({
       localStorage.setItem(`${userId}_blogPosts`, JSON.stringify(posts.value));
     };
 
+    const formatDate = (dateString: string) => {
+      const options: Intl.DateTimeFormatOptions = {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+      };
+      return new Date(dateString).toLocaleDateString(undefined, options);
+    };
+
+    const formatTime = (dateString: string) => {
+      const options: Intl.DateTimeFormatOptions = {
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+      };
+      return new Date(dateString).toLocaleTimeString(undefined, options);
+    };
+
     onMounted(() => {
       loadPosts();
     });
@@ -155,6 +204,9 @@ export default defineComponent({
       selectedPost,
       viewPost,
       deletePost,
+      currentComponentKey,
+      formatDate,
+      formatTime,
     };
   },
 });
@@ -165,7 +217,6 @@ export default defineComponent({
   display: flex;
   flex-direction: column;
   height: 100vh;
- 
   padding-right: 50px;
   padding-left: 50px;
 }
@@ -201,16 +252,26 @@ export default defineComponent({
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
-.blog-header {
-  font-size: 2rem; /* Adjust the font size as needed */
+.left-title  {
+  background-color: #1e2127;
+  width: 100%;
+  padding: 2px;
+}
+
+.left-title h1{
+  text-align: center;
+  width: 100%;
+  font-size: 14px;
+  justify-content: center;
+  color: #cebfad;
 }
 
 .right-column {
   width: 75%;
   padding: 20px;
-  border-left: 1px solid #ccc;
   background-color: #1e2127;
   overflow-y: auto;
+  color: #cebfad;
 }
 
 ul {
@@ -257,11 +318,54 @@ button:hover {
 
 h2 {
   color: #cebfad;
-  font-size: 50px;
+  font-size: 2rem;
 }
 
 .postbody {
   color: #cebfad;
-  font-size: 15px;
+  font-size: 1rem;
+}
+
+@media (max-width: 430px) {
+  .chatters-page {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  padding-right: 1px;
+  padding-left: 1px;
+}
+
+  .container {
+    flex-direction: column;
+  }
+  
+  
+
+  .left-column {
+    order: 1;
+    width: 90%;
+  }
+
+  .right-column {
+    order: 2;
+    width: 88%;
+  }
+
+  ul {
+    display: block;
+  }
+
+  li {
+    display: block;
+    margin-bottom: 5px;
+  }
+
+  .post-title {
+    text-align: left;
+  }
+}
+
+.list-container{
+  display: flex;
 }
 </style>

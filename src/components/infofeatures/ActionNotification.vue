@@ -17,9 +17,10 @@
   </div>
 </template>
 
-<script lang="ts">
-import { defineComponent, ref, onMounted } from 'vue';
-import { supabase } from '../supabase'; // Adjust the path as needed
+<script setup lang="ts">
+import { ref, onMounted, onUnmounted } from 'vue';
+import { supabase } from '../supabase';  // Adjust the path as needed
+import { eventBus } from '../event-bus';
 
 interface Notification {
   id: string;
@@ -27,162 +28,72 @@ interface Notification {
   read: boolean;
   created_at: string;
   user_id: string;
+  displayed: boolean;
 }
 
-export default defineComponent({
-  name: 'ActionNotification',
-  setup() {
-    const notifications = ref<Notification[]>([]);
-    const showNotifications = ref(false);
-    const unreadCount = ref(0);
+const notifications = ref<Notification[]>([]);
+const showNotifications = ref(false);
+const unreadCount = ref(0);
+const intervalId = ref<number | null>(null);
 
-    const fetchNotifications = async () => {
-      const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
-      const { data, error } = await supabase
-        .from('notifications')
-        .select('*')
-        .eq('user_id', currentUser.id)
-        .order('created_at', { ascending: false });
+const fetchNotifications = async () => {
+  const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+  const { data, error } = await supabase
+    .from('notifications')
+    .select('*')
+    .eq('user_id', currentUser.id)
+    .order('created_at', { ascending: false });
 
-      if (error) {
-        console.error('Error fetching notifications:', error.message);
-        return;
-      }
+  if (error) {
+    console.error('Error fetching notifications:', error.message);
+    return;
+  }
 
-      notifications.value = data as Notification[];
-      unreadCount.value = data.filter((n: Notification) => !n.read).length;
-    };
+  notifications.value = data as Notification[];
+  unreadCount.value = data.filter((n: Notification) => !n.read).length;
+};
 
-    const fetchFollowers = async () => {
-      const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
-      const { data, error } = await supabase
-        .from('users')
-        .select('followers_id')
-        .eq('id', currentUser.id)
-        .single();
+const markNotificationsAsRead = async () => {
+  const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+  await supabase
+    .from('notifications')
+    .update({ read: true })
+    .eq('user_id', currentUser.id);
 
-      if (error) {
-        console.error('Error fetching followers:', error.message);
-        return;
-      }
+  unreadCount.value = 0;
+};
 
-      const followerIds = data.followers_id || [];
-      const followerNotifications = await Promise.all(
-        followerIds.map(async (followerId: string) => {
-          const { data: followerData, error: followerError } = await supabase
-            .from('users')
-            .select('full_name')
-            .eq('id', followerId)
-            .single();
+const handleClick = () => {
+  showNotifications.value = !showNotifications.value;
+  if (showNotifications.value) {
+    markNotificationsAsRead();
+  }
+};
 
-          if (followerError) {
-            console.error('Error fetching follower data:', followerError.message);
-            return null;
-          }
+const clearAllNotifications = () => {
+  notifications.value = [];
+  unreadCount.value = 0;
+};
 
-          return {
-            id: followerId,
-            message: `${followerData.full_name} is now following you.`,
-            read: false,
-            created_at: new Date().toISOString(),
-            user_id: currentUser.id,
-          } as Notification;
-        })
-      );
+const addNotification = (notification: { userId: string; message: string }) => {
+  notifications.value.push({
+    id: Date.now().toString(),
+    message: notification.message,
+    read: false,
+    created_at: new Date().toISOString(),
+    user_id: notification.userId,
+    displayed: true,
+  });
+  unreadCount.value += 1;
+};
 
-      notifications.value = followerNotifications.filter((n) => n !== null) as Notification[];
-      unreadCount.value = notifications.value.length;
-    };
+eventBus.on('likeNotification', addNotification);
 
-    const toggleNotifications = () => {
-      showNotifications.value = !showNotifications.value;
-      if (showNotifications.value) {
-        markNotificationsAsRead();
-      }
-    };
-
-    const markNotificationsAsRead = async () => {
-      const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
-      await supabase
-        .from('notifications')
-        .update({ read: true })
-        .eq('user_id', currentUser.id);
-
-      unreadCount.value = 0;
-    };
-
-    const handleClick = () => {
-      toggleNotifications();
-    };
-
-    const sendWelcomeNotification = async () => {
-      const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
-      const { data, error } = await supabase
-        .from('notifications')
-        .select('*')
-        .eq('user_id', currentUser.id)
-        .eq('message', 'Welcome to Bloggabug');
-
-      if (error) {
-        console.error('Error checking existing notification:', error.message);
-        return;
-      }
-
-      // Send the welcome notification only if it doesn't exist or has been read
-      if (data.length === 0 || data.some((n: Notification) => n.read)) {
-        await sendNotification('Welcome to Bloggabug');
-      }
-    };
-
-    const sendNotification = async (message: string) => {
-      const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
-      const notification = {
-        user_id: currentUser.id,
-        message,
-        read: false,
-      };
-
-      const { data, error } = await supabase.from('notifications').insert([notification]);
-
-      if (error) {
-        console.error('Error sending notification:', error.message);
-      } else {
-        console.log('Notification sent successfully:', data);
-        fetchNotifications(); // Fetch the notifications again to update the list
-      }
-    };
-
-    const clearAllNotifications = async () => {
-      const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
-      const { error } = await supabase
-        .from('notifications')
-        .delete()
-        .eq('user_id', currentUser.id);
-
-      if (error) {
-        console.error('Error clearing notifications:', error.message);
-        return;
-      }
-
-      notifications.value = [];
-      unreadCount.value = 0;
-    };
-
-    onMounted(() => {
-      fetchNotifications();
-      sendWelcomeNotification();
-      fetchFollowers();
-    });
-
-    return {
-      notifications,
-      showNotifications,
-      unreadCount,
-      handleClick,
-      toggleNotifications,
-      clearAllNotifications,
-    };
-  },
+onMounted(fetchNotifications);
+onUnmounted(() => {
+  if (intervalId.value) {
+    clearInterval(intervalId.value);
+  }
 });
 </script>
 

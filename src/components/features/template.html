@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{title}}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+        .blog-container {
+            width: 60%;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            margin-top: 20px;
+        }
+        .header, .footer {
+            text-align: center;
+            background-color: #333;
+            color: #fff;
+            padding: 10px;
+        }
+        .post {
+            margin-bottom: 20px;
+        }
+        .post-title {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+        .post-meta {
+            color: #777;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+        .post-content {
+            margin-bottom: 20px;
+        }
+        .post-actions {
+            margin-bottom: 20px;
+        }
+        .comments-section {
+            margin-top: 20px;
+        }
+        .comment-form {
+            display: flex;
+            flex-direction: column;
+        }
+        .comment-form textarea {
+            resize: vertical;
+            padding: 10px;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+        .comment-form button {
+            padding: 10px;
+            background-color: #333;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+        }
+        .comments {
+            margin-top: 20px;
+        }
+        .comment {
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+        .like-button, .bookmark-button {
+            padding: 10px;
+            background-color: #333;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        .like-button:active, .bookmark-button:active {
+            background-color: #555;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>{{title}}</h1>
+    </div>
+    <div class="blog-container">
+        <div class="post">
+            <div class="post-title">{{title}}</div>
+            <div class="post-meta">
+                Created by: <span class="created-by">{{createdBy}}</span> on <span class="timestamp">{{timestamp}}</span>
+            </div>
+            <div class="post-content">
+                {{content}}
+            </div>
+            <div class="post-actions">
+                <button class="like-button" onclick="likePost()">Like (<span id="like-count">0</span>)</button>
+                <button class="bookmark-button" onclick="bookmarkPost()">Bookmark</button>
+            </div>
+        </div>
+        <div class="comments-section">
+            <h3>Comments</h3>
+            <div class="comment-form">
+                <textarea id="comment-input" rows="4" placeholder="Add a comment..."></textarea>
+                <button onclick="addComment()">Submit</button>
+            </div>
+            <div class="comments" id="comments"></div>
+        </div>
+    </div>
+    <div class="footer">
+        <p>&copy; 2024 Simple Blog. All rights reserved.</p>
+    </div>
+
+    <script>
+        let likeCount = 0;
+        const comments = [];
+
+        function likePost() {
+            likeCount++;
+            document.getElementById('like-count').innerText = likeCount;
+        }
+
+        function bookmarkPost() {
+            alert('Post bookmarked!');
+        }
+
+        function addComment() {
+            const commentInput = document.getElementById('comment-input');
+            const commentText = commentInput.value.trim();
+            if (commentText) {
+                comments.push(commentText);
+                renderComments();
+                commentInput.value = '';
+            }
+        }
+
+        function renderComments() {
+            const commentsDiv = document.getElementById('comments');
+            commentsDiv.innerHTML = '';
+            comments.forEach((comment, index) => {
+                const commentDiv = document.createElement('div');
+                commentDiv.className = 'comment';
+                commentDiv.innerText = comment;
+                commentsDiv.appendChild(commentDiv);
+            });
+        }
+    </script>
+</body>
+</html>
