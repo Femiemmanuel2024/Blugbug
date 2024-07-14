@@ -189,10 +189,17 @@ button {
 
 
 @media (max-width: 430px) {
-  .right-column {
+
+  .new-user-page {
+  display: flex;
+  flex-direction: column;
+  }
+
+  .right-column{
     display: none;
   }
 
+ 
   .left-column {
     width: 100%;
     overflow-y: auto;

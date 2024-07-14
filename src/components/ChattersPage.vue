@@ -295,7 +295,7 @@ li {
 }
 
 .post-title:hover {
-  text-decoration: underline;
+  color: #fd662f;
 }
 
 .post-actions {

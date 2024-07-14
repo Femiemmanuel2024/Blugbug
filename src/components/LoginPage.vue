@@ -2,9 +2,10 @@
   <div class="loginbody">
     <div class="columns-container">
       <div class="column left-column">
-        <h1>Welcome to Chatter</h1>
+        
+      <h1>Welcome to Bloggabug</h1>
         <p>We're excited to have you join our vibrant community. Connect with friends, share your thoughts, and explore new ideas. Happy chatting!
-          <div class="chatterdesign">CHATTER</div>
+          
         </p>
       </div>
       <div class="column right-column">
@@ -95,13 +96,29 @@ export default defineComponent({
 </script>
 
 <style scoped>
+/* CSS Reset */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+}
+
+
+
 .loginbody {
   background: linear-gradient(45deg, #202329, #4e545b);
   display: flex;
   justify-content: center;
   align-items: center;
-  width: 100vw;
-  height: 100vh;
+  width: 99vw;
+  height: 97vh;
+  overflow: hidden;
   position: relative; /* Allow absolute positioning for the login container */
 }
 
@@ -126,7 +143,7 @@ export default defineComponent({
 
 .left-column h1 {
   color: #ed6834; /* Text color for "Chatter" */
-  font-size: 60px;
+  font-size: 50PX;
   font-weight: bolder;
   text-align: left;
   padding-left: 30px;
@@ -137,11 +154,16 @@ export default defineComponent({
 }
 
 .left-column p {
-  margin-top: -10px;
+  margin-top: 50px;
   padding-left: 30px;
-  padding-right: 80px;
-  font-size: 12px;
+  padding-right: 100px;
+  font-size: 14px;
+  justify-content: center;
 }
+
+
+
+
 
 .right-column {
   background-color: #2b3138; /* Background color for the right column */
@@ -220,12 +242,24 @@ a {
 }
 
 p {
-  margin-top: 150px; /* Spacing */
+  margin-top: 120px; /* Spacing */
   color: #d7c9b7; /* Text color */
 }
 
 /* Media query for phone view */
-@media (max-width: 768px) {
+@media (max-width: 430px) {
+
+  *{
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+}
   .columns-container {
     flex-direction: column;
     height: auto; /* Adjust height for mobile view */
@@ -236,6 +270,7 @@ p {
     padding-left: 30px;
     padding-right: 80px;
     font-size: 8px;
+    margin-bottom: 10px;
   }
 
   .left-column h1 {
@@ -254,5 +289,41 @@ p {
     margin: 20px;
     max-width: 100%; /* Adjust the max-width for mobile view */
   }
+
+  .loginbody {
+  background: linear-gradient(45deg, #202329, #4e545b);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  position: relative; /* Allow absolute positioning for the login container */
+}
+
+.left-column p {
+  margin-top: 50px;
+  padding-left: 30px;
+  padding-right: 10px;
+  font-size: 10px;
+  justify-content: center;
+}
+.login-container {
+  height: 100%;
+  width: 100%;
+  max-width: 500px;
+  padding: 20px;
+  background-color: none; /* Container background color */
+  border-radius: 10px;
+  text-align: center;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Add shadow to the login container */
+}
+
+.login-container h1 {
+  font-size: 24px;
+  color: #cebfad; /* Text color */
+  margin-top: 10px;
+}
+
 }
 </style>
