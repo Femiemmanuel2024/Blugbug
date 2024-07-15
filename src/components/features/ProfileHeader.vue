@@ -1,4 +1,3 @@
-<!-- ProfileHeader.vue -->
 <template>
   <div class="profile-header">
     <div class="header-image-container">
@@ -25,8 +24,8 @@
     <p class="about-me">{{ user.aboutMe }}</p>
     <div class="stats-container">
       <p>
-        <strong>{{ totalLikes }}</strong> Likes
-        <strong>{{ totalBookmarks }}</strong> Bookmarks
+        <strong>{{ formatCount(totalLikes) }}</strong> Likes
+        <strong>{{ formatCount(totalBookmarks) }}</strong> Bookmarks
         <strong>{{ user.following }}</strong> Following
         <strong>{{ user.followers }}</strong> Followers
       </p>
@@ -62,14 +61,6 @@ export default defineComponent({
       type: String,
       required: true,
     },
-    totalLikes: {
-      type: Number,
-      required: true,
-    },
-    totalBookmarks: {
-      type: Number,
-      required: true,
-    },
     disableUpload: {
       type: Boolean,
       default: false,
@@ -87,6 +78,8 @@ export default defineComponent({
       followers: 0,
       following: 0,
     });
+    const totalLikes = ref(0);
+    const totalBookmarks = ref(0);
     const showFileUpload = ref(false);
     const uploadType = ref<'profile' | 'header' | 'checkmark'>('profile');
     const profilePicture = ref<string>('/src/assets/Default_pfp.svg');
@@ -122,6 +115,26 @@ export default defineComponent({
         headerImage.value = user.value.header_image_url;
         checkmarkIconUrl.value = user.value.checkmark_url;
         console.log('Fetched user data:', user.value);
+
+        // Fetch total likes and bookmarks after fetching user data
+        await fetchTotalLikesAndBookmarks();
+      }
+    };
+
+    const fetchTotalLikesAndBookmarks = async () => {
+      const { data, error } = await supabase
+        .from('blog_post')
+        .select('likes, bookmarked_by')
+        .eq('user_id', props.userId);
+
+      if (error) {
+        console.error('Error fetching total likes and bookmarks:', error.message);
+        return;
+      }
+
+      if (data) {
+        totalLikes.value = data.reduce((sum, post) => sum + post.likes, 0);
+        totalBookmarks.value = data.reduce((sum, post) => sum + (post.bookmarked_by ? post.bookmarked_by.length : 0), 0);
       }
     };
 
@@ -136,6 +149,16 @@ export default defineComponent({
       showFileUpload.value = false;
     };
 
+    const formatCount = (count: number) => {
+      if (count >= 1000000) {
+        return (count / 1000000).toFixed(1) + 'm';
+      } else if (count >= 1000) {
+        return (count / 1000).toFixed(1) + 'k';
+      } else {
+        return count.toString();
+      }
+    };
+
     watch(() => props.userId, fetchUserData, { immediate: true });
 
     return {
@@ -148,6 +171,9 @@ export default defineComponent({
       profilePicture,
       headerImage,
       checkmarkIconUrl,
+      totalLikes,
+      totalBookmarks,
+      formatCount,
     };
   },
 });
@@ -330,5 +356,4 @@ export default defineComponent({
   color: #cebfad;
   font-size: 14px;
 }
-
 </style>

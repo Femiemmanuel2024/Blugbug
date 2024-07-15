@@ -3,15 +3,14 @@
     <div class="row search-bar-row">
       <SearchBar />
     </div>
+    <div class="row bookmarked-blogs-row">
+      <BookmarkedBlugs />
+    </div>
     <div class="row latest-blogs-row">
       <LatestBlogs />
     </div>
     <div class="row top-liked-row">
       <TopLiked />
-    </div>
-    <div class="row top-chattees-row">
-      <h2>Top Chattees</h2>
-      <p>Text content for top chattees.</p>
     </div>
   </div>
 </template>
@@ -21,6 +20,7 @@ import { defineComponent } from 'vue';
 import SearchBar from '../features/SearchBar.vue'; // Adjust the path as needed
 import LatestBlogs from './LatestBlogs.vue'; // Import LatestBlogs component
 import TopLiked from './TopLiked.vue'; // Import TopLiked component
+import BookmarkedBlugs from './BookmarkedBlugs.vue'; // Import BookmarkedBlugs component
 
 export default defineComponent({
   name: 'InfoData',
@@ -28,6 +28,7 @@ export default defineComponent({
     SearchBar,
     LatestBlogs, // Register LatestBlogs component
     TopLiked, // Register TopLiked component
+    BookmarkedBlugs, // Register BookmarkedBlugs component
   },
 });
 </script>
@@ -68,6 +69,11 @@ export default defineComponent({
   max-height: 130px;
 }
 
+.bookmarked-blogs-row {
+  height: 200px;
+  max-height: 200px;
+}
+
 .latest-blogs-row {
   height: 200px;
   max-height: 200px;
@@ -76,11 +82,6 @@ export default defineComponent({
 .top-liked-row {
   height: 200px;
   max-height: 200px;
-}
-
-.top-chattees-row {
-  height: 150px;
-  max-height: 150px;
 }
 
 /* Custom scrollbar for WebKit browsers (Chrome, Safari) */

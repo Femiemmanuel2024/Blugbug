@@ -126,13 +126,14 @@ export default defineComponent({
       }
     };
 
-    const createNotification = async (message: string) => {
+    const createNotification = async (message: string, mentionedUserId: string | null = null) => {
       if (blogOwnerId.value && blogOwnerId.value !== userId.value) {
+        const userIdToNotify = mentionedUserId || blogOwnerId.value;
         const { error } = await supabase
           .from('notifications')
           .insert([
             {
-              user_id: blogOwnerId.value,
+              user_id: userIdToNotify,
               message: message,
               blog_title: blogTitle.value,
               read: false,
@@ -289,6 +290,28 @@ export default defineComponent({
         newComment.value = '';
 
         createNotification(`${chatterName.value} commented on your blug`);
+
+        // Handle mentions
+        const mentionedUsernames = newCommentText.match(/@(\w+)/g);
+        if (mentionedUsernames) {
+          for (const mentionedUsername of mentionedUsernames) {
+            const username = mentionedUsername.slice(1); // Remove the "@" symbol
+            const { data: mentionedUser, error: userError } = await supabase
+              .from<User>('users')
+              .select('id')
+              .eq('chatter_name', username)
+              .single();
+
+            if (userError) {
+              console.error('Error fetching mentioned user:', userError.message);
+              continue;
+            }
+
+            if (mentionedUser) {
+              createNotification(`${chatterName.value} mentioned you in a blug`, mentionedUser.id);
+            }
+          }
+        }
       }
     };
 
