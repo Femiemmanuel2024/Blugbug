@@ -116,8 +116,8 @@ html, body {
   display: flex;
   justify-content: center;
   align-items: center;
-  width: 99vw;
-  height: 97vh;
+  width: 100vw;
+  height: 100vh;
   overflow: hidden;
   position: relative; /* Allow absolute positioning for the login container */
 }
@@ -160,9 +160,6 @@ html, body {
   font-size: 14px;
   justify-content: center;
 }
-
-
-
 
 
 .right-column {
@@ -249,29 +246,19 @@ p {
 /* Media query for phone view */
 @media (max-width: 430px) {
 
-  *{
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
 
-html, body {
-  height: 100%;
-  width: 100%;
-  overflow: hidden;
-}
+
+
   .columns-container {
     flex-direction: column;
-    height: auto; /* Adjust height for mobile view */
+    width: 90%;
+    height: 100vh;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    align-self: center;
   }
 
-  .left-column p {
-    margin-top: -10px;
-    padding-left: 30px;
-    padding-right: 80px;
-    font-size: 8px;
-    margin-bottom: 10px;
-  }
+ 
 
   .left-column h1 {
     color: #ed6834; /* Text color for "Chatter" */
@@ -295,8 +282,9 @@ html, body {
   display: flex;
   justify-content: center;
   align-items: center;
-  width: 100vw;
-  height: 100vh;
+  width: 100%;
+  height: 100%;
+  
   overflow: hidden;
   position: relative; /* Allow absolute positioning for the login container */
 }
@@ -305,7 +293,7 @@ html, body {
   margin-top: 50px;
   padding-left: 30px;
   padding-right: 10px;
-  font-size: 10px;
+  font-size: 16px;
   justify-content: center;
 }
 .login-container {
@@ -323,7 +311,17 @@ html, body {
   font-size: 24px;
   color: #cebfad; /* Text color */
   margin-top: 10px;
+  margin-bottom: 20px;
 }
+
+.right-column {
+  background-color: #2b3138; /* Background color for the right column */
+  display: flex; /* Ensure flexbox properties apply */
+  justify-content: center; /* Center the login container horizontally */
+  align-items: center; 
+  padding-bottom: 200px;
+}
+
 
 }
 </style>

@@ -132,7 +132,7 @@ export default defineComponent({
   display: flex;
   flex-direction: column;
   height: 100vh;
-  background-color: #ffffff;
+  background-color: #000000;
   padding-right: 50px;
   padding-left: 50px;
   padding-top: 82px;
