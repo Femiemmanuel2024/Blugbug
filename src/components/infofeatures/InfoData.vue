@@ -6,9 +6,8 @@
     <div class="row latest-blogs-row">
       <LatestBlogs />
     </div>
-    <div class="row most-liked-chattees-row">
-      <h2>Most Liked Chattees</h2>
-      <p>Text content for most liked chattees.</p>
+    <div class="row top-liked-row">
+      <TopLiked />
     </div>
     <div class="row top-chattees-row">
       <h2>Top Chattees</h2>
@@ -21,12 +20,14 @@
 import { defineComponent } from 'vue';
 import SearchBar from '../features/SearchBar.vue'; // Adjust the path as needed
 import LatestBlogs from './LatestBlogs.vue'; // Import LatestBlogs component
+import TopLiked from './TopLiked.vue'; // Import TopLiked component
 
 export default defineComponent({
   name: 'InfoData',
   components: {
     SearchBar,
     LatestBlogs, // Register LatestBlogs component
+    TopLiked, // Register TopLiked component
   },
 });
 </script>
@@ -45,8 +46,6 @@ export default defineComponent({
   display: flex;
   flex-direction: column;
   justify-content: auto;
-  
-  
 }
 
 .row:last-child {
@@ -74,9 +73,9 @@ export default defineComponent({
   max-height: 200px;
 }
 
-.most-liked-chattees-row {
-  height: 150px;
-  max-height: 150px;
+.top-liked-row {
+  height: 200px;
+  max-height: 200px;
 }
 
 .top-chattees-row {

@@ -11,13 +11,13 @@
         <font-awesome-icon :icon="['fas', 'house']" />
         <span class="icon-label">Home</span>
       </router-link>
-      <router-link to="/chatters" class="nav-icon" @click="animateIcon($event)">
+      <router-link to="/MyBlug" class="nav-icon" @click="animateIcon($event)">
         <font-awesome-icon :icon="['fas', 'comments']" />
-        <span class="icon-label">Chatters</span>
+        <span class="icon-label">MyBlug</span>
       </router-link>
-      <router-link to="/analytics" class="nav-icon" @click="animateIcon($event)">
-        <font-awesome-icon :icon="['fas', 'chart-line']" />
-        <span class="icon-label">Analytics</span>
+      <router-link to="/BlugPage" class="nav-icon blug-icon" @click="animateFlipIcon($event)">
+        <font-awesome-icon :icon="['fas', 'globe']" />
+        <span class="icon-label">Blug</span>
       </router-link>
       <router-link to="/settings" class="nav-icon" @click="animateIcon($event)">
         <font-awesome-icon :icon="['fas', 'gear']" />
@@ -58,9 +58,18 @@ export default defineComponent({
       }, 300);
     };
 
+    const animateFlipIcon = (event: MouseEvent) => {
+      const icon = event.currentTarget as HTMLElement;
+      icon.classList.add('animate-flip');
+      setTimeout(() => {
+        icon.classList.remove('animate-flip');
+      }, 300);
+    };
+
     return {
       logout,
       animateIcon,
+      animateFlipIcon,
     };
   },
 });
@@ -70,11 +79,18 @@ export default defineComponent({
 @import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css');
 
 .navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 10px 10px;
+  margin: 0px 58px;
   background-color: #1e2127;
+  box-shadow: 0 0px 5px rgba(0, 0, 0, 0.9);
+  z-index: 9999;
 }
 
 .navbar-left, .navbar-center, .navbar-right {
@@ -94,7 +110,6 @@ export default defineComponent({
 
 .navbar-right {
   justify-content: center;
-  background-color: rgba(43, 49, 56, 1);
   overflow: hidden;
   border-radius: 0px;
   height: 70px;
@@ -126,8 +141,16 @@ export default defineComponent({
   transform: scale(0.9);
 }
 
+.nav-icon:hover {
+  color: #fd662f;
+}
+
 .animate {
   animation: click-animation 0.3s ease;
+}
+
+.animate-flip {
+  animation: flip-animation 0.3s ease;
 }
 
 .brandlogo {
@@ -146,11 +169,50 @@ export default defineComponent({
   }
 }
 
+@keyframes flip-animation {
+  0% {
+    transform: rotateY(0);
+  }
+  50% {
+    transform: rotateY(180deg);
+  }
+  100% {
+    transform: rotateY(360deg);
+  }
+}
+
+@keyframes hover-animation {
+  0% {
+    transform: rotateY(0);
+  }
+  50% {
+    transform: rotateY(180deg);
+  }
+  100% {
+    transform: rotateY(360deg);
+  }
+}
+
+.router-link-active {
+  color: #fd662f !important;
+}
+
+.blug-icon:hover {
+  animation: hover-animation 0.3s ease;
+}
+
 /* Media query for screen size 414px by 896px */
 @media (max-width: 430px) {
   .navbar {
     flex-direction: column;
     align-items: center;
+    padding: 0px 0px 0px 0px;
+    background-color: #1e2127;
+    box-shadow: 0 0px 5px rgba(0, 0, 0, 0.9);
+    z-index: 9999;
+    width: 100%;
+    margin-right: 50px;
+    margin-left: 10px;
   }
   .navbar-left, .navbar-center, .navbar-right {
     justify-content: center;
@@ -160,11 +222,13 @@ export default defineComponent({
     flex-wrap: wrap;
   }
 
-  .navbar-center{
+  .navbar-center {
     padding-bottom: 20px;
   }
   .nav-icon {
     margin: 5px;
+    font-size: 20px;
+    
   }
   .icon-label {
     display: none;

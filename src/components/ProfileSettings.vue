@@ -219,6 +219,8 @@ html, body {
   height: 100vh;
   padding-right: 50px;
   padding-left: 50px;
+  padding-top: 82px;
+  
 }
 
 .content {
@@ -227,6 +229,7 @@ html, body {
   width: 100%;
   max-width: 100%;
   height: 100vh;
+  padding-top: 70px;
 }
 
 h1 {
@@ -239,6 +242,7 @@ table {
   width: 100%;
   border-collapse: collapse;
   margin-bottom: 20px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
 th, td {
@@ -259,6 +263,8 @@ td textarea {
   color: #cebfad;
   border: none;
   border-radius: 4px;
+  resize: none; /* Disable resize for textarea */
+  height: 50px;
   
 }
 td{

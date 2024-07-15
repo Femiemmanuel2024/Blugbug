@@ -1,4 +1,4 @@
-// src/event-bus.ts
+// // src/event-bus.ts
 import mitt from 'mitt';
 
 type Events = {
@@ -6,3 +6,8 @@ type Events = {
 };
 
 export const eventBus = mitt<Events>();
+
+
+
+
+

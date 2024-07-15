@@ -9,6 +9,7 @@
           :totalBookmarks="totalBookmarks"
           :followingCount="followingCount" 
           :followersCount="followersCount"
+          :disableUpload="true"
         />
         <FollowButton :userId="userId" />
         <BlogPosts :posts="posts" @likePost="likePost" @bookmarkPost="bookmarkPost" />
@@ -166,6 +167,7 @@ export default defineComponent({
   background-color: #ffffff;
   padding-right: 50px;
   padding-left: 50px;
+  padding-top: 82px;
 }
 
 .navbar {
@@ -183,11 +185,9 @@ export default defineComponent({
   overflow-y: auto;
   height: 100%;
   background-color: #2b3138;
-  
 }
 
 .feed-container {
- 
   padding: 10px;
   border: solid 5px #0c1118;
 }

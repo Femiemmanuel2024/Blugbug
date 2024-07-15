@@ -76,6 +76,7 @@ export default defineComponent({
     };
 
     const fetchPostContent = async (filePath: string) => {
+      console.log(`Fetching content for file: ${filePath}`);
       const { data, error } = await supabase.storage
         .from('blog-post')
         .download(filePath);
@@ -132,7 +133,7 @@ export default defineComponent({
 
       const { data, error } = await supabase
         .from('blog_post')
-        .select('id, user_id')
+        .select('user_id, blog_id')
         .eq('title', post.title)
         .single();
 
@@ -141,40 +142,56 @@ export default defineComponent({
         return;
       }
 
-      const { id, user_id } = data;
+      const { user_id, blog_id } = data;
 
       // Clear local storage and save new user.id and blog.id
       localStorage.removeItem('user_id');
       localStorage.removeItem('blog_id');
       localStorage.setItem('user_id', user_id);
-      localStorage.setItem('blog_id', id);
+      localStorage.setItem('blog_id', blog_id);
 
       // Log to verify
-      console.log(`User ID: ${user_id}, Blog Post ID: ${id}`);
+      console.log(`User ID: ${user_id}, Blog Post ID: ${blog_id}`);
       console.log('Stored User ID:', localStorage.getItem('user_id'));
       console.log('Stored Blog ID:', localStorage.getItem('blog_id'));
 
-      selectedPost.value = post;
+      const filePath = `${user_id}/${blog_id}.html`;
+      const htmlContent = await fetchPostContent(filePath);
+      const { title, bodyContent } = extractPostElements(htmlContent);
+
+      selectedPost.value = { ...post, title, bodyContent };
       currentComponentKey.value += 1; // Update the key to force re-render
     };
 
     const deletePost = async (index: number) => {
-      const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
-      const userId = currentUser.id;
       const post = posts.value[index];
-      const filePath = `${userId}/${post.title}.html`;
 
-      const { error } = await supabase.storage
-        .from('blog-post')
-        .remove([filePath]);
+      const { data, error } = await supabase
+        .from('blog_post')
+        .select('user_id, blog_id')
+        .eq('title', post.title)
+        .single();
 
       if (error) {
-        console.error('Error deleting post:', error.message);
+        console.error('Error fetching post details:', error.message);
         return;
       }
 
+      const { user_id, blog_id } = data;
+      const filePath = `${user_id}/${blog_id}.html`;
+
+      const { error: deleteError } = await supabase.storage
+        .from('blog-post')
+        .remove([filePath]);
+
+      if (deleteError) {
+        console.error('Error deleting post:', deleteError.message);
+        return;
+      }
+
+      // Remove the post from the local state
       posts.value.splice(index, 1);
-      localStorage.setItem(`${userId}_blogPosts`, JSON.stringify(posts.value));
+      localStorage.setItem(`${user_id}_blogPosts`, JSON.stringify(posts.value));
     };
 
     const formatDate = (dateString: string) => {
@@ -219,6 +236,7 @@ export default defineComponent({
   height: 100vh;
   padding-right: 50px;
   padding-left: 50px;
+  padding-top: 82px;
 }
 
 .navbar {

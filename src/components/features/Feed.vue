@@ -1,30 +1,26 @@
-<!-- code for the feed on the homepage -->
 <template>
-   <div class="feedheader">
-      <h3>Blug</h3>
-    </div>
-    <ul>
-      <li v-for="post in feedPosts" :key="post.id">
-        <div @click="toggleContent(post.id)" class="post-title">{{ post.title }}</div>
-        <div class="post-meta">by {{ post.userFullName }} on {{ formatDateTime(post.date) }}</div>
-        <div class="post-actions">
-          <button @click.stop="likePost(post.id)" aria-label="Like Post">
-            <i class="fas fa-thumbs-up"></i>
-            <span>{{ post.likes }}</span>
-          </button>
-          <button @click="readPost(post.id)">Read</button>
-        </div>
-        <div v-if="expandedPost === post.id" class="post-content" v-html="post.content"></div>
-      </li>
-    </ul>
-  <!-- <div class="feed-container" v-if="feedPosts.length">
-   
-  </div> -->
+  <div class="feedheader">
+    <h3>Blug</h3>
+  </div>
+  <ul>
+    <li v-for="post in feedPosts" :key="post.id">
+      <div @click="toggleContent(post.id)" class="post-title">{{ post.title }}</div>
+      <div class="post-meta">by {{ post.userFullName }} on {{ formatDateTime(post.date) }}</div>
+      <div class="post-actions">
+        <i class="fas fa-thumbs-up"></i>
+        <span>{{ post.likes }}</span>
+        <i class="fas fa-bookmark" @click.stop="bookmarkPost(post.id)"></i>
+        <button @click="readPost(post.title)">Read</button>
+      </div>
+      <div v-if="expandedPost === post.id" class="post-content" v-html="post.content"></div>
+    </li>
+  </ul>
 </template>
 
 <script lang="ts">
 import { defineComponent, ref, onMounted } from 'vue';
-import { supabase } from '../supabase'; // Ensure the correct path is used
+import { supabase } from '../supabase';
+import { useRouter } from 'vue-router';
 
 interface Post {
   id: number;
@@ -34,6 +30,7 @@ interface Post {
   user: string;
   userFullName: string;
   date: string;
+  filePath: string;
 }
 
 export default defineComponent({
@@ -42,6 +39,7 @@ export default defineComponent({
     const feedPosts = ref<Post[]>([]);
     const expandedPost = ref<number | null>(null);
     const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+    const router = useRouter();
 
     const loadFeedPosts = async () => {
       const { data, error } = await supabase
@@ -102,6 +100,7 @@ export default defineComponent({
             user: userId,
             userFullName: createdByElement?.textContent?.replace('Created by: ', '') || 'Unknown',
             date: dateElement?.textContent?.replace('Date: ', '') || new Date().toISOString(),
+            filePath: `${userId}/${post.name}`,
           });
         }
       }
@@ -116,15 +115,13 @@ export default defineComponent({
       return `${formattedTime} on ${formattedDate}`;
     };
 
-    const likePost = (postId: number) => {
-      const post = feedPosts.value.find((post) => post.id === postId);
-      if (post) {
-        post.likes++;
-      }
+    const readPost = (title: string) => {
+      router.push({ name: 'BlugPage', query: { search: title } });
     };
 
-    const readPost = (postId: number) => {
-      // Functionality to read the post
+    const bookmarkPost = (postId: number) => {
+      console.log(`Bookmarking post with id: ${postId}`);
+      // Add logic to handle bookmarking the post
     };
 
     const toggleContent = (postId: number) => {
@@ -138,8 +135,8 @@ export default defineComponent({
     return {
       feedPosts,
       expandedPost,
-      likePost,
       readPost,
+      bookmarkPost,
       toggleContent,
       formatDateTime,
     };

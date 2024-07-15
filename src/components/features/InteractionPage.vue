@@ -1,23 +1,20 @@
 <template>
   <div class="interactive-page">
     <div class="content">
-
       <div class="interaction-container">
         <div class="like-section">
-            <button @click="updateLikes" :class="{ liked: isLiked }">
-              <font-awesome-icon :icon="['fas', 'heart']" />
-              <span class="likescounter">{{ likes }}</span>
-            </button>
-          </div>
-          <div class="bookmark-section">
-            <button @click="updateBookmark" :class="{ bookmarked: isBookmarked }">
-              <font-awesome-icon :icon="['fas', 'bookmark']" />
-            </button>
-          </div>
+          <button @click="updateLikes" :class="{ liked: isLiked }">
+            <font-awesome-icon :icon="['fas', 'heart']" />
+            <span class="likescounter">{{ likes }}</span>
+          </button>
+        </div>
+        <div class="bookmark-section">
+          <button @click="updateBookmark" :class="{ bookmarked: isBookmarked }">
+            <font-awesome-icon :icon="['fas', 'bookmark']" />
+          </button>
+        </div>
       </div>
-
       <div class="container">
-        
         <div class="comments-section">
           <div v-for="(comment, index) in commentDetails" :key="index" class="comment">
             <p>{{ comment.text }}</p>
@@ -45,13 +42,16 @@ interface Comment {
 }
 
 interface BlogPost {
-  id: string;
+  blog_id: string;
   user_id: string;
   likes: number;
   liked_by: string[];
+  liked_by_chatter_names: string[];
   bookmarked_by: string[];
   comments: string[];
   comment_details: Comment[];
+  commented_by: string[];
+  title: string;
 }
 
 interface User {
@@ -75,20 +75,27 @@ export default defineComponent({
     const blogId = ref<string | null>(null);
     const userId = ref<string | null>(null);
     const chatterName = ref<string | null>(null);
+    const blogOwnerId = ref<string | null>(null);
+    const blogTitle = ref<string | null>(null);
 
-    const fetchUserDetails = async (userId: string) => {
-      const { data, error } = await supabase
-        .from<User>('users')
-        .select('chatter_name')
-        .eq('id', userId)
-        .single();
+    const fetchUserDetails = async () => {
+      const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+      userId.value = currentUser.id;
 
-      if (error) {
-        console.error('Error fetching user details:', error.message);
-        return null;
+      if (userId.value) {
+        const { data, error } = await supabase
+          .from<User>('users')
+          .select('chatter_name')
+          .eq('id', userId.value)
+          .single();
+
+        if (error) {
+          console.error('Error fetching user details:', error.message);
+          return null;
+        }
+
+        chatterName.value = data.chatter_name;
       }
-
-      return data;
     };
 
     const fetchLikesBookmarksComments = async () => {
@@ -99,8 +106,8 @@ export default defineComponent({
 
       const { data, error } = await supabase
         .from<BlogPost>('blog_post')
-        .select('likes, liked_by, bookmarked_by, comments, comment_details')
-        .eq('id', blogId.value)
+        .select('likes, liked_by, liked_by_chatter_names, bookmarked_by, comments, comment_details, commented_by, user_id, title')
+        .eq('blog_id', blogId.value)
         .single();
 
       if (error) {
@@ -114,6 +121,31 @@ export default defineComponent({
         commentDetails.value = data.comment_details || [];
         isLiked.value = data.liked_by.includes(userId.value || '');
         isBookmarked.value = data.bookmarked_by.includes(userId.value || '');
+        blogOwnerId.value = data.user_id;
+        blogTitle.value = data.title;
+      }
+    };
+
+    const createNotification = async (message: string) => {
+      if (blogOwnerId.value && blogOwnerId.value !== userId.value) {
+        const { error } = await supabase
+          .from('notifications')
+          .insert([
+            {
+              user_id: blogOwnerId.value,
+              message: message,
+              blog_title: blogTitle.value,
+              read: false,
+              created_at: new Date().toISOString(),
+              displayed: false,
+            },
+          ]);
+
+        if (error) {
+          console.error('Error creating notification:', error.message);
+        } else {
+          console.log('Notification created successfully.');
+        }
       }
     };
 
@@ -130,8 +162,8 @@ export default defineComponent({
 
       const { data, error } = await supabase
         .from<BlogPost>('blog_post')
-        .select('liked_by')
-        .eq('id', blogId.value)
+        .select('liked_by, liked_by_chatter_names')
+        .eq('blog_id', blogId.value)
         .single();
 
       if (error) {
@@ -141,15 +173,18 @@ export default defineComponent({
 
       if (data) {
         const currentLikedBy = data.liked_by || [];
+        const currentLikedByChatterNames = data.liked_by_chatter_names || [];
         const updatedLikedBy = [...currentLikedBy, userId.value];
+        const updatedLikedByChatterNames = [...currentLikedByChatterNames, chatterName.value];
 
         const { error: updateError } = await supabase
           .from('blog_post')
           .update({
             likes: likes.value + 1,
             liked_by: updatedLikedBy,
+            liked_by_chatter_names: updatedLikedByChatterNames,
           })
-          .eq('id', blogId.value);
+          .eq('blog_id', blogId.value);
 
         if (updateError) {
           console.error('Error updating likes:', updateError.message);
@@ -158,6 +193,8 @@ export default defineComponent({
 
         likes.value += 1;
         isLiked.value = true;
+
+        createNotification(`Your blug was liked by ${chatterName.value}`);
       }
     };
 
@@ -170,7 +207,7 @@ export default defineComponent({
       const { data, error } = await supabase
         .from<BlogPost>('blog_post')
         .select('bookmarked_by')
-        .eq('id', blogId.value)
+        .eq('blog_id', blogId.value)
         .single();
 
       if (error) {
@@ -193,7 +230,7 @@ export default defineComponent({
           .update({
             bookmarked_by: updatedBookmarkedBy,
           })
-          .eq('id', blogId.value);
+          .eq('blog_id', blogId.value);
 
         if (updateError) {
           console.error('Error updating bookmarks:', updateError.message);
@@ -212,8 +249,8 @@ export default defineComponent({
 
       const { data, error } = await supabase
         .from<BlogPost>('blog_post')
-        .select('comments, comment_details')
-        .eq('id', blogId.value)
+        .select('comments, comment_details, commented_by')
+        .eq('blog_id', blogId.value)
         .single();
 
       if (error) {
@@ -224,20 +261,23 @@ export default defineComponent({
       if (data) {
         const currentComments = data.comments || [];
         const currentCommentDetails = data.comment_details || [];
+        const currentCommentedBy = data.commented_by || [];
 
         const newCommentText = newComment.value;
         const newCommentMeta = `was commented by ${chatterName.value || 'Anonymous'} on ${formatDate(new Date().toISOString())} at ${formatTime(new Date().toISOString())}`;
 
         const updatedComments = [...currentComments, newCommentText];
         const updatedCommentDetails = [...currentCommentDetails, { text: newCommentText, meta: newCommentMeta }];
+        const updatedCommentedBy = [...currentCommentedBy, chatterName.value];
 
         const { error: updateError } = await supabase
           .from('blog_post')
           .update({
             comments: updatedComments,
             comment_details: updatedCommentDetails,
+            commented_by: updatedCommentedBy,
           })
-          .eq('id', blogId.value);
+          .eq('blog_id', blogId.value);
 
         if (updateError) {
           console.error('Error updating comments:', updateError.message);
@@ -247,6 +287,8 @@ export default defineComponent({
         comments.value = updatedComments;
         commentDetails.value = updatedCommentDetails;
         newComment.value = '';
+
+        createNotification(`${chatterName.value} commented on your blug`);
       }
     };
 
@@ -278,15 +320,7 @@ export default defineComponent({
 
     onMounted(async () => {
       blogId.value = localStorage.getItem('blog_id');
-      userId.value = localStorage.getItem('user_id');
-
-      if (userId.value) {
-        const user = await fetchUserDetails(userId.value);
-        if (user) {
-          chatterName.value = user.chatter_name;
-        }
-      }
-
+      await fetchUserDetails();
       fetchLikesBookmarksComments();
     });
 
@@ -315,16 +349,8 @@ export default defineComponent({
   margin-bottom: 500px;
 }
 
-/* .content {
-  align-items: center;
-  justify-content: center;
-  background: red;
-  color: #cebfad;
-} */
-
 .container {
   text-align: center;
-  
 }
 
 .like-section, .bookmark-section {
@@ -419,7 +445,6 @@ button.post:disabled {
 .interaction-container{
   display: flex;
   flex-direction: row;
-  
 }
 
 .likescounter{
@@ -428,19 +453,15 @@ button.post:disabled {
 }
 
 @media (max-width: 430px) {
-
   button .fa-heart, button .fa-bookmark {
-  color: #cebfad;
-  font-size: 25px;
-  
-}
+    color: #cebfad;
+    font-size: 25px;
+  }
 
-.interaction-container{
-  display: flex;
-  flex-direction: row;
-  justify-content: center;
+  .interaction-container {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+  }
 }
-
-}
-
 </style>

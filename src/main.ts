@@ -9,7 +9,7 @@ import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { 
   faHouse, 
   faComments, 
-  faChartLine, 
+  faGlobe, // Import faGlobe
   faSignOutAlt, 
   faTrashAlt, 
   faCog, 
@@ -20,7 +20,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 
 // Add the icons to the library
-library.add(faHouse, faComments, faChartLine, faSignOutAlt, faTrashAlt, faCog, faHeart, faBookmark, faCircleCheck, faCircleXmark);
+library.add(faHouse, faComments, faGlobe, faSignOutAlt, faTrashAlt, faCog, faHeart, faBookmark, faCircleCheck, faCircleXmark);
 
 const app = createApp(App);
 

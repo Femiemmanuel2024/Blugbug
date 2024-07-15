@@ -1,7 +1,7 @@
 <template>
   <div class="latest-blogs">
     <div class="top-row">
-      <h3>Latest Blogs</h3>
+      <h3>Latest Blugs</h3>
     </div>
     <div class="bottom-row">
       <ul>
@@ -10,7 +10,7 @@
         </li>
         <li v-else v-for="(blog, index) in latestBlogs" :key="index">
           <span class="title">{{ truncateTitle(blog.title) }}</span>
-          <button @click="readBlog(blog.filePath)">Read</button>
+          <button @click="readBlog(blog.title)">Read</button>
         </li>
       </ul>
     </div>
@@ -19,6 +19,7 @@
 
 <script lang="ts">
 import { defineComponent, ref, onMounted, watch } from 'vue';
+import { useRouter } from 'vue-router';
 import { supabase } from '../supabase'; // Adjust the path as needed
 
 interface Blog {
@@ -32,6 +33,7 @@ export default defineComponent({
   setup() {
     const latestBlogs = ref<Blog[]>([]);
     const isLoading = ref<boolean>(true);
+    const router = useRouter();
 
     const fetchUserIds = async () => {
       // Clear previous user IDs from local storage
@@ -109,9 +111,8 @@ export default defineComponent({
       return title.length > 15 ? title.substring(0, 15) + '...' : title;
     };
 
-    const readBlog = (filePath: string) => {
-      // Add logic to handle reading the blog, e.g., navigating to a detailed view page
-      console.log(`Reading blog at: ${filePath}`);
+    const readBlog = (title: string) => {
+      router.push({ name: 'BlugPage', query: { search: title } });
     };
 
     const handleLoginEvent = () => {
@@ -143,37 +144,30 @@ export default defineComponent({
   color: #ffffff;
   height: 100%;
   overflow: hidden;
-  border-top: 1px solid #eaeaea;
-  
 }
 
 .top-row {
-  
   flex: 0 0 auto;
   margin-bottom: 30px;
   margin-top: -20px;
   height: 10px;
-  
 }
 
 .bottom-row {
   flex: 1 1 auto;
   overflow: hidden;
-  
 }
 
 h3 {
-  
   width: 100%;
-  padding: 10px;
-  font-size: 12px;
+  font-size: 20px;
   border: none;
   box-sizing: border-box;
-   /* Background color */
-  color: #d7c9b7; /* Text color */
-  padding: 10px;
-  font-size: 12px;
-  
+  color: #d7c9b7; 
+  background-color: #2b3138;
+  border-bottom: 1px solid wheat;
+  padding-bottom: 7px;
+  padding-left: 5px;
 }
 
 .latest-blogs ul {
@@ -185,7 +179,6 @@ h3 {
   display: flex;
   justify-content: space-between;
   margin-bottom: 8px;
-  
 }
 
 .latest-blogs .title {

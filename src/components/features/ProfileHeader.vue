@@ -1,21 +1,25 @@
+<!-- ProfileHeader.vue -->
 <template>
   <div class="profile-header">
     <div class="header-image-container">
       <img :src="headerImage" alt="Header Image" class="header-image" />
-      <label class="upload-header-icon" @click="showFileUploadModal('header')">
+      <label v-if="!disableUpload" class="upload-header-icon" @click="showFileUploadModal('header')">
         <i class="fas fa-camera"></i>
       </label>
     </div>
     <div class="profile-picture-container">
       <div class="profile-picture-circle">
         <img :src="profilePicture" alt="Profile Picture" class="profile-image" />
-        <label class="upload-icon" @click="showFileUploadModal('profile')">
+        <label v-if="!disableUpload" class="upload-icon" @click="showFileUploadModal('profile')">
           <i class="fas fa-camera"></i>
         </label>
       </div>
     </div>
     <div class="name-container">
       <h1 class="name">{{ user.fullName }}</h1>
+      <div v-if="checkmarkIconUrl" class="checkmark-icon-circle">
+        <img :src="checkmarkIconUrl" alt="Checkmark Icon" class="checkmark-icon" />
+      </div>
       <p class="chatter-name">@{{ user.chatterName }}</p>
     </div>
     <p class="about-me">{{ user.aboutMe }}</p>
@@ -32,7 +36,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, watch, onMounted } from 'vue';
+import { defineComponent, ref, watch } from 'vue';
 import { supabase } from '../supabase';
 import FileUpload from '../features/FileUpload.vue';
 
@@ -43,6 +47,7 @@ interface User {
   id: string;
   profile_image_url: string;
   header_image_url: string;
+  checkmark_url: string | null;
   followers: number;
   following: number;
 }
@@ -65,6 +70,10 @@ export default defineComponent({
       type: Number,
       required: true,
     },
+    disableUpload: {
+      type: Boolean,
+      default: false,
+    },
   },
   setup(props) {
     const user = ref<User>({
@@ -74,19 +83,21 @@ export default defineComponent({
       id: '',
       profile_image_url: '/src/assets/Default_pfp.svg',
       header_image_url: 'default-header-image-path',
+      checkmark_url: null,
       followers: 0,
       following: 0,
     });
     const showFileUpload = ref(false);
-    const uploadType = ref<'profile' | 'header'>('profile');
+    const uploadType = ref<'profile' | 'header' | 'checkmark'>('profile');
     const profilePicture = ref<string>('/src/assets/Default_pfp.svg');
     const headerImage = ref<string>('default-header-image-path');
+    const checkmarkIconUrl = ref<string | null>(null);
 
     const fetchUserData = async () => {
       console.log(`Fetching data for user ID: ${props.userId}`);
       const { data, error } = await supabase
         .from('users')
-        .select('full_name, chatter_name, about_me, id, profile_image_url, header_image_url, followers, following')
+        .select('full_name, chatter_name, about_me, id, profile_image_url, header_image_url, checkmark_url, followers, following')
         .eq('id', props.userId)
         .single();
 
@@ -103,18 +114,22 @@ export default defineComponent({
           id: data.id,
           profile_image_url: data.profile_image_url || '/src/assets/Default_pfp.svg',
           header_image_url: data.header_image_url || 'default-header-image-path',
+          checkmark_url: data.checkmark_url || null,
           followers: data.followers || 0,
           following: data.following || 0,
         };
         profilePicture.value = user.value.profile_image_url;
         headerImage.value = user.value.header_image_url;
+        checkmarkIconUrl.value = user.value.checkmark_url;
         console.log('Fetched user data:', user.value);
       }
     };
 
-    const showFileUploadModal = (type: 'profile' | 'header') => {
-      uploadType.value = type;
-      showFileUpload.value = true;
+    const showFileUploadModal = (type: 'profile' | 'header' | 'checkmark') => {
+      if (!props.disableUpload) {
+        uploadType.value = type;
+        showFileUpload.value = true;
+      }
     };
 
     const closeFileUploadModal = () => {
@@ -132,6 +147,7 @@ export default defineComponent({
       fetchUserData,
       profilePicture,
       headerImage,
+      checkmarkIconUrl,
     };
   },
 });
@@ -141,9 +157,8 @@ export default defineComponent({
 .profile-header {
   text-align: left;
   margin: 0;
-  /* box-shadow: 0 4px 10px rgba(0, 0, 0, 0.9);  */
   background-color: #2b3138;
-  overflow: hidden; /* Ensure the border radius is applied correctly */
+  overflow: hidden;
   border: solid 5px #0c1118;
 }
 
@@ -169,7 +184,7 @@ export default defineComponent({
   padding: 10px;
   border-radius: 50%;
   cursor: pointer;
-  opacity: 0;
+  opacity: 1;
   transition: opacity 0.3s ease;
 }
 
@@ -182,7 +197,7 @@ export default defineComponent({
   bottom: 90px;
   padding-left: 20px;
   display: flex;
-  align-items: center; /* Center align items horizontally */
+  align-items: center;
   gap: 10px;
 }
 
@@ -225,20 +240,22 @@ export default defineComponent({
 }
 
 .name-container {
-  align-items: left; /* Center align items horizontally */
-  margin-top: -100px; /* Adjust the margin to position the name container correctly */
+  align-items: left;
+  margin-top: -100px;
   padding-left: 20px;
 }
 
 .name {
   font-size: 24px;
   color: #cebfad;
+  display: flex;
+  align-items: center;
 }
 
 .chatter-name {
   font-size: 18px;
   color: #cebfad;
-  margin-top: -15px; /* Minimal space between name and chatter-name */
+  margin-top: -15px;
 }
 
 .about-me {
@@ -251,4 +268,67 @@ export default defineComponent({
   padding-left: 20px;
   color: #cebfad;
 }
+
+.checkmark-icon-circle {
+  width: 20px;
+  height: 20px;
+  background-color: #fff;
+  border-radius: 50%;
+  position: absolute;
+  top: 340px;
+  left: 190px;
+}
+
+.checkmark-icon {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+@media (max-width: 430px) {
+  .checkmark-icon-circle {
+    width: 20px;
+    height: 20px;
+    background-color: #fff;
+    border-radius: 50%;
+    position: absolute;
+    top: 340px;
+    left: 140px;
+  }
+}
+
+.upload-header-icon {
+  position: absolute;
+  bottom: 90px;
+  right: 10px;
+  background-color: rgba(0, 0, 0, 0.5);
+  color: #fff;
+  padding: 10px;
+  border-radius: 50%;
+  cursor: pointer;
+  opacity: 0.1;
+  transition: opacity 0.3s ease;
+}
+
+.chatter-name {
+  font-size: 14px;
+  color: #cebfad;
+}
+
+.about-me {
+  padding-left: 20px;
+  padding-right: 20px;
+  font-size: 16px;
+  color: gray;
+  text-align: left;
+}
+
+.stats-container {
+  padding-left: 20px;
+  padding-right: 20px;
+  color: #cebfad;
+  font-size: 14px;
+}
+
 </style>

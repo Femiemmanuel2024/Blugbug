@@ -33,6 +33,7 @@ export default defineComponent({
     const title = ref<string>('');
     const content = ref<string>('');
     const createdBy = ref<string>('');
+    const chatterName = ref<string>('');
     const currentDate = ref<string>('');
     const quillEditor = ref<any>(null);
 
@@ -53,7 +54,7 @@ export default defineComponent({
 
       const { data, error } = await supabase
         .from('users')
-        .select('full_name')
+        .select('full_name, chatter_name')
         .eq('id', userId)
         .single();
 
@@ -61,6 +62,7 @@ export default defineComponent({
         console.error('Error fetching user data:', error.message);
       } else {
         createdBy.value = data.full_name;
+        chatterName.value = data.chatter_name;
       }
     };
 
@@ -80,7 +82,8 @@ export default defineComponent({
           </html>
         `;
 
-        const fileName = `${Date.now()}.html`;
+        const blogId = uuidv4(); // Generate a unique ID for the blog post
+        const fileName = `${blogId}.html`;
         const { data: uploadData, error: uploadError } = await supabase.storage
           .from('blog-post')
           .upload(`${userId}/${fileName}`, new Blob([htmlContent], { type: 'text/html' }));
@@ -89,9 +92,8 @@ export default defineComponent({
           console.error('Error uploading file:', uploadError.message);
         } else {
           console.log('File uploaded:', uploadData);
-          const blogId = uuidv4(); // Generate a unique ID for the blog post
 
-          // Insert blog post details into the blog-post table
+          // Insert blog post details into the blog_post table
           const { data: insertData, error: insertError } = await supabase
             .from('blog_post')
             .insert([
@@ -102,6 +104,8 @@ export default defineComponent({
                 likes: 0,
                 comments: [],
                 bookmarks: 0,
+                full_name: createdBy.value,
+                chatter_name: chatterName.value,
               },
             ]);
 
@@ -128,6 +132,7 @@ export default defineComponent({
       title,
       content,
       createdBy,
+      chatterName,
       currentDate,
       quillEditor,
       publishContent,

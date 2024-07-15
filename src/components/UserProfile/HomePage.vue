@@ -135,6 +135,7 @@ export default defineComponent({
   background-color: #ffffff;
   padding-right: 50px;
   padding-left: 50px;
+  padding-top: 82px;
 }
 
 .navbar {
@@ -174,14 +175,14 @@ button {
   margin-left: 15px;
   font-size: 16px;
   border: none;
-  border-radius: 20px;
+  border-radius: 10px;
   cursor: pointer;
   margin-top: 10px;
   background-color: #fd662f; /* Button color */
   color: white; /* White text */
   position: absolute;
-  right: 400px;
-  top: 310px;
+  right: 370px;
+  top: 295px;
 }
 
 
@@ -225,14 +226,14 @@ button {
     margin-left: 15px;
     font-size: 16px;
     border: none;
-    border-radius: 20px;
+    border-radius: 10px;
     cursor: pointer;
     margin-top: 10px;
     background-color: #fd662f; /* Button color */
     color: white; /* White text */
     position: absolute;
-    right: 40px;
-    top: 390px;
+    right: 25px;
+    top: 295px;
   }
 }
 
