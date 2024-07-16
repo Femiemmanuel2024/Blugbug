@@ -63,14 +63,10 @@
 
     <div v-if="showModal" class="modal">
       <div class="modal-content">
-        <h2>Sure you want to go Bloggabug?</h2>
+        <h2>Are you sure you want to deactivate your account?</h2>
         <div class="modal-actions">
-          <button class="confirm" @click="confirmDeactivation">
-            <font-awesome-icon :icon="['fas', 'circle-check']" /> 
-          </button>
-          <button class="cancel" @click="hideDeactivateModal">
-            <font-awesome-icon :icon="['fas', 'circle-xmark']" /> 
-          </button>
+          <button class="confirm" @click="confirmDeactivation">Yes</button>
+          <button class="cancel" @click="hideDeactivateModal">No</button>
         </div>
       </div>
     </div>
@@ -82,7 +78,6 @@ import { defineComponent, ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { supabase } from './supabase';
 import NavBar from '../components/NavBar.vue';
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 
 interface User {
   id: string;
@@ -97,7 +92,6 @@ export default defineComponent({
   name: 'ProfileSettings',
   components: {
     NavBar,
-    FontAwesomeIcon,
   },
   setup() {
     const router = useRouter();
@@ -168,6 +162,29 @@ export default defineComponent({
     const confirmDeactivation = async () => {
       if (!user.value) return;
 
+      // Delete related notifications
+      const { error: deleteNotificationsError } = await supabase
+        .from('notifications')
+        .delete()
+        .eq('user_id', user.value.id);
+
+      if (deleteNotificationsError) {
+        console.error('Error deleting related notifications:', deleteNotificationsError.message);
+        return;
+      }
+
+      // Delete related blog posts
+      const { error: deleteBlogPostsError } = await supabase
+        .from('blog_post')
+        .delete()
+        .eq('user_id', user.value.id);
+
+      if (deleteBlogPostsError) {
+        console.error('Error deleting related blog posts:', deleteBlogPostsError.message);
+        return;
+      }
+
+      // Delete the user
       const { error } = await supabase
         .from('users')
         .delete()
@@ -215,12 +232,10 @@ html, body {
 }
 
 .profile-settings {
-  
   height: 100vh;
   padding-right: 50px;
   padding-left: 50px;
   padding-top: 82px;
-  
 }
 
 .content {
@@ -247,7 +262,6 @@ table {
 
 th, td {
   padding: 10px;
-  /* border: 1px solid #ddd; */
 }
 
 th {
@@ -265,11 +279,12 @@ td textarea {
   border-radius: 4px;
   resize: none; /* Disable resize for textarea */
   height: 50px;
-  
 }
-td{
+
+td {
   color: white;
 }
+
 button {
   padding: 5px 10px;
   background-color: #fd662f;
@@ -321,56 +336,53 @@ button:hover {
 }
 
 .modal-actions button {
-  display: flex;
-  align-items: center;
-
+  padding: 10px 20px;
 }
 
 .confirm {
   background-color: #28a745;
-  font-size: 30px;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
 }
 
 .confirm:hover {
   background-color: #218838;
-  
 }
 
 .cancel {
   background-color: #dc3545;
-  font-size: 30px;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
 }
 
 .cancel:hover {
   background-color: #c82333;
 }
 
-
 @media (max-width: 430px) {
   .profile-settings {
-  
-  height: 100vh;
-  padding-right: 1px;
-  padding-left: 1px;
+    height: 100vh;
+    padding-right: 1px;
+    padding-left: 1px;
+  }
+
+  .content {
+    background-color: #1e2127;
+    padding: 20px 5px 20px 5px;
+    width: 100%;
+    max-width: 100%;
+    height: 100vh;
+  }
+
+  .deactivate-button {
+    width: 50%;
+    margin-top: 10px;
+    background-color: red;
+    align-self: center;
+  }
 }
-
-.content {
-  background-color: #1e2127;
-  padding: 20px 5px 20px 5px;
-  width: 100%;
-  max-width: 100%;
-  height: 100vh;
-}
-
-.deactivate-button {
-  width: 50%;
-  margin-top: 10px;
-  background-color: red;
-  align-self: center;
-}
-
-
-}
-
-
 </style>

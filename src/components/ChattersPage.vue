@@ -5,7 +5,7 @@
       <div class="container">
         <div class="left-column">
           <div class="left-title">
-            <h1 class="blog-header">All Blog Posts</h1>
+            <h1 class="blog-header">My Blug Posts</h1>
           </div>
           <div class="left-container">
             <ul>
@@ -285,7 +285,7 @@ export default defineComponent({
 }
 
 .right-column {
-  width: 75%;
+  width: 60%;
   padding: 20px;
   background-color: #1e2127;
   overflow-y: auto;
@@ -351,6 +351,7 @@ h2 {
   height: 100vh;
   padding-right: 1px;
   padding-left: 1px;
+  padding-top: 140px;
 }
 
   .container {
@@ -362,11 +363,13 @@ h2 {
   .left-column {
     order: 1;
     width: 90%;
+    z-index: 5;
   }
 
   .right-column {
     order: 2;
-    width: 88%;
+    width: 90%;
+    padding-right: 20px;
   }
 
   ul {

@@ -17,6 +17,8 @@
         </li>
       </ul>
     </div>
+    <!-- Add audio element -->
+    <audio ref="notificationAudio" src="/notificationalert.wav" preload="auto"></audio>
   </div>
 </template>
 
@@ -38,6 +40,13 @@ const notifications = ref<Notification[]>([]);
 const showNotifications = ref(false);
 const unreadCount = ref(0);
 const router = useRouter();
+const notificationAudio = ref<HTMLAudioElement | null>(null);
+
+const playNotificationSound = () => {
+  if (notificationAudio.value) {
+    notificationAudio.value.play();
+  }
+};
 
 const fetchNotifications = async () => {
   const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
@@ -56,6 +65,11 @@ const fetchNotifications = async () => {
 
     notifications.value = data as Notification[];
     unreadCount.value = notifications.value.length;
+
+    // Play notification sound if there are new notifications
+    if (unreadCount.value > 0) {
+      playNotificationSound();
+    }
 
     // Log the fetched data
     console.log('Fetched Notifications:', notifications.value);
@@ -89,6 +103,7 @@ const toggleNotifications = () => {
   showNotifications.value = !showNotifications.value;
   if (showNotifications.value) {
     fetchNotifications();
+    playNotificationSound(); // Play sound when the icon is clicked and notifications are shown
   }
 };
 
@@ -252,16 +267,18 @@ onMounted(() => {
   list-style-type: none;
   padding: 0;
   margin: 0;
+  
 }
 
 .notification-list li {
   padding: 10px;
   border-bottom: 1px solid #444;
   cursor: pointer;
+  color: #cebfad;
 }
 
 .notification-list li:hover {
-  background-color: #fd662f;
+  background-color: #1e2127;
 }
 
 .notification-list li:last-child {
@@ -270,7 +287,8 @@ onMounted(() => {
 
 .notification-message.link {
   cursor: pointer;
-  color: #fd662f;
+  color: #cebfad;
+  font-size: 12px;
 }
 
 @media (max-width: 430px) {

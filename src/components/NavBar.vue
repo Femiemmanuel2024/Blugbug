@@ -87,7 +87,6 @@ export default defineComponent({
   justify-content: space-between;
   align-items: center;
   padding: 10px 10px;
-  margin: 0px 58px;
   background-color: #1e2127;
   box-shadow: 0 0px 5px rgba(0, 0, 0, 0.9);
   z-index: 9999;
@@ -101,6 +100,7 @@ export default defineComponent({
 .navbar-left {
   justify-content: flex-start;
   width: 20%;
+  padding-left: 60px;
 }
 
 .navbar-center {
@@ -114,7 +114,7 @@ export default defineComponent({
   border-radius: 0px;
   height: 70px;
   width: 24.2%;
-  padding: 0px 10px 0px 10px;
+  padding-right: 60px;
 }
 
 .nav-icon {
@@ -206,29 +206,32 @@ export default defineComponent({
   .navbar {
     flex-direction: column;
     align-items: center;
-    padding: 0px 0px 0px 0px;
+    padding: 10px 0;
     background-color: #1e2127;
     box-shadow: 0 0px 5px rgba(0, 0, 0, 0.9);
     z-index: 9999;
     width: 100%;
-    margin-right: 50px;
-    margin-left: 10px;
   }
   .navbar-left, .navbar-center, .navbar-right {
     justify-content: center;
     width: 100%;
   }
-  .navbar-right {
-    flex-wrap: wrap;
-  }
 
-  .navbar-center {
-    padding-bottom: 20px;
-  }
+  .navbar-left {
+  padding-left: 0px;
+}
+
+.navbar-center {
+  justify-content: center;
+  width: 60%;
+}
+
+.navbar-right {
+  
+  padding-right: 0px;
+}
   .nav-icon {
-    margin: 5px;
-    font-size: 20px;
-    
+    font-size: 30px;
   }
   .icon-label {
     display: none;

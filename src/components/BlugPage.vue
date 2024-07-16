@@ -8,7 +8,7 @@
       <div class="container">
         <div class="top-column">
           <div class="top-title">
-            <h1 class="blog-header">All Blog Posts</h1>
+            <h1 class="blog-header">BlugWorld</h1>
           </div>
           <div class="top-container">
             <ul class="blog-list">
@@ -200,7 +200,7 @@ export default defineComponent({
   flex-direction: column;
   flex-grow: 0;
   width: 100%;
-  background-color: red;
+  background-color: #1e2127;
 }
 
 .search-bar {
@@ -212,9 +212,14 @@ export default defineComponent({
 .search-bar input {
   width: 50%;
   padding: 10px;
-  font-size: 16px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
+  font-size: 12px;
+  border: none;
+  box-sizing: border-box;
+  background-color: #2b3138; /* Background color */
+  color: #d7c9b7; /* Text color */
+  padding-right: 30px; /* Add space for the icon */
+  font-size: 14px;
+  border-radius: 10px;
 }
 
 .container {
@@ -328,6 +333,11 @@ h2 {
   font-size: 1rem;
 }
 
+.blog-header{
+  display: flex;
+  justify-content: center;
+  color: #cebfad;
+}
 @media (max-width: 430px) {
   .blug-page {
     display: flex;
@@ -335,6 +345,7 @@ h2 {
     height: 100vh;
     padding-right: 1px;
     padding-left: 1px;
+    padding-top: 140px;
   }
 
   .container {
@@ -363,10 +374,25 @@ h2 {
   .post-title {
     text-align: left;
   }
+
+  .search-bar input {
+  width: 100%;
+  padding: 10px;
+  font-size: 12px;
+  border: none;
+  box-sizing: border-box;
+  background-color: #2b3138; /* Background color */
+  color: #d7c9b7; /* Text color */
+  padding-right: 30px; /* Add space for the icon */
+  font-size: 14px;
+  border-radius: 10px;
+}
 }
 
 .list-container {
   display: flex;
   flex-direction: column;
 }
+
+
 </style>

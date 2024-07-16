@@ -13,6 +13,7 @@
           <i class="fas fa-camera"></i>
         </label>
       </div>
+      <button class="create-post-button" @click="showCreatePostModal">Create Blug</button>
     </div>
     <div class="name-container">
       <h1 class="name">{{ user.fullName }}</h1>
@@ -31,6 +32,7 @@
       </p>
     </div>
     <FileUpload v-if="showFileUpload" :type="uploadType" @uploadComplete="fetchUserData" @close="closeFileUploadModal" />
+    <CreateBlogPost v-if="showCreatePost" :isModalVisible="showCreatePost" @closeModal="hideCreatePostModal" />
   </div>
 </template>
 
@@ -38,6 +40,7 @@
 import { defineComponent, ref, watch } from 'vue';
 import { supabase } from '../supabase';
 import FileUpload from '../features/FileUpload.vue';
+import CreateBlogPost from './CreateBlogPost.vue';
 
 interface User {
   fullName: string;
@@ -55,6 +58,7 @@ export default defineComponent({
   name: 'ProfileHeader',
   components: {
     FileUpload,
+    CreateBlogPost,
   },
   props: {
     userId: {
@@ -81,6 +85,7 @@ export default defineComponent({
     const totalLikes = ref(0);
     const totalBookmarks = ref(0);
     const showFileUpload = ref(false);
+    const showCreatePost = ref(false);
     const uploadType = ref<'profile' | 'header' | 'checkmark'>('profile');
     const profilePicture = ref<string>('/src/assets/Default_pfp.svg');
     const headerImage = ref<string>('default-header-image-path');
@@ -149,6 +154,14 @@ export default defineComponent({
       showFileUpload.value = false;
     };
 
+    const showCreatePostModal = () => {
+      showCreatePost.value = true;
+    };
+
+    const hideCreatePostModal = () => {
+      showCreatePost.value = false;
+    };
+
     const formatCount = (count: number) => {
       if (count >= 1000000) {
         return (count / 1000000).toFixed(1) + 'm';
@@ -165,7 +178,10 @@ export default defineComponent({
       user,
       showFileUploadModal,
       closeFileUploadModal,
+      showCreatePostModal,
+      hideCreatePostModal,
       showFileUpload,
+      showCreatePost,
       uploadType,
       fetchUserData,
       profilePicture,
@@ -265,6 +281,22 @@ export default defineComponent({
   opacity: 1;
 }
 
+.create-post-button {
+  margin-left: 530px;
+  margin-top: 80px;
+  padding: 10px 20px;
+  background-color: #fd662f;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  
+}
+
+.create-post-button:hover {
+  background-color: #e04a2e;
+}
+
 .name-container {
   align-items: left;
   margin-top: -100px;
@@ -355,5 +387,16 @@ export default defineComponent({
   padding-right: 20px;
   color: #cebfad;
   font-size: 14px;
+}
+
+.create-post-button {
+  margin-left: 70px;
+  margin-top: 80px;
+  padding: 10px 20px;
+  background-color: #fd662f;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
 }
 </style>

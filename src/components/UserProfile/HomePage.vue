@@ -10,13 +10,6 @@
           :followingCount="followingCount" 
           :followersCount="followersCount"
         />
-        <button @click="toggleCreate">{{ buttonText }}</button>
-        <CreateBlogPost 
-          v-if="isCreating" 
-          :isModalVisible="isCreating" 
-          @publishContent="onPublishContent"
-          @closeModal="toggleCreate"
-        />
         <div class="feed-container">
           <Feed />
         </div>
@@ -29,10 +22,9 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, onMounted, computed } from 'vue';
+import { defineComponent, ref, onMounted } from 'vue';
 import NavBar from '../NavBar.vue';
 import ProfileHeader from '../features/ProfileHeader.vue';
-import CreateBlogPost from '../features/CreateBlogPost.vue';
 import Feed from '../features/Feed.vue';
 import InfoData from '../infofeatures/InfoData.vue';
 import { supabase } from '../supabase';
@@ -52,14 +44,12 @@ export default defineComponent({
   components: {
     NavBar,
     ProfileHeader,
-    CreateBlogPost,
     Feed,
     InfoData,
   },
   setup() {
     const userId = JSON.parse(localStorage.getItem('currentUser') || '{}').id;
     const user = ref<User | null>(null);
-    const isCreating = ref<boolean>(false);
     const totalLikes = ref<number>(0);
     const totalBookmarks = ref<number>(0);
     const followingCount = ref<number>(0);
@@ -90,38 +80,17 @@ export default defineComponent({
       }
     };
 
-    const toggleCreate = () => {
-      isCreating.value = !isCreating.value;
-    };
-
-    const onPublishContent = (newPost: { title: string; content: string }) => {
-      // Handle the event when a new post is published, if needed
-    };
-
-    const handleLoginEvent = () => {
-      window.dispatchEvent(new CustomEvent('user-logged-in'));
-    };
-
     onMounted(() => {
       fetchUserData();
-      handleLoginEvent(); // Call the login event handler on mount
-    });
-
-    const buttonText = computed(() => {
-      return window.innerWidth <= 414 ? 'Create' : isCreating.value ? 'Cancel' : 'Create Blug Post';
     });
 
     return {
       userId,
       user,
-      isCreating,
       totalLikes,
       totalBookmarks,
       followingCount,
       followersCount,
-      toggleCreate,
-      onPublishContent,
-      buttonText,
     };
   },
 });
@@ -169,26 +138,6 @@ export default defineComponent({
   flex-direction: column;
 }
 
-button {
-  width: 15%;
-  padding: 10px;
-  margin-left: 15px;
-  font-size: 16px;
-  border: none;
-  border-radius: 10px;
-  cursor: pointer;
-  margin-top: 10px;
-  background-color: #fd662f; /* Button color */
-  color: white; /* White text */
-  position: absolute;
-  right: 370px;
-  top: 295px;
-}
-
-
-
-
-
 @media (max-width: 430px) {
 
   .new-user-page {
@@ -219,24 +168,6 @@ button {
   .navbar {
     max-width: 100%;
   }
-
-  button {
-    width: 30%;
-    padding: 10px;
-    margin-left: 15px;
-    font-size: 16px;
-    border: none;
-    border-radius: 10px;
-    cursor: pointer;
-    margin-top: 10px;
-    background-color: #fd662f; /* Button color */
-    color: white; /* White text */
-    position: absolute;
-    right: 25px;
-    top: 295px;
-  }
 }
-
-
 
 </style>
