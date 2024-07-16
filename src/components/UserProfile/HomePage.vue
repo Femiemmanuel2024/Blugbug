@@ -139,23 +139,6 @@ export default defineComponent({
 }
 
 @media (max-width: 430px) {
-
-  .new-user-page {
-  display: flex;
-  flex-direction: column;
-  }
-
-  .right-column{
-    display: none;
-  }
-
- 
-  .left-column {
-    width: 100%;
-    overflow-y: auto;
-    height: 100%;
-  }
-
   .new-user-page {
     display: flex;
     flex-direction: column;
@@ -165,9 +148,19 @@ export default defineComponent({
     padding-left: 1px;
   }
 
+  .content {
+    flex-direction: column;
+  }
+
+  .left-column,
+  .right-column {
+    width: 100%;
+    overflow-y: auto;
+    height: auto;
+  }
+
   .navbar {
     max-width: 100%;
   }
 }
-
 </style>
