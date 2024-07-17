@@ -23,9 +23,9 @@
                 </div>
               </li>
             </ul>
-            <button v-if="remainingPosts.length > 0" class="see-more-button" @click="loadMorePosts">
-              <font-awesome-icon :icon="['fas', 'circle-chevron-down']" />
-            </button>
+            <div v-if="remainingPosts.length > 0" class="see-more-container">
+              <font-awesome-icon :icon="['fas', 'circle-chevron-down']" @click="loadMorePosts" class="see-more-icon" />
+            </div>
           </div>
         </div>
         <div class="bottom-column">
@@ -388,24 +388,20 @@ li:hover {
   background-color: #e04a2e;
 }
 
-.see-more-button {
-  width: 100%;
-  background-color: #fd662f;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  padding: 10px;
-  text-align: center;
-  cursor: pointer;
+.see-more-container {
+  display: flex;
+  justify-content: center;
   margin-top: 10px;
 }
 
-.see-more-button:hover {
-  background-color: #e04a2e;
+.see-more-icon {
+  font-size: 24px;
+  color: #fd662f;
+  cursor: pointer;
 }
 
-.see-more-button font-awesome-icon {
-  margin-left: 5px; /* Adjust margin if needed */
+.see-more-icon:hover {
+  color: #e04a2e;
 }
 
 h2 {

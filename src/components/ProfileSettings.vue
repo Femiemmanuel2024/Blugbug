@@ -58,6 +58,21 @@
       <div v-else>
         Loading user data...
       </div>
+      <div class="categories">
+        <h2>Select Your Interested Categories</h2>
+        <div class="selected-categories">
+          <input v-for="category in selectedCategories" :key="category" type="text" :value="category" readonly />
+        </div>
+        <div class="category-buttons">
+          <button v-for="category in categories" :key="category" :class="{'selected': selectedCategories.includes(category)}" @click="toggleCategorySelection(category)">
+            {{ category }}
+          </button>
+        </div>
+        <div v-if="selectedCategories.length >= 5" class="limit-message">
+          You can only select up to 5 categories.
+        </div>
+        <button @click="saveCategories" class="accept-button">Accept</button>
+      </div>
       <button class="deactivate-button" @click="showDeactivateModal">Deactivate Account</button>
     </div>
 
@@ -86,6 +101,7 @@ interface User {
   email: string;
   password: string;
   about_me: string;
+  interest_id: string;
 }
 
 export default defineComponent({
@@ -104,6 +120,26 @@ export default defineComponent({
       about_me: false,
     });
     const showModal = ref(false);
+
+    const categories = [
+      'Health and Wellness', 'Fitness and Exercise', 'Nutrition and Diet', 'Mental Health and Well-being',
+      'Yoga and Meditation', 'Beauty and Skincare', 'Fashion and Style', 'Travel and Adventure', 'Solo Travel Tips',
+      'Budget Travel', 'Luxury Travel Destinations', 'Digital Nomad Lifestyle', 'Home Decor and Interior Design',
+      'DIY Home Projects', 'Gardening and Landscaping', 'Parenting Tips and Advice', 'Pregnancy and Newborn Care',
+      'Toddler Activities', 'Education and Learning', 'Homeschooling Tips', 'Student Life and Study Hacks',
+      'Career Development', 'Resume Writing Tips', 'Job Interview Preparation', 'Personal Finance', 
+      'Investing and Wealth Management', 'Budgeting and Saving Tips', 'Side Hustles and Freelancing',
+      'Entrepreneurship and Startups', 'Marketing and Branding Strategies', 'Social Media Tips and Trends',
+      'Tech Gadgets and Reviews', 'Software and App Development', 'Coding and Programming', 
+      'Web Design and Development', 'Photography Tips and Techniques', 'Art and Creativity', 
+      'Music and Concert Reviews', 'Film and TV Show Reviews', 'Book Recommendations and Reviews', 
+      'Literary Analysis and Criticism', 'History and Historical Events', 'Philosophy and Ethics', 
+      'Religion and Spirituality', 'Cultural Traditions and Festivals', 'Environmental Issues and Conservation', 
+      'Climate Change Solutions', 'Wildlife and Nature Conservation', 'Adventure Sports and Extreme Activities', 
+      'Sports News and Updates'
+    ];
+
+    const selectedCategories = ref<string[]>([]);
 
     const fetchUserData = async () => {
       const currentUser = localStorage.getItem('currentUser');
@@ -128,6 +164,7 @@ export default defineComponent({
       if (data) {
         console.log('User data fetched:', data);
         user.value = data;
+        selectedCategories.value = data.interest_id ? data.interest_id.split(',') : [];
       }
     };
 
@@ -149,6 +186,14 @@ export default defineComponent({
       }
 
       editing.value[field] = !editing.value[field];
+    };
+
+    const toggleCategorySelection = (category: string) => {
+      if (selectedCategories.value.includes(category)) {
+        selectedCategories.value = selectedCategories.value.filter(item => item !== category);
+      } else if (selectedCategories.value.length < 5) {
+        selectedCategories.value.push(category);
+      }
     };
 
     const showDeactivateModal = () => {
@@ -200,6 +245,22 @@ export default defineComponent({
       router.push('/login'); // Redirect to login page
     };
 
+    const saveCategories = async () => {
+      if (!user.value) return;
+
+      const { error } = await supabase
+        .from('users')
+        .update({ interest_id: selectedCategories.value.join(',') })
+        .eq('id', user.value.id);
+
+      if (error) {
+        console.error('Error saving categories:', error.message);
+        return;
+      }
+
+      console.log('Categories saved successfully.');
+    };
+
     onMounted(() => {
       fetchUserData();
     });
@@ -212,6 +273,10 @@ export default defineComponent({
       hideDeactivateModal,
       confirmDeactivation,
       showModal,
+      categories,
+      selectedCategories,
+      toggleCategorySelection,
+      saveCategories,
     };
   },
 });
@@ -240,11 +305,10 @@ html, body {
 
 .content {
   background-color: #1e2127;
-  padding: 20px 300px 20px 300px;
+  padding: 20px 50px 20px 50px;
   width: 100%;
   max-width: 100%;
-  height: 100vh;
-  padding-top: 70px;
+  min-height: 100vh; /* Ensure content covers full height */
 }
 
 h1 {
@@ -296,6 +360,55 @@ button {
 
 button:hover {
   background-color: #e04a2e;
+}
+
+.categories {
+  margin-top: 20px;
+}
+
+.categories h2 {
+  color: #cebfad;
+  margin-bottom: 10px;
+}
+
+.selected-categories input {
+  background-color: #2b3138;
+  color: #cebfad;
+  border: none;
+  border-radius: 4px;
+  padding: 5px;
+  margin-right: 5px;
+  width: auto;
+  margin-bottom: 30px;
+}
+
+.category-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.category-buttons button {
+  background-color: #2b3138;
+  color: #cebfad;
+  border: none;
+  border-radius: 4px;
+  padding: 5px 10px; /* Make the buttons smaller */
+  cursor: pointer;
+}
+
+.category-buttons button.selected {
+  background-color: #fd662f;
+  color: white;
+}
+
+.accept-button {
+  margin-top: 10px;
+}
+
+.limit-message {
+  color: red;
+  margin-top: 10px;
 }
 
 .deactivate-button {
@@ -375,7 +488,7 @@ button:hover {
     padding: 20px 5px 20px 5px;
     width: 100%;
     max-width: 100%;
-    height: 100vh;
+    min-height: 100vh; /* Ensure content covers full height */
   }
 
   .deactivate-button {

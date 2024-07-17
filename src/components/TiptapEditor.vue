@@ -23,6 +23,18 @@
       <button @click="insertLink">
         <i class="fas fa-link"></i>
       </button>
+      <button @click="toggleBulletList">
+        <i class="fas fa-list-ul"></i>
+      </button>
+      <button @click="toggleOrderedList">
+        <i class="fas fa-list-ol"></i>
+      </button>
+      <button @click="indent">
+        <i class="fas fa-indent"></i>
+      </button>
+      <button @click="outdent">
+        <i class="fas fa-outdent"></i>
+      </button>
       <input type="file" @change="uploadImage" id="imageUpload" style="display: none;" />
       <button @click="triggerImageUpload">
         <i class="fas fa-image"></i>
@@ -39,6 +51,9 @@ import TextAlign from '@tiptap/extension-text-align';
 import Link from '@tiptap/extension-link';
 import Image from '@tiptap/extension-image';
 import Underline from '@tiptap/extension-underline';
+import BulletList from '@tiptap/extension-bullet-list';
+import OrderedList from '@tiptap/extension-ordered-list';
+import ListItem from '@tiptap/extension-list-item';
 
 export default defineComponent({
   name: 'TiptapEditor',
@@ -134,6 +149,9 @@ export default defineComponent({
             },
           }),
           Underline,
+          BulletList,
+          OrderedList,
+          ListItem,
         ],
         content: '',
         placeholder: 'Start Blogging',
@@ -169,6 +187,22 @@ export default defineComponent({
 
     const toggleAlignRight = () => {
       editor.value?.chain().focus().setTextAlign('right').run();
+    };
+
+    const toggleBulletList = () => {
+      editor.value?.chain().focus().toggleBulletList().run();
+    };
+
+    const toggleOrderedList = () => {
+      editor.value?.chain().focus().toggleOrderedList().run();
+    };
+
+    const indent = () => {
+      editor.value?.commands.sinkListItem('listItem');
+    };
+
+    const outdent = () => {
+      editor.value?.commands.liftListItem('listItem');
     };
 
     const insertLink = () => {
@@ -225,6 +259,10 @@ export default defineComponent({
       toggleAlignLeft,
       toggleAlignCenter,
       toggleAlignRight,
+      toggleBulletList,
+      toggleOrderedList,
+      indent,
+      outdent,
       insertLink,
       triggerImageUpload,
       uploadImage,

@@ -24,7 +24,8 @@ import {
   faAlignRight, // Import faAlignRight
   faImage, // Import faImage
   faLink, // Import faLink
-  faBookOpenReader // Import faBookOpenReader
+  faBookOpenReader, // Import faBookOpenReader
+  faCircleChevronDown // Import faCircleChevronDown
 } from '@fortawesome/free-solid-svg-icons';
 
 // Add the icons to the library
@@ -46,7 +47,8 @@ library.add(
   faAlignRight,
   faImage,
   faLink,
-  faBookOpenReader // Add faBookOpenReader to the library
+  faBookOpenReader,
+  faCircleChevronDown // Add faCircleChevronDown to the library
 );
 
 const app = createApp(App);

@@ -10,8 +10,12 @@
           :followingCount="followingCount" 
           :followersCount="followersCount"
         />
+        <div class="header-toggle">
+          <h3 @click="showBlug">Blug</h3>
+          <h3 @click="showInterestFeed">Interest-Based Feed</h3>
+        </div>
         <div class="feed-container">
-          <Feed />
+          <component :is="currentComponent" />
         </div>
       </div>
       <div class="right-column">
@@ -25,7 +29,8 @@
 import { defineComponent, ref, onMounted } from 'vue';
 import NavBar from '../NavBar.vue';
 import ProfileHeader from '../features/ProfileHeader.vue';
-import Feed from '../features/Feed.vue';
+import Feed from '../features/FeedPage.vue';
+import InterestPage from '../features/InterestPage.vue'; // Import InterestPage
 import InfoData from '../infofeatures/InfoData.vue';
 import { supabase } from '../supabase';
 
@@ -45,6 +50,7 @@ export default defineComponent({
     NavBar,
     ProfileHeader,
     Feed,
+    InterestPage, // Register InterestPage
     InfoData,
   },
   setup() {
@@ -54,6 +60,8 @@ export default defineComponent({
     const totalBookmarks = ref<number>(0);
     const followingCount = ref<number>(0);
     const followersCount = ref<number>(0);
+
+    const currentComponent = ref('Feed');
 
     const fetchUserData = async () => {
       const { data, error } = await supabase
@@ -80,6 +88,14 @@ export default defineComponent({
       }
     };
 
+    const showBlug = () => {
+      currentComponent.value = 'Feed';
+    };
+
+    const showInterestFeed = () => {
+      currentComponent.value = 'InterestPage';
+    };
+
     onMounted(() => {
       fetchUserData();
     });
@@ -91,6 +107,9 @@ export default defineComponent({
       totalBookmarks,
       followingCount,
       followersCount,
+      currentComponent,
+      showBlug,
+      showInterestFeed,
     };
   },
 });
@@ -127,6 +146,24 @@ export default defineComponent({
   background-color: #2b3138; /* Example background color for feed */
   padding: 10px;
   border: solid 5px #0c1118;
+}
+
+.header-toggle {
+  display: flex;
+  justify-content: space-around;
+  cursor: pointer;
+  background-color: #1e2127;
+  padding: 10px;
+  color: #cebfad;
+}
+
+.header-toggle h3 {
+  margin: 0 10px;
+  cursor: pointer;
+}
+
+.header-toggle h3:hover {
+  color: #f53;
 }
 
 .right-column {
