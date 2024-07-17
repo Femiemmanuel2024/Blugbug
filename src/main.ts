@@ -9,18 +9,45 @@ import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { 
   faHouse, 
   faComments, 
-  faGlobe, // Import faGlobe
+  faGlobe, 
   faSignOutAlt, 
   faTrashAlt, 
   faCog, 
   faHeart, 
   faBookmark, 
   faCircleCheck, 
-  faCircleXmark 
+  faCircleXmark,
+  faBold, // Import faBold
+  faItalic, // Import faItalic
+  faAlignLeft, // Import faAlignLeft
+  faAlignCenter, // Import faAlignCenter
+  faAlignRight, // Import faAlignRight
+  faImage, // Import faImage
+  faLink, // Import faLink
+  faBookOpenReader // Import faBookOpenReader
 } from '@fortawesome/free-solid-svg-icons';
 
 // Add the icons to the library
-library.add(faHouse, faComments, faGlobe, faSignOutAlt, faTrashAlt, faCog, faHeart, faBookmark, faCircleCheck, faCircleXmark);
+library.add(
+  faHouse, 
+  faComments, 
+  faGlobe, 
+  faSignOutAlt, 
+  faTrashAlt, 
+  faCog, 
+  faHeart, 
+  faBookmark, 
+  faCircleCheck, 
+  faCircleXmark,
+  faBold,
+  faItalic,
+  faAlignLeft,
+  faAlignCenter,
+  faAlignRight,
+  faImage,
+  faLink,
+  faBookOpenReader // Add faBookOpenReader to the library
+);
 
 const app = createApp(App);
 

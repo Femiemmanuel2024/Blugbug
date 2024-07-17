@@ -12,8 +12,8 @@
               <li class="list-container" v-for="(post, index) in posts" :key="index">
                 <span class="post-title" @click="viewPost(index)">{{ post.title }}</span>
                 <div class="post-actions">
-                  <button @click="viewPost(index)">Read</button>
-                  <button @click="deletePost(index)">Delete</button>
+                  <i class="fas fa-eye" @click="viewPost(index)" title="Read"></i>
+                  <i class="fas fa-trash" @click="deletePost(index)" title="Delete"></i>
                 </div>
               </li>
             </ul>
@@ -285,7 +285,7 @@ export default defineComponent({
 }
 
 .right-column {
-  width: 60%;
+  width: 70%;
   padding: 20px;
   background-color: #1e2127;
   overflow-y: auto;
@@ -300,8 +300,10 @@ ul {
 li {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start; /* Align to the top */
   margin-bottom: 5px;
+  border-bottom: 1px solid #444; /* Thin border line */
+  padding-bottom: 5px; /* Add some padding */
 }
 
 .post-title {
@@ -310,6 +312,8 @@ li {
   cursor: pointer;
   color: #cebfad;
   text-align: left; /* Left align the post titles */
+  overflow-wrap: anywhere; /* Allow long titles to wrap */
+  white-space: pre-line; /* Preserve whitespace and allow wrapping */
 }
 
 .post-title:hover {
@@ -318,7 +322,18 @@ li {
 
 .post-actions {
   display: flex;
+  align-items: center; /* Align icons with the first line of the title */
   gap: 10px;
+  margin-left: 10px;
+}
+
+.post-actions i {
+  cursor: pointer;
+  color: #cebfad;
+}
+
+.post-actions i:hover {
+  color: #fd662f;
 }
 
 button {
@@ -346,19 +361,17 @@ h2 {
 
 @media (max-width: 430px) {
   .chatters-page {
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-  padding-right: 1px;
-  padding-left: 1px;
-  padding-top: 140px;
-}
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    padding-right: 1px;
+    padding-left: 1px;
+    padding-top: 140px;
+  }
 
   .container {
     flex-direction: column;
   }
-  
-  
 
   .left-column {
     order: 1;

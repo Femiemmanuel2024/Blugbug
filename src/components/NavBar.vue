@@ -89,7 +89,7 @@ export default defineComponent({
   padding: 10px 10px;
   background-color: #1e2127;
   box-shadow: 0 0px 5px rgba(0, 0, 0, 0.9);
-  z-index: 9999;
+  z-index: 9998;
 }
 
 .navbar-left, .navbar-center, .navbar-right {

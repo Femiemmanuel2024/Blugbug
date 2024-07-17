@@ -4,8 +4,12 @@
       <div class="column left-column">
         <div class="login-options">
           <h2>Login Options</h2>
-          <button class="btn btn-google" @click="signUpWithGmail">Sign Up with Google</button>
-          <button class="btn btn-facebook" @click="signUpWithFacebook">Sign Up with Facebook</button>
+          <button class="btn btn-google" @click="signUpWithGmail">
+            <img src="@/assets/google-logo.png" alt="Google Logo" class="auth-logo" /> Sign Up with Google
+          </button>
+          <button class="btn btn-facebook" @click="signUpWithFacebook">
+            <img src="@/assets/facebook-logo.png" alt="Facebook Logo" class="auth-logo" /> Sign Up with Facebook
+          </button>
         </div>
       </div>
       <div class="column right-column">
@@ -16,7 +20,8 @@
               <input type="text" placeholder="Full Name" v-model="fullName" @input="generateChatterName" required />
             </div>
             <div class="form-group">
-              <input type="text" placeholder="Chatter Name" v-model="chatterName" />
+              <input type="text" placeholder="Chatter Name" v-model="chatterName" @input="validateChatterName" required />
+              <p v-if="chatterNameWarning" class="warning">{{ chatterNameWarning }}</p>
             </div>
             <div class="form-group">
               <input type="email" placeholder="Email Address" v-model="email" required />
@@ -26,7 +31,8 @@
               <i :class="passwordFieldIcon" @click="togglePasswordVisibility"></i>
             </div>
             <div class="form-group">
-              <textarea placeholder="About Me" v-model="aboutMe"></textarea>
+              <textarea placeholder="About Me" v-model="aboutMe" @input="limitAboutMeWords" maxlength="200"></textarea>
+              <p>{{ aboutMeWordCount }} / 200 words</p>
             </div>
             <button type="submit" class="btn btn-signup">Create Account</button>
           </form>
@@ -67,18 +73,37 @@ export default defineComponent({
     const router = useRouter();
     const fullName = ref('');
     const chatterName = ref('');
+    const chatterNameWarning = ref('');
     const email = ref('');
     const password = ref('');
     const passwordFieldType = ref('password');
     const passwordFieldIcon = ref('fas fa-eye');
     const aboutMe = ref('');
     const showConfirmation = ref(false);
+    const aboutMeWordCount = ref(0);
 
     const generateChatterName = () => {
       const randomSuffix = Math.floor(Math.random() * 1000);
       const nameParts = fullName.value.split(' ');
       const baseName = nameParts.join('').toLowerCase();
       chatterName.value = `${baseName}${randomSuffix}`;
+    };
+
+    const validateChatterName = () => {
+      if (chatterName.value !== chatterName.value.toLowerCase()) {
+        chatterNameWarning.value = 'Chatter Name must be all lowercase.';
+      } else {
+        chatterNameWarning.value = '';
+      }
+      chatterName.value = chatterName.value.toLowerCase();
+    };
+
+    const limitAboutMeWords = () => {
+      const words = aboutMe.value.split(/\s+/);
+      if (words.length > 200) {
+        aboutMe.value = words.slice(0, 200).join(' ');
+      }
+      aboutMeWordCount.value = words.length;
     };
 
     const onSubmit = async () => {
@@ -114,12 +139,14 @@ export default defineComponent({
       }
     };
 
-    const signUpWithGmail = () => {
-      console.log('Sign Up with Google clicked');
+    const signUpWithGmail = async () => {
+      const { error } = await supabase.auth.signInWithOAuth({ provider: 'google' });
+      if (error) console.error('Error signing in with Google:', error.message);
     };
 
-    const signUpWithFacebook = () => {
-      console.log('Sign Up with Facebook clicked');
+    const signUpWithFacebook = async () => {
+      const { error } = await supabase.auth.signInWithOAuth({ provider: 'facebook' });
+      if (error) console.error('Error signing in with Facebook:', error.message);
     };
 
     const togglePasswordVisibility = () => {
@@ -135,23 +162,33 @@ export default defineComponent({
     return {
       fullName,
       chatterName,
+      chatterNameWarning,
       email,
       password,
       passwordFieldType,
       passwordFieldIcon,
       aboutMe,
       showConfirmation,
+      aboutMeWordCount,
       onSubmit,
       signUpWithGmail,
       signUpWithFacebook,
       togglePasswordVisibility,
       generateChatterName,
+      validateChatterName,
+      limitAboutMeWords,
     };
   },
 });
 </script>
 
 <style scoped>
+.auth-logo{
+  width: 10%;
+  height: 10%;
+}
+
+
 .signupbody {
   background: linear-gradient(45deg, #202329, #4e545b);
   display: flex;
@@ -181,7 +218,6 @@ export default defineComponent({
 }
 
 .left-column {
- 
   display: flex;
   justify-content: center;
   align-items: center;
@@ -224,8 +260,13 @@ export default defineComponent({
   border-radius: 20px;
   cursor: pointer;
   margin-top: 10px;
-  background-color: #fd662f; /* Button color */
-  color: white; /* White text */
+}
+
+.signup-container .btn img.auth-logo {
+  width: 20px;
+  height: 20px;
+  margin-right: 10px;
+  vertical-align: middle;
 }
 
 .btn-google {
@@ -265,6 +306,7 @@ export default defineComponent({
   box-sizing: border-box;
   background-color: #2d333a;
   color: #cebfad;
+  resize: none;
 }
 
 .password-group i {

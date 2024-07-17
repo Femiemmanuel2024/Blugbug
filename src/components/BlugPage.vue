@@ -12,15 +12,20 @@
           </div>
           <div class="top-container">
             <ul class="blog-list">
-              <li class="list-container" v-for="(post, index) in filteredPosts" :key="index">
-                <div class="post-title-container">
-                  <span class="post-title" @click="viewPost(index)">{{ post.title }}</span>
+              <li class="list-container" v-for="(post, index) in displayedPosts" :key="index" @click="viewPost(index)">
+                <div class="title-row post-title-container">
+                  <span class="post-title">{{ post.title }}</span>
                 </div>
-                <div class="post-actions">
-                  <button @click="viewPost(index)">Read</button>
+                <div class="read-button-row post-actions">
+                  <button class="read-button">
+                    Read
+                  </button>
                 </div>
               </li>
             </ul>
+            <button v-if="remainingPosts.length > 0" class="see-more-button" @click="loadMorePosts">
+              <font-awesome-icon :icon="['fas', 'circle-chevron-down']" />
+            </button>
           </div>
         </div>
         <div class="bottom-column">
@@ -41,6 +46,7 @@ import { useRoute } from 'vue-router';
 import NavBar from './NavBar.vue';
 import { supabase } from './supabase';
 import InteractivePage from './features/InteractionPage.vue';
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 
 interface Post {
   id: number;
@@ -57,13 +63,17 @@ export default defineComponent({
   components: {
     NavBar,
     InteractivePage,
+    FontAwesomeIcon,
   },
   setup() {
     const posts = ref<Post[]>([]);
+    const displayedPosts = ref<Post[]>([]);
+    const remainingPosts = ref<Post[]>([]);
     const selectedPost = ref<Post | null>(null);
     const currentComponentKey = ref<number>(0);
     const searchQuery = ref<string>('');
     const route = useRoute();
+    const postsPerLoad = ref<number>(10);
 
     const fetchPostsFromDatabase = async () => {
       const { data, error } = await supabase.from('blog_post').select('*');
@@ -107,11 +117,27 @@ export default defineComponent({
         })
       );
 
+      // Shuffle the loaded posts array
+      loadedPosts.sort(() => Math.random() - 0.5);
+
       posts.value = loadedPosts;
+      updateDisplayedPosts();
+    };
+
+    const updateDisplayedPosts = () => {
+      displayedPosts.value = posts.value.slice(0, postsPerLoad.value);
+      remainingPosts.value = posts.value.slice(postsPerLoad.value);
+    };
+
+    const loadMorePosts = () => {
+      const currentLength = displayedPosts.value.length;
+      const newPosts = remainingPosts.value.slice(0, postsPerLoad.value);
+      displayedPosts.value = newPosts;
+      remainingPosts.value = remainingPosts.value.slice(postsPerLoad.value);
     };
 
     const viewPost = async (index: number) => {
-      const post = posts.value[index];
+      const post = displayedPosts.value[index];
 
       const { data, error } = await supabase
         .from('blog_post')
@@ -152,30 +178,48 @@ export default defineComponent({
       };
     };
 
-    const filteredPosts = computed(() =>
-      posts.value.filter((post) => post.title?.toLowerCase().includes(searchQuery.value.toLowerCase()))
-    );
+    const filteredPosts = computed(() => {
+      const filtered = posts.value.filter((post) =>
+        post.title?.toLowerCase().includes(searchQuery.value.toLowerCase())
+      );
+      return filtered.slice(0, postsPerLoad.value);
+    });
 
     onMounted(() => {
       loadPosts().then(() => {
         const searchParam = route.query.search as string;
         if (searchParam) {
           searchQuery.value = searchParam;
-          const postIndex = posts.value.findIndex(post => post.title?.toLowerCase() === searchParam.toLowerCase());
+          const postIndex = posts.value.findIndex(
+            (post) => post.title?.toLowerCase() === searchParam.toLowerCase()
+          );
           if (postIndex !== -1) {
             viewPost(postIndex);
           }
         }
       });
+
+      const updatePostsPerLoad = () => {
+        postsPerLoad.value = window.innerWidth <= 430 ? 5 : 10;
+        updateDisplayedPosts();
+      };
+
+      window.addEventListener('resize', updatePostsPerLoad);
+      updatePostsPerLoad(); // Initial call to set postsPerLoad based on screen size
+
+      return () => {
+        window.removeEventListener('resize', updatePostsPerLoad);
+      };
     });
 
     return {
-      posts,
+      displayedPosts,
+      remainingPosts,
       selectedPost,
       viewPost,
       currentComponentKey,
       searchQuery,
-      filteredPosts,
+      loadMorePosts,
     };
   },
 });
@@ -247,6 +291,7 @@ export default defineComponent({
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   gap: 10px;
+  justify-content: center; /* Center the blog list items */
 }
 
 .left-title {
@@ -284,43 +329,83 @@ li {
   flex-direction: column;
   align-items: center;
   background-color: #444;
-  padding: 10px;
+  padding: 0px;
   border-radius: 10px;
+  width: 200px;
+  height: 100px;
+  overflow: hidden;
+  justify-content: space-between; /* Ensure the read button stays at the bottom */
+  transition: transform 0.2s; /* Add transition for hover effect */
 }
 
-.post-title-container {
+li:hover {
+  transform: scale(1.05); /* Enlarge slightly on hover */
+}
+
+.title-row {
   width: 100%;
   text-align: center;
-  margin-bottom: 10px;
+  flex-grow: 1;
+  padding: 10px; /* Add padding to all sides of the title row */
 }
 
 .post-title {
   font-size: 14px;
-  cursor: pointer;
   color: #fff;
   text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  white-space: normal;
+  padding-left: 10px; /* Add space to the left of the title */
+  padding-right: 10px; /* Add space to the right of the title */
 }
 
-.post-title:hover {
-  color: #fd662f;
-}
-
-.post-actions {
+.read-button-row {
   display: flex;
   justify-content: center;
+  align-items: center;
+  width: 100%;
+  background-color: #fd662f;
+  flex-shrink: 0; /* Prevent the row from shrinking */
+  cursor: pointer;
+  height: 25%;
 }
 
-button {
-  padding: 5px 10px;
+.read-button {
+  width: 100%;
   background-color: #fd662f;
   color: white;
   border: none;
   border-radius: 4px;
-  cursor: pointer;
+  padding: 10px;
+  text-align: center;
 }
 
-button:hover {
+.read-button:hover {
   background-color: #e04a2e;
+}
+
+.see-more-button {
+  width: 100%;
+  background-color: #fd662f;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 10px;
+  text-align: center;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+.see-more-button:hover {
+  background-color: #e04a2e;
+}
+
+.see-more-button font-awesome-icon {
+  margin-left: 5px; /* Adjust margin if needed */
 }
 
 h2 {
@@ -333,11 +418,12 @@ h2 {
   font-size: 1rem;
 }
 
-.blog-header{
+.blog-header {
   display: flex;
   justify-content: center;
   color: #cebfad;
 }
+
 @media (max-width: 430px) {
   .blug-page {
     display: flex;
@@ -362,6 +448,12 @@ h2 {
     width: 100%;
   }
 
+  .blog-list {
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Center the blog list items on smaller screens */
+  }
+
   ul {
     display: block;
   }
@@ -369,6 +461,8 @@ h2 {
   li {
     display: block;
     margin-bottom: 5px;
+    height: 100px;
+    width: 100%; /* Make the list item take full width on smaller screens */
   }
 
   .post-title {
@@ -376,23 +470,21 @@ h2 {
   }
 
   .search-bar input {
-  width: 100%;
-  padding: 10px;
-  font-size: 12px;
-  border: none;
-  box-sizing: border-box;
-  background-color: #2b3138; /* Background color */
-  color: #d7c9b7; /* Text color */
-  padding-right: 30px; /* Add space for the icon */
-  font-size: 14px;
-  border-radius: 10px;
-}
+    width: 100%;
+    padding: 10px;
+    font-size: 12px;
+    border: none;
+    box-sizing: border-box;
+    background-color: #2b3138; /* Background color */
+    color: #d7c9b7; /* Text color */
+    padding-right: 30px; /* Add space for the icon */
+    font-size: 14px;
+    border-radius: 10px;
+  }
 }
 
 .list-container {
   display: flex;
   flex-direction: column;
 }
-
-
 </style>

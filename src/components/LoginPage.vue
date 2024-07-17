@@ -183,7 +183,8 @@ html, body {
 .login-container h1 {
   font-size: 24px;
   color: #cebfad; /* Text color */
-  margin-top: 80px;
+  margin-top: 60px;
+  margin-bottom: 20px;
 }
 
 .login-container .btn {

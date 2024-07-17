@@ -21,7 +21,7 @@ export default defineComponent({
   name: 'FileUpload',
   props: {
     type: {
-      type: String as PropType<'profile' | 'header'>,
+      type: String as PropType<'profile' | 'header'| 'checkmark'>,
       required: true,
     },
   },

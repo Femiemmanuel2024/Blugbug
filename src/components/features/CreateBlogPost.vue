@@ -2,9 +2,11 @@
   <div class="modal-container" v-if="isModalVisible">
     <div class="modal-content">
       <input v-model="title" placeholder="Enter the title" class="title-input" />
-      <QuillEditor ref="quillEditor" />
-      <button @click="publishContent">Publish</button>
-      <button @click="$emit('closeModal')">Close</button>
+      <TiptapEditor ref="tiptapEditor" @updateContent="updateContent" />
+      <div class="editor-actions">
+        <button @click="publishContent">Publish</button>
+        <button @click="$emit('closeModal')">Close</button>
+      </div>
     </div>
   </div>
 </template>
@@ -12,14 +14,14 @@
 <script lang="ts">
 import { defineComponent, ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import QuillEditor from '../QuillEditor.vue';
+import TiptapEditor from '../TiptapEditor.vue';
 import { supabase } from '../supabase';
-import { v4 as uuidv4 } from 'uuid'; // Import UUID
+import { v4 as uuidv4 } from 'uuid';
 
 export default defineComponent({
   name: 'CreateBlogPost',
   components: {
-    QuillEditor,
+    TiptapEditor,
   },
   props: {
     isModalVisible: {
@@ -27,25 +29,16 @@ export default defineComponent({
       required: true,
     },
   },
-  emits: ['publishContent', 'closeModal'],
+  emits: ['closeModal'],
   setup(_, { emit }) {
     const router = useRouter();
+    const user = ref<any>(null);
     const title = ref<string>('');
     const content = ref<string>('');
-    const createdBy = ref<string>('');
-    const chatterName = ref<string>('');
-    const currentDate = ref<string>('');
-    const quillEditor = ref<any>(null);
+    const timestamp = ref<string>('');
 
     onMounted(() => {
       fetchUserInfo();
-      if (quillEditor.value) {
-        quillEditor.value.quillInstance.on('text-change', () => {
-          content.value = quillEditor.value.quillInstance.root.innerHTML;
-        });
-      }
-      const now = new Date();
-      currentDate.value = now.toLocaleString();
     });
 
     const fetchUserInfo = async () => {
@@ -61,80 +54,76 @@ export default defineComponent({
       if (error) {
         console.error('Error fetching user data:', error.message);
       } else {
-        createdBy.value = data.full_name;
-        chatterName.value = data.chatter_name;
+        user.value = data;
       }
     };
 
+    const updateContent = (updatedContent: string, updatedTimestamp: string) => {
+      content.value = updatedContent;
+      timestamp.value = updatedTimestamp;
+    };
+
     const publishContent = async () => {
+      if (!title.value.trim() || !content.value.trim()) {
+        console.error('Title and content are required');
+        return;
+      }
+
       const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
       const userId = currentUser.id;
 
-      if (title.value.trim() && content.value.trim()) {
-        const htmlContent = `
-          <html>
-            <body>
-              <h1>${title.value}</h1>
-              <p>Created by: ${createdBy.value}</p>
-              <p>Date: ${currentDate.value}</p>
-              ${content.value}
-            </body>
-          </html>
-        `;
+      const htmlContent = `
+        <html>
+          <body>
+            <h1>${title.value}</h1>
+            <p>Created by: ${user.value.full_name}</p>
+            <p>Date: ${timestamp.value}</p>
+            ${content.value}
+          </body>
+        </html>
+      `;
 
-        const blogId = uuidv4(); // Generate a unique ID for the blog post
-        const fileName = `${blogId}.html`;
-        const { data: uploadData, error: uploadError } = await supabase.storage
-          .from('blog-post')
-          .upload(`${userId}/${fileName}`, new Blob([htmlContent], { type: 'text/html' }));
+      const blogId = uuidv4();
+      const fileName = `${blogId}.html`;
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('blog-post')
+        .upload(`${userId}/${fileName}`, new Blob([htmlContent], { type: 'text/html' }));
 
-        if (uploadError) {
-          console.error('Error uploading file:', uploadError.message);
-        } else {
-          console.log('File uploaded:', uploadData);
-
-          // Insert blog post details into the blog_post table
-          const { data: insertData, error: insertError } = await supabase
-            .from('blog_post')
-            .insert([
-              {
-                user_id: userId,
-                blog_id: blogId,
-                title: title.value,
-                likes: 0,
-                comments: [],
-                bookmarks: 0,
-                full_name: createdBy.value,
-                chatter_name: chatterName.value,
-              },
-            ]);
-
-          if (insertError) {
-            console.error('Error inserting blog post:', insertError.message);
-          } else {
-            console.log('Blog post inserted:', insertData);
-            emit('publishContent', { title: title.value, content: htmlContent });
-
-            // Clear the inputs
-            title.value = '';
-            quillEditor.value.quillInstance.root.innerHTML = '';
-
-            // Route back to homepage after successful upload
-            router.push('/home');
-          }
-        }
-      } else {
-        alert('Title and content are required!');
+      if (uploadError) {
+        console.error('Error uploading file:', uploadError.message);
+        return;
       }
+
+      console.log('File uploaded:', uploadData);
+
+      const { data: insertData, error: insertError } = await supabase
+        .from('blog_post')
+        .insert([
+          {
+            user_id: userId,
+            blog_id: blogId,
+            title: title.value,
+            likes: 0,
+            comments: [],
+            bookmarks: 0,
+            full_name: user.value.full_name,
+            chatter_name: user.value.chatter_name,
+          },
+        ]);
+
+      if (insertError) {
+        console.error('Error inserting blog post:', insertError.message);
+        return;
+      }
+
+      console.log('Blog post inserted:', insertData);
+      emit('closeModal');
+      router.push('/home');
     };
 
     return {
       title,
-      content,
-      createdBy,
-      chatterName,
-      currentDate,
-      quillEditor,
+      updateContent,
       publishContent,
     };
   },
@@ -152,16 +141,20 @@ export default defineComponent({
   display: flex;
   justify-content: center;
   align-items: center;
+  z-index: 9999;
 }
 
 .modal-content {
+  position: relative;
+  top: 0px;
   background-color: #333;
   color: white;
   padding: 20px;
   border-radius: 10px;
-  width: 80%;
-  max-width: 600px;
+  width: 1200px;
+  height: 550px;
   text-align: center;
+  z-index: 9999;
 }
 
 .title-input {
@@ -174,14 +167,13 @@ export default defineComponent({
   box-sizing: border-box;
 }
 
-.quill-editor {
-  height: 300px;
-  background-color: white;
-  color: black;
+.editor-actions {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 10px;
 }
 
 button {
-  margin-top: 10px;
   padding: 10px 20px;
   background-color: #f53;
   color: white;

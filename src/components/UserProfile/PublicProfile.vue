@@ -27,7 +27,7 @@ import { defineComponent, ref, watch, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
 import { supabase } from '../supabase';
 import NavBar from '../NavBar.vue';
-import ProfileHeader from '../features/ProfileHeader.vue';
+import ProfileHeader from '../features/PublicHeader.vue';
 import FollowButton from './FollowButton.vue';
 import BlogPosts from '../features/BlogPosts.vue';
 import InfoData from '../infofeatures/InfoData.vue';
