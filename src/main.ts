@@ -25,7 +25,10 @@ import {
   faImage, // Import faImage
   faLink, // Import faLink
   faBookOpenReader, // Import faBookOpenReader
-  faCircleChevronDown // Import faCircleChevronDown
+  faCircleChevronDown, // Import faCircleChevronDown
+  faCompressAlt, // Import faCompressAlt
+  faExpandAlt, // Import faExpandAlt
+  faExpand // Import faExpand
 } from '@fortawesome/free-solid-svg-icons';
 
 // Add the icons to the library
@@ -48,7 +51,10 @@ library.add(
   faImage,
   faLink,
   faBookOpenReader,
-  faCircleChevronDown // Add faCircleChevronDown to the library
+  faCircleChevronDown,
+  faCompressAlt,
+  faExpandAlt,
+  faExpand
 );
 
 const app = createApp(App);

@@ -40,6 +40,17 @@
         <i class="fas fa-image"></i>
       </button>
     </div>
+    <div v-if="selectedImage" class="resize-options">
+      <button @click="resizeImage('small')">
+        <i class="fas fa-compress-alt"></i>
+      </button>
+      <button @click="resizeImage('medium')">
+        <i class="fas fa-expand-alt"></i>
+      </button>
+      <button @click="resizeImage('large')">
+        <i class="fas fa-expand"></i>
+      </button>
+    </div>
   </div>
 </template>
 
@@ -61,6 +72,7 @@ export default defineComponent({
   setup(_, { emit }) {
     const editorContainer = ref<HTMLDivElement | null>(null);
     const editor = ref<Editor | null>(null);
+    const selectedImage = ref<HTMLImageElement | null>(null);
 
     onMounted(() => {
       editor.value = new Editor({
@@ -101,8 +113,20 @@ export default defineComponent({
                 img.style.height = 'auto';
                 img.style.cursor = 'pointer';
 
+                img.addEventListener('click', () => {
+                  selectedImage.value = img;
+                  img.style.border = '2px solid green';
+                });
+
                 const resizeHandle = document.createElement('div');
                 resizeHandle.classList.add('resize-handle');
+                resizeHandle.style.position = 'absolute';
+                resizeHandle.style.bottom = '0';
+                resizeHandle.style.right = '0';
+                resizeHandle.style.width = '10px';
+                resizeHandle.style.height = '10px';
+                resizeHandle.style.backgroundColor = 'red';
+                resizeHandle.style.cursor = 'se-resize';
 
                 dom.appendChild(img);
                 dom.appendChild(resizeHandle);
@@ -217,17 +241,53 @@ export default defineComponent({
       imageUpload.click();
     };
 
-    const resizeImage = (file: File, maxWidth: number): Promise<string> => {
+    const resizeImage = async (size: 'small' | 'medium' | 'large') => {
+      if (!selectedImage.value) return;
+      const maxWidth = size === 'small' ? 500 : size === 'medium' ? 1000 : 1920;
+      const aspectRatio = selectedImage.value.naturalWidth / selectedImage.value.naturalHeight;
+      const width = Math.min(maxWidth, selectedImage.value.naturalWidth);
+      const height = width / aspectRatio;
+      selectedImage.value.style.width = `${width}px`;
+      selectedImage.value.style.height = 'auto';
+
+      const transaction = editor.value?.state.tr.setNodeMarkup(
+        editor.value?.state.selection.anchor - 1,
+        null,
+        {
+          src: selectedImage.value.src,
+          width,
+        }
+      );
+      editor.value?.view.dispatch(transaction!);
+      selectedImage.value = null;
+    };
+
+    const uploadImage = async (event: Event) => {
+      const target = event.target as HTMLInputElement;
+      const file = target.files?.[0];
+      if (file) {
+        try {
+          const resizedImageUrl = await resizeImageFile(file, 1500);
+          editor.value?.chain().focus().setImage({ src: resizedImageUrl, width: 1500 }).run();
+        } catch (error) {
+          console.error('Error resizing image:', error);
+        }
+      }
+    };
+
+    const resizeImageFile = (file: File, maxWidth: number): Promise<string> => {
       return new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.onload = (event) => {
           const img = new window.Image();
           img.onload = () => {
+            const aspectRatio = img.width / img.height;
+            const width = Math.min(maxWidth, img.width);
+            const height = width / aspectRatio;
             const canvas = document.createElement('canvas');
             const ctx = canvas.getContext('2d')!;
-            const aspectRatio = img.width / img.height;
-            canvas.width = maxWidth;
-            canvas.height = maxWidth / aspectRatio;
+            canvas.width = width;
+            canvas.height = height;
             ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
             resolve(canvas.toDataURL(file.type));
           };
@@ -236,19 +296,6 @@ export default defineComponent({
         reader.onerror = reject;
         reader.readAsDataURL(file);
       });
-    };
-
-    const uploadImage = async (event: Event) => {
-      const target = event.target as HTMLInputElement;
-      const file = target.files?.[0];
-      if (file) {
-        try {
-          const resizedImageUrl = await resizeImage(file, 500);
-          editor.value?.chain().focus().setImage({ src: resizedImageUrl }).run();
-        } catch (error) {
-          console.error('Error resizing image:', error);
-        }
-      }
     };
 
     return {
@@ -266,6 +313,8 @@ export default defineComponent({
       insertLink,
       triggerImageUpload,
       uploadImage,
+      resizeImage,
+      selectedImage,
     };
   },
 });
@@ -298,15 +347,36 @@ export default defineComponent({
 .resizable-image-container {
   position: relative;
   display: inline-block;
+  border: 2px solid green;
 }
 .resize-handle {
   position: absolute;
-  bottom: 0;
-  right: 0;
+  bottom: -5px;
+  right: -5px;
   width: 10px;
   height: 10px;
-  background-color: #000;
+  background-color: red;
   cursor: se-resize;
+}
+
+.resize-options {
+  margin-top: 10px;
+}
+
+.resize-options button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 5px 10px;
+  margin-right: 5px;
+  color: white;
+}
+
+.resize-options button:hover{
+  color: #ed6834;
+}
+.resize-options button i {
+  font-size: 16px;
 }
 
 ::v-deep .tiptap {

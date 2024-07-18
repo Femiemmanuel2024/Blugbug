@@ -1,6 +1,6 @@
 <template>
     <div class="feedheader">
-      <h3>MyBlug</h3>
+      <!-- <h3>MyBlug</h3> -->
     </div>
     <ul>
       <li v-for="post in feedPosts" :key="post.id">

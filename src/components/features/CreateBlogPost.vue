@@ -3,16 +3,20 @@
     <div class="modal-content">
       <input v-model="title" placeholder="Enter the title" class="title-input" />
       <TiptapEditor ref="tiptapEditor" @updateContent="updateContent" />
-      <div class="category-selection">
-        <select v-model="selectedCategory">
-          <option value="" disabled>Select a category</option>
-          <option v-for="category in categories" :key="category">{{ category }}</option>
-        </select>
-      </div>
-      <div v-if="showCategoryError" class="error-message">Please select a category</div>
       <div class="editor-actions">
+        <div class="category-selection">
+          <select v-model="selectedCategory">
+            <option value="" disabled>Select a category</option>
+            <option v-for="category in categories" :key="category">{{ category }}</option>
+          </select>
+        </div>
         <button @click="publishContent">Publish</button>
         <button @click="$emit('closeModal')">Close</button>
+      </div>
+      <div v-if="showTitleError || showContentError || showCategoryError" class="error-message">
+        <div v-if="showTitleError">Title is required</div>
+        <div v-if="showContentError">Content is required</div>
+        <div v-if="showCategoryError">Category is required</div>
       </div>
     </div>
   </div>
@@ -43,6 +47,8 @@ export default defineComponent({
     const title = ref<string>('');
     const content = ref<string>('');
     const selectedCategory = ref<string>('');
+    const showTitleError = ref<boolean>(false);
+    const showContentError = ref<boolean>(false);
     const showCategoryError = ref<boolean>(false);
     const timestamp = ref<string>('');
 
@@ -126,17 +132,13 @@ export default defineComponent({
     };
 
     const publishContent = async () => {
-      if (!title.value.trim() || !content.value.trim()) {
-        console.error('Title and content are required');
+      showTitleError.value = !title.value.trim();
+      showContentError.value = !content.value.trim();
+      showCategoryError.value = !selectedCategory.value;
+
+      if (showTitleError.value || showContentError.value || showCategoryError.value) {
         return;
       }
-
-      if (!selectedCategory.value) {
-        showCategoryError.value = true;
-        return;
-      }
-
-      showCategoryError.value = false;
 
       const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
       const userId = currentUser.id;
@@ -197,6 +199,8 @@ export default defineComponent({
       publishContent,
       categories,
       selectedCategory,
+      showTitleError,
+      showContentError,
       showCategoryError,
     };
   },
@@ -241,17 +245,18 @@ export default defineComponent({
   box-sizing: border-box;
 }
 
-.category-selection {
-  margin: 10px 0;
+.toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
 }
 
 .category-selection select {
-  width: 50%;
   padding: 10px;
   font-size: 16px;
   border-radius: 4px;
   border: 1px solid #ccc;
-  box-sizing: border-box;
 }
 
 .error-message {
@@ -261,7 +266,9 @@ export default defineComponent({
 
 .editor-actions {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 10px;
   margin-top: 10px;
 }
 
@@ -278,18 +285,18 @@ button:hover {
   background-color: #e04a2e;
 }
 
-@media (max-width: 430px){
+@media (max-width: 430px) {
   .modal-content {
-  position: relative;
-  top: 0px;
-  background-color: #333;
-  color: white;
-  padding: 20px;
-  border-radius: 10px;
-  width: 100%;
-  height: 550px;
-  text-align: center;
-  z-index: 9999;
-} 
+    position: relative;
+    top: 0px;
+    background-color: #333;
+    color: white;
+    padding: 20px;
+    border-radius: 10px;
+    width: 100%;
+    height: 550px;
+    text-align: center;
+    z-index: 9999;
+  }
 }
 </style>
