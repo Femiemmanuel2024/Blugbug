@@ -44,6 +44,7 @@ export default defineComponent({
     const content = ref<string>('');
     const selectedCategory = ref<string>('');
     const showCategoryError = ref<boolean>(false);
+    const timestamp = ref<string>('');
 
     const categories = ref<string[]>([
       "Health and Wellness",
@@ -121,6 +122,7 @@ export default defineComponent({
 
     const updateContent = (updatedContent: string) => {
       content.value = updatedContent;
+      timestamp.value = new Date().toISOString();
     };
 
     const publishContent = async () => {
@@ -144,6 +146,7 @@ export default defineComponent({
           <body>
             <h1>${title.value}</h1>
             <p>Created by: ${user.value.full_name}</p>
+            <p>Date: ${new Date(timestamp.value).toLocaleString()}</p>
             ${content.value}
           </body>
         </html>
@@ -174,7 +177,7 @@ export default defineComponent({
             bookmarks: 0,
             full_name: user.value.full_name,
             chatter_name: user.value.chatter_name,
-            categories: selectedCategory.value, // Update the column name here
+            categories: selectedCategory.value,
           },
         ]);
 
@@ -240,7 +243,6 @@ export default defineComponent({
 
 .category-selection {
   margin: 10px 0;
-  
 }
 
 .category-selection select {
@@ -290,6 +292,4 @@ button:hover {
   z-index: 9999;
 } 
 }
-
-
 </style>

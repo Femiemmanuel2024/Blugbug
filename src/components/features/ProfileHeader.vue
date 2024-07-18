@@ -76,8 +76,8 @@ export default defineComponent({
       chatterName: '',
       aboutMe: '',
       id: '',
-      profile_image_url: '/src/assets/Default_pfp.svg',
-      header_image_url: '/src/assets/Default_Header.svg',
+      profile_image_url: '/Default_pfp.svg',
+      header_image_url: '/Default_Header.svg',
       checkmark_url: null,
       followers: 0,
       following: 0,
@@ -87,8 +87,8 @@ export default defineComponent({
     const showFileUpload = ref(false);
     const showCreatePost = ref(false);
     const uploadType = ref<'profile' | 'header' | 'checkmark'>('profile');
-    const profilePicture = ref<string>('/src/assets/Default_pfp.svg');
-    const headerImage = ref<string>('/src/assets/Default_Header.svg');
+    const profilePicture = ref<string>('/Default_pfp.svg');
+    const headerImage = ref<string>('/Default_Header.svg');
     const checkmarkIconUrl = ref<string | null>(null);
 
     const fetchUserData = async () => {
@@ -110,8 +110,8 @@ export default defineComponent({
           chatterName: data.chatter_name,
           aboutMe: data.about_me,
           id: data.id,
-          profile_image_url: data.profile_image_url || '/src/assets/Default_pfp.svg',
-          header_image_url: data.header_image_url || '/src/assets/Default_Header.svg',
+          profile_image_url: data.profile_image_url || '/Default_pfp.svg',
+          header_image_url: data.header_image_url || '/Default_Header.svg',
           checkmark_url: data.checkmark_url || null,
           followers: data.followers || 0,
           following: data.following || 0,
