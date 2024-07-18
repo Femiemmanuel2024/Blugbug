@@ -73,6 +73,7 @@
         </div>
         <button @click="saveCategories" class="accept-button">Accept</button>
       </div>
+      <p class ='deactivate-message'>If you're considering deactivating your account, please reach out to us first. We're here to help resolve any issues you may be experiencing, and you may not need to deactivate your account after all</p>
       <button class="deactivate-button" @click="showDeactivateModal">Deactivate Account</button>
     </div>
 
@@ -404,6 +405,7 @@ button:hover {
 
 .accept-button {
   margin-top: 10px;
+  margin-bottom: 10px
 }
 
 .limit-message {
@@ -411,10 +413,19 @@ button:hover {
   margin-top: 10px;
 }
 
+.deactivate-message{
+  padding-top: 50px;
+  color: #cebfad;
+  border-top: 1px solid orange;
+}
+
 .deactivate-button {
-  width: 100%;
+  width: 50%;
   margin-top: 10px;
   background-color: red;
+  justify-content: end;
+  
+  margin-bottom: 100px;
 }
 
 .deactivate-button:hover {

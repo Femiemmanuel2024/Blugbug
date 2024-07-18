@@ -222,9 +222,10 @@ export default defineComponent({
   padding: 20px;
   border-radius: 10px;
   width: 1200px;
-  height: 550px;
+  height: 450px;
   text-align: center;
   z-index: 9999;
+  margin-bottom: 140px;
 }
 
 .title-input {
@@ -239,10 +240,11 @@ export default defineComponent({
 
 .category-selection {
   margin: 10px 0;
+  
 }
 
 .category-selection select {
-  width: 100%;
+  width: 50%;
   padding: 10px;
   font-size: 16px;
   border-radius: 4px;
@@ -273,4 +275,21 @@ button {
 button:hover {
   background-color: #e04a2e;
 }
+
+@media (max-width: 430px){
+  .modal-content {
+  position: relative;
+  top: 0px;
+  background-color: #333;
+  color: white;
+  padding: 20px;
+  border-radius: 10px;
+  width: 100%;
+  height: 550px;
+  text-align: center;
+  z-index: 9999;
+} 
+}
+
+
 </style>

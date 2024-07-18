@@ -77,7 +77,7 @@ export default defineComponent({
       aboutMe: '',
       id: '',
       profile_image_url: '/src/assets/Default_pfp.svg',
-      header_image_url: 'default-header-image-path',
+      header_image_url: '/src/assets/Default_Header.svg',
       checkmark_url: null,
       followers: 0,
       following: 0,
@@ -88,7 +88,7 @@ export default defineComponent({
     const showCreatePost = ref(false);
     const uploadType = ref<'profile' | 'header' | 'checkmark'>('profile');
     const profilePicture = ref<string>('/src/assets/Default_pfp.svg');
-    const headerImage = ref<string>('/chatter/src/assets/Default_Header.png');
+    const headerImage = ref<string>('/src/assets/Default_Header.svg');
     const checkmarkIconUrl = ref<string | null>(null);
 
     const fetchUserData = async () => {
@@ -111,7 +111,7 @@ export default defineComponent({
           aboutMe: data.about_me,
           id: data.id,
           profile_image_url: data.profile_image_url || '/src/assets/Default_pfp.svg',
-          header_image_url: data.header_image_url || '/chatter/src/assets/Default_Header.svg',
+          header_image_url: data.header_image_url || '/src/assets/Default_Header.svg',
           checkmark_url: data.checkmark_url || null,
           followers: data.followers || 0,
           following: data.following || 0,
