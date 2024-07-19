@@ -1,20 +1,28 @@
 <template>
-  <div class="feedheader">
-    <!-- <h3>Blug</h3> -->
+  <div class="feed-contain">
+    <div class="feedheader">
+      <!-- <h3>Blug</h3> -->
+    </div>
+    <ul>
+      <li v-if="feedPosts.length === 0" class="no-following-message">
+        You are currently following no one and have no blug feed to display.
+      </li>
+      <li v-for="post in feedPosts" :key="post.id">
+        <div @click="toggleContent(post.id)" class="post-title">{{ post.title }}</div>
+        <div class="post-meta">by {{ post.userFullName }} on {{ formatDateTime(post.date) }}</div>
+        <div class="post-actions">
+          <span>Likes: {{ post.likes }}</span>
+          <i 
+            class="fas fa-bookmark" 
+            :class="{ 'bookmarked': isBookmarked(post) }"
+            @click.stop="bookmarkPost(post)"
+          ></i>
+          <button @click="readPost(post.title)">Read</button>
+        </div>
+        <div v-if="expandedPost === post.id" class="post-content" v-html="post.content"></div>
+      </li>
+    </ul>
   </div>
-  <ul>
-    <li v-for="post in feedPosts" :key="post.id">
-      <div @click="toggleContent(post.id)" class="post-title">{{ post.title }}</div>
-      <div class="post-meta">by {{ post.userFullName }} on {{ formatDateTime(post.date) }}</div>
-      <div class="post-actions">
-        <i class="fas fa-thumbs-up"></i>
-        <span>{{ post.likes }}</span>
-        <i class="fas fa-bookmark" @click.stop="bookmarkPost(post.id)"></i>
-        <button @click="readPost(post.title)">Read</button>
-      </div>
-      <div v-if="expandedPost === post.id" class="post-content" v-html="post.content"></div>
-    </li>
-  </ul>
 </template>
 
 <script lang="ts">
@@ -31,10 +39,11 @@ interface Post {
   userFullName: string;
   date: string;
   filePath: string;
+  bookmarked_by: string[];
 }
 
 export default defineComponent({
-  name: 'Feed',
+  name: 'FeedPage',
   setup() {
     const feedPosts = ref<Post[]>([]);
     const expandedPost = ref<number | null>(null);
@@ -55,16 +64,18 @@ export default defineComponent({
 
       const followingIds = data.following_id;
 
+      if (!followingIds || followingIds.length === 0) {
+        feedPosts.value = [];
+        return;
+      }
+
       const allPosts: Post[] = [];
 
       for (const userId of followingIds) {
-        const { data: postData, error: postError } = await supabase.storage
-          .from('blog-post')
-          .list(userId, {
-            limit: 100,
-            offset: 0,
-            sortBy: { column: 'name', order: 'asc' },
-          });
+        const { data: postData, error: postError } = await supabase
+          .from('blog_post')
+          .select('*')
+          .eq('user_id', userId);
 
         if (postError) {
           console.error('Error fetching posts:', postError.message);
@@ -72,9 +83,11 @@ export default defineComponent({
         }
 
         for (const post of postData) {
+          const filePath = `${userId}/${post.blog_id}.html`;
+
           const { data: postContent, error: contentError } = await supabase.storage
             .from('blog-post')
-            .download(`${userId}/${post.name}`);
+            .download(filePath);
 
           if (contentError) {
             console.error('Error fetching post content:', contentError.message);
@@ -93,14 +106,15 @@ export default defineComponent({
             .join('');
 
           allPosts.push({
-            id: Date.now(), // Use a better ID generation method
+            id: post.id,
             title: h1Element ? h1Element.textContent || 'Untitled' : 'Untitled',
             content: bodyContent,
-            likes: 0,
+            likes: post.likes || 0,
             user: userId,
             userFullName: createdByElement?.textContent?.replace('Created by: ', '') || 'Unknown',
             date: dateElement?.textContent?.replace('Date: ', '') || new Date().toISOString(),
-            filePath: `${userId}/${post.name}`,
+            filePath: filePath,
+            bookmarked_by: post.bookmarked_by || []
           });
         }
       }
@@ -119,9 +133,31 @@ export default defineComponent({
       router.push({ name: 'BlugPage', query: { search: title } });
     };
 
-    const bookmarkPost = (postId: number) => {
-      console.log(`Bookmarking post with id: ${postId}`);
-      // Add logic to handle bookmarking the post
+    const bookmarkPost = async (post: Post) => {
+      const isBookmarked = post.bookmarked_by.includes(currentUser.id);
+
+      let updatedBookmarkedBy;
+      if (isBookmarked) {
+        updatedBookmarkedBy = post.bookmarked_by.filter(id => id !== currentUser.id);
+      } else {
+        updatedBookmarkedBy = [...post.bookmarked_by, currentUser.id];
+      }
+
+      const { error } = await supabase
+        .from('blog_post')
+        .update({ bookmarked_by: updatedBookmarkedBy })
+        .eq('id', post.id);
+
+      if (error) {
+        console.error('Error updating bookmarks:', error.message);
+        return;
+      }
+
+      post.bookmarked_by = updatedBookmarkedBy;
+    };
+
+    const isBookmarked = (post: Post) => {
+      return post.bookmarked_by.includes(currentUser.id);
     };
 
     const toggleContent = (postId: number) => {
@@ -139,6 +175,7 @@ export default defineComponent({
       bookmarkPost,
       toggleContent,
       formatDateTime,
+      isBookmarked,
     };
   },
 });
@@ -148,6 +185,7 @@ export default defineComponent({
 .feed-container {
   margin: 20px 0;
   border: solid 5px #006aff;
+  padding: 10px;
 }
 
 ul {
@@ -161,22 +199,11 @@ li {
   display: flex;
   flex-direction: column;
   padding: 10px 0;
-  border-bottom: 1px solid #ccc;
+  border-bottom: 1px solid transparent;
 }
 
-.feedheader {
-  border-bottom: 1px solid #ccc;
-  display: flex;
-  justify-content: center;
-  background-color: #f53;
-  width: 80px;
-  margin-left: 10px;
-  border-radius: 10px 10px 0px 0px;
-  max-height: 50px;
-}
-
-h3 {
-  text-align: center;
+.post-item {
+  border: none;
 }
 
 .post-title {
@@ -192,8 +219,17 @@ h3 {
 
 .post-actions {
   display: flex;
+  justify-content: flex-end;
   gap: 10px;
   margin-top: 10px;
+}
+
+.post-actions i {
+  cursor: pointer;
+}
+
+.post-actions .bookmarked {
+  color: orange;
 }
 
 .post-actions button {
@@ -206,5 +242,12 @@ h3 {
 
 .post-content {
   margin-top: 10px;
+}
+
+.no-following-message {
+  font-size: 18px;
+  color: #cebfad;
+  text-align: center;
+  margin-top: 20px;
 }
 </style>

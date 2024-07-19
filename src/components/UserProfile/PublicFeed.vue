@@ -8,13 +8,11 @@
               <h3>Bloggas</h3>
             </div>
             <ul>
-              <li v-for="(post, index) in posts" :key="index">
+              <li v-for="(post, index) in posts" :key="post.id">
                 <div @click="viewPost(index)" class="post-title">{{ post.title }}</div>
                 <div class="post-meta">by {{ post.userFullName }} on {{ formatDateTime(post.date) }}</div>
                 <div class="post-actions">
-                  <i class="fas fa-thumbs-up"></i>
-                  <span>{{ post.likes }}</span>
-                  <i class="fas fa-bookmark" @click.stop="bookmarkPost(post.id)"></i>
+                  <span>Likes: {{ post.likes }}</span>
                   <button @click="readPost(post.title)">Read</button>
                 </div>
                 <div v-if="selectedPost && selectedPost.id === post.id" class="post-content" v-html="selectedPost.bodyContent"></div>
@@ -39,7 +37,7 @@ import { useRoute, useRouter } from 'vue-router';
 import { supabase } from '../supabase';
 
 interface Post {
-  id: number;
+  id: string;
   title: string | null;
   content: string;
   bodyContent: string;
@@ -47,6 +45,7 @@ interface Post {
   userFullName: string;
   date: string;
   likes: number;
+  bookmarked_by: string[];
 }
 
 export default defineComponent({
@@ -58,14 +57,11 @@ export default defineComponent({
     const posts = ref<Post[]>([]);
     const selectedPost = ref<Post | null>(null);
 
-    const fetchPostsFromBucket = async (userId: string) => {
-      const { data, error } = await supabase.storage
-        .from('blog-post')
-        .list(userId, {
-          limit: 100,
-          offset: 0,
-          sortBy: { column: 'name', order: 'asc' },
-        });
+    const fetchBlogPosts = async (userId: string) => {
+      const { data, error } = await supabase
+        .from('blog_post')
+        .select('id, title, likes, user_id, created_at')
+        .eq('user_id', userId);
 
       if (error) {
         console.error('Error fetching posts:', error.message);
@@ -104,21 +100,23 @@ export default defineComponent({
     };
 
     const loadPosts = async () => {
-      const postFiles = await fetchPostsFromBucket(userId.value);
+      const blogPosts = await fetchBlogPosts(userId.value);
 
       const loadedPosts = await Promise.all(
-        postFiles.map(async (file) => {
-          const htmlContent = await fetchPostContent(`${userId.value}/${file.name}`);
+        blogPosts.map(async (post) => {
+          const filePath = `${userId.value}/${post.id}.html`;
+          const htmlContent = await fetchPostContent(filePath);
           const { title, content, bodyContent } = extractPostElements(htmlContent);
           return {
-            id: Date.now(), // You might want to use a better ID
-            title,
+            id: post.id,
+            title: post.title, // Use the blog title from the database
             content,
             bodyContent,
             userId: userId.value,
             userFullName: 'Unknown', // This could be fetched from another source if needed
-            date: new Date().toISOString(),
-            likes: 0, // Initialize likes to 0
+            date: post.created_at,
+            likes: post.likes,
+            bookmarked_by: [], // Initialize empty bookmarked_by array
           };
         })
       );
@@ -132,11 +130,6 @@ export default defineComponent({
 
     const readPost = (title: string) => {
       router.push({ name: 'BlugPage', query: { search: title } });
-    };
-
-    const bookmarkPost = (postId: number) => {
-      console.log(`Bookmarking post with id: ${postId}`);
-      // Add logic to handle bookmarking the post
     };
 
     const formatDateTime = (dateTime: string) => {
@@ -162,7 +155,6 @@ export default defineComponent({
       selectedPost,
       viewPost,
       readPost,
-      bookmarkPost,
       formatDateTime,
     };
   },
@@ -185,7 +177,7 @@ li {
   display: flex;
   flex-direction: column;
   padding: 10px 0;
-  border-bottom: 1px solid #ccc;
+  border-bottom: none; /* Remove the inner border */
 }
 
 .feedheader {
@@ -217,13 +209,17 @@ h3 {
 
 .post-actions {
   display: flex;
+  justify-content: flex-end;
   gap: 10px;
   margin-top: 10px;
 }
 
-.post-actions i {
-  font-size: 20px;
+.post-actions button {
+  background: none;
+  border: none;
+  color: #f53;
   cursor: pointer;
+  font-size: 20px;
 }
 
 .post-content {

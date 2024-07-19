@@ -11,8 +11,8 @@
           :followersCount="followersCount"
         />
         <div class="header-toggle">
-          <h3 @click="showBlug">Blug</h3>
-          <h3 @click="showInterestFeed">Interest-Based Feed</h3>
+          <h3 :class="{ active: currentComponent === 'Feed' }" @click="showBlug">Blug</h3>
+          <h3 :class="{ active: currentComponent === 'InterestPage' }" @click="showInterestFeed">Interest-Based Feed</h3>
         </div>
         <div class="feed-container">
           <component :is="currentComponent" />
@@ -30,7 +30,7 @@ import { defineComponent, ref, onMounted } from 'vue';
 import NavBar from '../NavBar.vue';
 import ProfileHeader from '../features/ProfileHeader.vue';
 import Feed from '../features/FeedPage.vue';
-import InterestPage from '../features/InterestPage.vue'; // Import InterestPage
+import InterestPage from '../features/InterestPage.vue';
 import InfoData from '../infofeatures/InfoData.vue';
 import { supabase } from '../supabase';
 
@@ -50,7 +50,7 @@ export default defineComponent({
     NavBar,
     ProfileHeader,
     Feed,
-    InterestPage, // Register InterestPage
+    InterestPage,
     InfoData,
   },
   setup() {
@@ -82,8 +82,8 @@ export default defineComponent({
           chatterName: data.chatter_name,
           aboutMe: data.about_me,
           email: data.email,
-          profile_image_url: data.profile_image_url || '/src/assets/Default_pfp.svg',
-          header_image_url: data.header_image_url || 'default-header-image-path',
+          profile_image_url: data.profile_image_url || '/public/Default_pfp.svg',
+          header_image_url: data.header_image_url || '/public/default-header-image-path',
         };
       }
     };
@@ -143,9 +143,10 @@ export default defineComponent({
 }
 
 .feed-container {
-  background-color: #2b3138; /* Example background color for feed */
+  background-color: #2b3138;
   padding: 10px;
   border: solid 5px #0c1118;
+  padding-right: 50px;
 }
 
 .header-toggle {
@@ -166,6 +167,11 @@ export default defineComponent({
   color: #f53;
 }
 
+.header-toggle h3.active {
+  color: rgb(255, 255, 255);
+  border-bottom: 2px solid #f53;
+}
+
 .right-column {
   width: 25%;
   background-color: #1e2127;
@@ -173,6 +179,18 @@ export default defineComponent({
   overflow-y: auto;
   display: flex;
   flex-direction: column;
+}
+
+h3 {
+  border-bottom: 1px solid #ccc;
+  display: flex;
+  justify-content: center;
+  background-color: #f53;
+  width: 100%;
+  margin-left: 10px;
+  border-radius: 10px 10px 0px 0px;
+  max-height: 50px;
+  padding: 10px;
 }
 
 @media (max-width: 430px) {
