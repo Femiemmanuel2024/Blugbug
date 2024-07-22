@@ -1,8 +1,10 @@
 <template>
   <div class="notification-container">
     <button @click="toggleNotifications" class="notification-icon">
-      <i class="fas fa-bell"></i>
-      <span v-if="unreadCount" class="unread-count">{{ unreadCount }}</span>
+      <div class="icon-wrapper">
+        <i class="fas fa-bell"></i>
+        <span v-if="unreadCount" class="unread-count">{{ unreadCount }}</span>
+      </div>
       <span class="notification-label">Alerts</span>
     </button>
     <div v-if="showNotifications" class="notification-list">
@@ -238,28 +240,17 @@ onMounted(() => {
   border: none;
   color: #ffffff;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 18px;
   display: flex; /* Ensure label is part of the icon */
   align-items: center;
   position: relative; /* Add relative positioning */
   transition: transform 0.3s; /* Add transition for the hover effect */
 }
 
-.notification-icon i {
-  margin-right: 5px; /* Add space between the icon and the label */
-}
-
-.notification-icon:hover {
-  color: #fd662f;
-}
-
-.notification-label {
-  font-size: 14px; /* Match font size with navbar */
-  color: #ffffff;
-}
-
-.notification-label:hover {
-  color: #fd662f;
+.icon-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
 }
 
 .unread-count {
@@ -270,8 +261,22 @@ onMounted(() => {
   font-size: 10px;
   position: absolute;
   top: -5px;
-  right: 40px;
+  right: -5px;
   border: 1px solid white;
+}
+
+.notification-icon:hover {
+  color: #fd662f;
+}
+
+.notification-label {
+  display: none;
+  font-size: 14px; /* Match font size with navbar */
+  color: #ffffff;
+}
+
+.notification-label:hover {
+  color: #fd662f;
 }
 
 .notification-list {
@@ -326,17 +331,10 @@ onMounted(() => {
     font-size: 30px;
   }
 
-  .unread-count {
-    background-color: red;
-    color: white;
-    border-radius: 50%;
-    padding: 1px 4px;
-    font-size: 10px;
-    position: absolute;
+  /* .unread-count {
     top: -5px;
-    right: 10px;
-    border: 1px solid white;
-  }
+    right: 0;
+  } */
 }
 
 @media (max-width:1024px){
@@ -344,17 +342,10 @@ onMounted(() => {
     display: none;
   }
 
-  .unread-count {
-    background-color: red;
-    color: white;
-    border-radius: 50%;
-    padding: 1px 4px;
-    font-size: 10px;
-    position: absolute;
+  /* .unread-count {
     top: -5px;
     right: 2px;
-    border: 1px solid white;
-  }
+  } */
 }
 
 @media (max-width: 430px) {
@@ -362,16 +353,9 @@ onMounted(() => {
     left: -139px;
   }
 
-  .unread-count {
-    background-color: rgb(30, 0, 255);
-    color: white;
-    border-radius: 50%;
-    padding: 1px 4px;
-    font-size: 10px;
-    position: absolute;
+  /* .unread-count {
     top: -5px;
     right: 20px;
-    border: 1px solid white;
-  }
+  } */
 }
 </style>
