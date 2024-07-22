@@ -2,7 +2,7 @@
   <nav class="navbar">
     <div class="navbar-left">
       <img src="/brand_logo.svg" alt="BloggaBug Logo" class="brandlogo" />
-      <div class="nav-icon alert-icon" @click="animateIcon($event)">
+      <div class="nav-icon-alert alert-icon" @click="animateIcon($event)">
         <ActionNotification />
       </div>
     </div>
@@ -194,16 +194,10 @@ export default defineComponent({
 }
 
 /* Media query for mobile devices (less than 768px) */
-@media (max-width: 767.98px) {
+@media (max-width: 480px) {
   .navbar {
     flex-direction: column;
     align-items: center;
-    gap: 10px;
-    padding: 10px 0;
-    background-color: #1e2127;
-    box-shadow: 0 0px 5px rgba(0, 0, 0, 0.9);
-    z-index: 9999;
-    width: 100%;
   }
   .navbar-left {
     flex-direction: column;
@@ -215,17 +209,28 @@ export default defineComponent({
     padding-right: 0;
   }
   .nav-icon {
-    font-size: 30px;
+    font-size: 20px;
+    margin-top: 20px;
+    margin-bottom: 20px;
+    width: 100%;
+    padding-left: 16px;
+    
   }
   .icon-label {
     display: none;
   }
 }
 
+@media (min-width:481px) and (max-width:768px){
+  
+}
+
+
+
 /* Media query for tablets (768px to 1024px) */
 @media (min-width: 768px) and (max-width: 1024px) {
   .navbar {
-    padding: 10px 10px;
+    padding: 5px 5px;
   }
   .navbar-left {
     padding-left: 30px;
@@ -244,8 +249,5 @@ export default defineComponent({
     transition: transform 0.3s;
   }
 
-  .icon-label {
-    display: none;
-  }
 }
 </style>

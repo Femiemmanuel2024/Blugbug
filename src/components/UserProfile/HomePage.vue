@@ -262,7 +262,7 @@ h3 {
   background-color: #000000;
   padding-right: 10px;
   padding-left: 10px;
-  padding-top: 82px;
+  padding-top: 42px;
 }
 }
 </style>

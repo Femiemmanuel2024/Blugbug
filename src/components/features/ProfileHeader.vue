@@ -6,7 +6,7 @@
         <i class="fas fa-camera"></i>
       </label>
     </div>
-    <div class="profile-picture-container">
+    <div class="profile-info-container">
       <div class="profile-picture-circle">
         <img :src="profilePicture" alt="Profile Picture" class="profile-image" />
         <label v-if="!disableUpload" class="upload-icon" @click="showFileUploadModal('profile')">
@@ -16,7 +16,12 @@
       <button class="create-post-button" @click="showCreatePostModal">Create Blug</button>
     </div>
     <div class="name-container">
-      <h1 class="name">{{ user.fullName }}</h1>
+      <div class="name-wrapper">
+        <h1 class="name">{{ user.fullName }}</h1>
+        <div v-if="checkmarkIconUrl" class="checkmark-icon-circle">
+          <img :src="checkmarkIconUrl" alt="Checkmark Icon" class="checkmark-icon" />
+        </div>
+      </div>
       <p class="chatter-name">@{{ user.chatterName }}</p>
     </div>
     <p class="about-me">{{ user.aboutMe }}</p>
@@ -30,9 +35,6 @@
     </div>
     <FileUpload v-if="showFileUpload" :type="uploadType" @uploadComplete="fetchUserData" @close="closeFileUploadModal" />
     <CreateBlogPost v-if="showCreatePost" :isModalVisible="showCreatePost" @closeModal="hideCreatePostModal" />
-    <div v-if="checkmarkIconUrl" class="checkmark-icon-circle">
-        <img :src="checkmarkIconUrl" alt="Checkmark Icon" class="checkmark-icon" />
-      </div>
   </div>
 </template>
 
@@ -236,13 +238,12 @@ export default defineComponent({
   opacity: 1;
 }
 
-.profile-picture-container {
-  position: relative;
-  bottom: 90px;
-  padding-left: 20px;
+.profile-info-container {
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  gap: 10px;
+  padding: 0 20px;
+  margin-top: -90px;
 }
 
 .profile-picture-circle {
@@ -284,14 +285,13 @@ export default defineComponent({
 }
 
 .create-post-button {
-  margin-left: 425px;
-  margin-top: 80px;
   padding: 10px 20px;
   background-color: #fd662f;
   color: white;
   border: none;
   border-radius: 4px;
   cursor: pointer;
+  margin-top: 80px;
 }
 
 .create-post-button:hover {
@@ -300,15 +300,18 @@ export default defineComponent({
 
 .name-container {
   align-items: left;
-  margin-top: -100px;
+  margin-top: 10px;
   padding-left: 20px;
+}
+
+.name-wrapper {
+  display: flex;
+  align-items: center;
 }
 
 .name {
   font-size: 24px;
   color: #cebfad;
-  display: flex;
-  align-items: center;
 }
 
 .chatter-name {
@@ -333,9 +336,7 @@ export default defineComponent({
   height: 20px;
   background-color: #fff;
   border-radius: 50%;
-  position: absolute;
-  top: 300px;
-  left: 190px;
+  margin-left: 10px;
 }
 
 .checkmark-icon {
@@ -345,87 +346,33 @@ export default defineComponent({
   border-radius: 50%;
 }
 
-
-
-/* .upload-header-icon {
-  position: absolute;
-  bottom: 90px;
-  right: 10px;
-  background-color: rgba(0, 0, 0, 0.5);
-  color: #fff;
-  padding: 10px;
-  border-radius: 50%;
-  cursor: pointer;
-  opacity: 0.1;
-  transition: opacity 0.3s ease;
-}
-
-.upload-header-icon:hover {
-  opacity: 1;
-} */
-
-.chatter-name {
-  font-size: 14px;
-  color: #cebfad;
-}
-
-
-
-.stats-container {
-  padding-left: 20px;
-  padding-right: 20px;
-  color: #cebfad;
-  font-size: 14px;
-}
-
 /* Additional Media Queries */
-@media (max-width: 1024px){
+@media (max-width: 1024px) {
   .create-post-button {
-    margin-left: 410px;
-    margin-top: 80px;
-  }
-  .checkmark-icon-circle {
-  top: 340px;
-  left: 149px;
-}
-
-}
-
-@media (max-width:1022px){
-  
-}
-
-@media (max-width:850px){
-  .create-post-button {
-    margin-left: 260px;
-    margin-top: 80px;
+    padding: 10px 20px;
   }
 }
 
-@media (max-width: 768px) {
-  .create-post-button {
-    margin-left: 20px;
-    margin-top: 20px;
+@media (max-width: 850px) {
+  .profile-info-container {
+    flex-direction: row;
+    align-items: center;
+    margin-top:-80px ;
   }
-  .checkmark-icon-circle {
-  top: 340px;
-  left: 145px;
-}
+
+  .create-post-button {
+    margin-top: 60px;
+  }
 }
 
 @media (max-width: 480px) {
-  .create-post-button {
-    margin-left: 30px;
-    margin-top: 80px;
-    
+  .profile-info-container {
+    flex-direction: row;
+    align-items: center;
   }
 
-  .checkmark-icon-circle {
-  top: 340px;
-  left: 145px;
-}
-
-
-
+  .create-post-button {
+    margin-top: 60px;
+  }
 }
 </style>
