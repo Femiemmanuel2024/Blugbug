@@ -2,6 +2,9 @@
   <nav class="navbar">
     <div class="navbar-left">
       <img src="/brand_logo.svg" alt="BloggaBug Logo" class="brandlogo" />
+      <div class="nav-icon alert-icon" @click="animateIcon($event)">
+        <ActionNotification />
+      </div>
     </div>
     <div class="navbar-right">
       <router-link to="/home" class="nav-icon" @click="animateIcon($event)">
@@ -16,9 +19,6 @@
         <font-awesome-icon :icon="['fas', 'globe']" />
         <span class="icon-label">Blug</span>
       </router-link>
-      <span class="nav-icon alert-icon" @click="animateIcon($event)">
-        <ActionNotification />
-      </span>
       <router-link to="/settings" class="nav-icon" @click="animateIcon($event)">
         <font-awesome-icon :icon="['fas', 'gear']" />
         <span class="icon-label">Settings</span>
@@ -86,7 +86,6 @@ export default defineComponent({
   display: flex;
   justify-content: space-between;
   align-items: center;
-  /* padding: 10px 10px; */
   background-color: #1e2127;
   box-shadow: 0 0px 5px rgba(0, 0, 0, 0.9);
   z-index: 9998;
@@ -99,6 +98,8 @@ export default defineComponent({
 
 .navbar-left {
   padding-left: 60px;
+  display: flex;
+  column-gap: -30px;
 }
 
 .navbar-right {
@@ -139,7 +140,8 @@ export default defineComponent({
 
 .brandlogo {
   height: 50px; /* Adjust height as needed */
-  width: 100%;
+  width: auto;
+  margin-right: 0px; /* Space between logo and notification icon */
 }
 
 @keyframes click-animation {
@@ -196,24 +198,21 @@ export default defineComponent({
   .navbar {
     flex-direction: column;
     align-items: center;
-    gap: 20px;
+    gap: 10px;
     padding: 10px 0;
     background-color: #1e2127;
     box-shadow: 0 0px 5px rgba(0, 0, 0, 0.9);
     z-index: 9999;
     width: 100%;
   }
-  .navbar-left, .navbar-right {
+  .navbar-left {
+    flex-direction: column;
+    padding-left: 0;
+  }
+  .navbar-right {
     justify-content: center;
     width: 100%;
-  }
-
-  .navbar-left {
-    padding-left: 0px;
-  }
-
-  .navbar-right {
-    padding-right: 0px;
+    padding-right: 0;
   }
   .nav-icon {
     font-size: 30px;
@@ -249,6 +248,4 @@ export default defineComponent({
     display: none;
   }
 }
-
-
 </style>
