@@ -339,7 +339,7 @@ onMounted(() => {
   }
 }
 
-@media (max-width:1022px){
+@media (max-width:1024px){
   .notification-label {
     display: none;
   }
@@ -360,6 +360,18 @@ onMounted(() => {
 @media (max-width: 430px) {
   .notification-list {
     left: -139px;
+  }
+
+  .unread-count {
+    background-color: rgb(0, 255, 76);
+    color: white;
+    border-radius: 50%;
+    padding: 1px 4px;
+    font-size: 10px;
+    position: absolute;
+    top: -5px;
+    right: 10px;
+    border: 1px solid white;
   }
 }
 </style>
