@@ -16,9 +16,9 @@
         <font-awesome-icon :icon="['fas', 'globe']" />
         <span class="icon-label">Blug</span>
       </router-link>
-      <div class="nav-icon alert-icon" @click="animateIcon($event)">
+      <span class="nav-icon alert-icon" @click="animateIcon($event)">
         <ActionNotification />
-      </div>
+      </span>
       <router-link to="/settings" class="nav-icon" @click="animateIcon($event)">
         <font-awesome-icon :icon="['fas', 'gear']" />
         <span class="icon-label">Settings</span>

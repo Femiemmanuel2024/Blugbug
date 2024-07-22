@@ -363,7 +363,7 @@ onMounted(() => {
   }
 
   .unread-count {
-    background-color: rgb(0, 255, 76);
+    background-color: rgb(30, 0, 255);
     color: white;
     border-radius: 50%;
     padding: 1px 4px;
