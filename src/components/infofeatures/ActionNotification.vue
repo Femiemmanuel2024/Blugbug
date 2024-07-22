@@ -370,7 +370,7 @@ onMounted(() => {
     font-size: 10px;
     position: absolute;
     top: -5px;
-    right: 10px;
+    right: 20px;
     border: 1px solid white;
   }
 }
