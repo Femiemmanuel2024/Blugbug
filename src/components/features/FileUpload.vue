@@ -21,7 +21,7 @@ export default defineComponent({
   name: 'FileUpload',
   props: {
     type: {
-      type: String as PropType<'profile' | 'header'| 'checkmark'>,
+      type: String as PropType<'profile' | 'header' | 'checkmark'>,
       required: true,
     },
   },
@@ -139,6 +139,10 @@ export default defineComponent({
   border-radius: 8px;
   text-align: center;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 
 .file-upload-modal h2 {

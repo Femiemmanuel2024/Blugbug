@@ -64,19 +64,30 @@
           <input v-for="category in selectedCategories" :key="category" type="text" :value="category" readonly />
         </div>
         <div class="category-buttons">
-          <button v-for="category in categories" :key="category" :class="{'selected': selectedCategories.includes(category)}" @click="toggleCategorySelection(category)">
+          <button
+            v-for="category in categories"
+            :key="category"
+            :class="{'selected': selectedCategories.includes(category)}"
+            @click="toggleCategorySelection(category)"
+            @mouseover="showTooltip($event, category)"
+            @mouseout="hideTooltip"
+          >
             {{ category }}
+            <span class="tooltip">{{ category }}</span>
           </button>
         </div>
         <div v-if="selectedCategories.length >= 5" class="limit-message">
           You can only select up to 5 categories.
         </div>
-        <button @click="saveCategories" class="accept-button">Accept</button>
+        <div class="accept-button-container">
+          <button @click="saveCategories" class="accept-button">Accept</button>
+        </div>
       </div>
-      <p class ='deactivate-message'>If you're considering deactivating your account, please reach out to us first. We're here to help resolve any issues you may be experiencing, and you may not need to deactivate your account after all</p>
+      <p class='deactivate-message'>
+        If you're considering deactivating your account, please reach out to us first. We're here to help resolve any issues you may be experiencing, and you may not need to deactivate your account after all.
+      </p>
       <button class="deactivate-button" @click="showDeactivateModal">Deactivate Account</button>
     </div>
-
     <div v-if="showModal" class="modal">
       <div class="modal-content">
         <h2>Are you sure you want to deactivate your account?</h2>
@@ -262,6 +273,16 @@ export default defineComponent({
       console.log('Categories saved successfully.');
     };
 
+    const showTooltip = (event: MouseEvent, category: string) => {
+      const tooltip = (event.currentTarget as HTMLElement).querySelector('.tooltip') as HTMLElement;
+      tooltip.style.visibility = 'visible';
+    };
+
+    const hideTooltip = (event: MouseEvent) => {
+      const tooltip = (event.currentTarget as HTMLElement).querySelector('.tooltip') as HTMLElement;
+      tooltip.style.visibility = 'hidden';
+    };
+
     onMounted(() => {
       fetchUserData();
     });
@@ -278,6 +299,8 @@ export default defineComponent({
       selectedCategories,
       toggleCategorySelection,
       saveCategories,
+      showTooltip,
+      hideTooltip,
     };
   },
 });
@@ -301,7 +324,7 @@ html, body {
   height: 100vh;
   padding-right: 50px;
   padding-left: 50px;
-  padding-top: 82px;
+  padding-top: 40px;
 }
 
 .content {
@@ -396,16 +419,43 @@ button:hover {
   border-radius: 4px;
   padding: 5px 10px; /* Make the buttons smaller */
   cursor: pointer;
+  width: 205px; /* Fixed width for buttons */
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  position: relative; /* Position relative for tooltip */
 }
 
-.category-buttons button.selected {
-  background-color: #fd662f;
-  color: white;
+.category-buttons button .tooltip {
+  visibility: hidden;
+  width: auto;
+  background-color: black;
+  color: #fff;
+  text-align: center;
+  border-radius: 6px;
+  padding: 5px;
+  position: absolute;
+  z-index: 1;
+  bottom: 100%; /* Position the tooltip above the button */
+  left: 50%;
+  transform: translateX(-50%);
+  margin-bottom: 5px;
+  white-space: nowrap;
+}
+
+.category-buttons button:hover .tooltip {
+  visibility: visible;
+}
+
+.accept-button-container {
+  display: flex;
+  justify-content: flex-end; /* Move the Accept button to the far right */
 }
 
 .accept-button {
   margin-top: 10px;
-  margin-bottom: 10px
+  width: 210px;
+  margin-bottom: 10px;
 }
 
 .limit-message {
@@ -413,7 +463,7 @@ button:hover {
   margin-top: 10px;
 }
 
-.deactivate-message{
+.deactivate-message {
   padding-top: 50px;
   color: #cebfad;
   border-top: 1px solid orange;
@@ -424,7 +474,6 @@ button:hover {
   margin-top: 10px;
   background-color: red;
   justify-content: end;
-  
   margin-bottom: 100px;
 }
 
@@ -508,5 +557,9 @@ button:hover {
     background-color: red;
     align-self: center;
   }
+  .category-buttons button {
+  width: 120px; /* Fixed width for buttons */
+}
+
 }
 </style>

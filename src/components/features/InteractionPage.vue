@@ -296,6 +296,7 @@ export default defineComponent({
         if (mentionedUsernames) {
           for (const mentionedUsername of mentionedUsernames) {
             const username = mentionedUsername.slice(1); // Remove the "@" symbol
+            console.log(`Searching for mentioned user: ${username}`);
             const { data: mentionedUser, error: userError } = await supabase
               .from<User>('users')
               .select('id')
@@ -308,7 +309,10 @@ export default defineComponent({
             }
 
             if (mentionedUser) {
-              createNotification(`${chatterName.value} mentioned you in a blug`, mentionedUser.id);
+              const mentionedUserId = mentionedUser.id;
+              localStorage.setItem('mentionedUserId', mentionedUserId);
+              console.log(`Found mentioned user with id: ${mentionedUserId}`);
+              createNotification(`${chatterName.value} mentioned you in a blug`, mentionedUserId);
             }
           }
         }

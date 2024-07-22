@@ -3,14 +3,14 @@
     <button @click="toggleNotifications" class="notification-icon">
       <i class="fas fa-bell"></i>
       <span v-if="unreadCount" class="unread-count">{{ unreadCount }}</span>
+      <span class="notification-label">Alerts</span>
     </button>
     <div v-if="showNotifications" class="notification-list">
       <ul>
         <li v-for="notification in notifications" :key="notification.id">
           <span
             @click="markAsRead(notification)"
-            class="notification-message"
-            :class="{ link: notification.message !== 'Welcome to Bloggabug' }"
+            class="notification-message link"
           >
             {{ notification.message }}
           </span>
@@ -93,8 +93,10 @@ const markAsRead = async (notification: Notification) => {
   notifications.value = notifications.value.filter((n) => n.id !== id);
   unreadCount.value = notifications.value.length;
 
-  // Navigate to BlugPage with the search query, except for the welcome message
-  if (notification.message !== 'Welcome to Bloggabug' && notification.blog_title) {
+  // Navigate to BlugPage with the search query
+  if (notification.message === 'Welcome to Blugbug') {
+    router.push({ name: 'BlugPage', query: { search: 'Welcome to Blugbug' } });
+  } else if (notification.blog_title) {
     router.push({ name: 'BlugPage', query: { search: notification.blog_title } });
   }
 };
@@ -176,7 +178,7 @@ const handleClick = async () => {
       .from('notifications')
       .select('id, user_id, message, read')
       .eq('user_id', currentUser.id)
-      .eq('message', 'Welcome to Bloggabug')
+      .eq('message', 'Welcome to Blugbug')
       .single();
 
     if (welcomeError && welcomeError.code !== 'PGRST116') {
@@ -191,7 +193,7 @@ const handleClick = async () => {
           .insert([
             {
               user_id: currentUser.id,
-              message: 'Welcome to Bloggabug',
+              message: 'Welcome to Blugbug',
               read: false,
               created_at: new Date().toISOString(),
             },
@@ -227,6 +229,8 @@ onMounted(() => {
 <style scoped>
 .notification-container {
   position: relative;
+  display: flex;
+  align-items: center;
 }
 
 .notification-icon {
@@ -234,40 +238,62 @@ onMounted(() => {
   border: none;
   color: #ffffff;
   cursor: pointer;
-  font-size: 18px;
+  font-size: 14px;
+  display: flex; /* Ensure label is part of the icon */
+  align-items: center;
+  position: relative; /* Add relative positioning */
+  transition: transform 0.3s; /* Add transition for the hover effect */
+}
+
+.notification-icon i {
+  margin-right: 5px; /* Add space between the icon and the label */
+}
+
+.notification-icon:hover {
+  color: #fd662f;
+}
+
+.notification-label {
+  font-size: 14px; /* Match font size with navbar */
+  color: #ffffff;
+}
+
+.notification-label:hover {
+  color: #fd662f;
 }
 
 .unread-count {
   background-color: red;
   color: white;
   border-radius: 50%;
-  padding: 2px 6px;
-  font-size: 12px;
+  padding: 1px 4px;
+  font-size: 10px;
   position: absolute;
-  top: -1px;
-  right: 1px;
+  top: -5px;
+  right: 40px;
   border: 1px solid white;
 }
 
 .notification-list {
   position: absolute;
   top: 40px;
-  left: 0;
-  background-color: #333;
+  left: -120px;
+  background-color: rgb(36, 36, 36);
   color: white;
   border-radius: 5px;
   width: 300px;
   max-height: 300px;
   overflow-y: auto;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  z-index: 9999;
+  z-index: 10000;
+  font-size: 12px;
+  opacity: 0.9;
 }
 
 .notification-list ul {
   list-style-type: none;
   padding: 0;
   margin: 0;
-  
 }
 
 .notification-list li {
@@ -289,6 +315,46 @@ onMounted(() => {
   cursor: pointer;
   color: #cebfad;
   font-size: 12px;
+}
+
+@media (max-width: 767.98px) {
+  .notification-label {
+    display: none;
+  }
+
+  .notification-icon {
+    font-size: 30px;
+  }
+
+  .unread-count {
+    background-color: red;
+    color: white;
+    border-radius: 50%;
+    padding: 1px 4px;
+    font-size: 10px;
+    position: absolute;
+    top: -5px;
+    right: 10px;
+    border: 1px solid white;
+  }
+}
+
+@media (max-width:1022px){
+  .notification-label {
+    display: none;
+  }
+
+  .unread-count {
+    background-color: red;
+    color: white;
+    border-radius: 50%;
+    padding: 1px 4px;
+    font-size: 10px;
+    position: absolute;
+    top: -5px;
+    right: 2px;
+    border: 1px solid white;
+  }
 }
 
 @media (max-width: 430px) {

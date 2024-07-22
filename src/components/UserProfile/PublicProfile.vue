@@ -11,8 +11,9 @@
           :followersCount="followersCount"
           :disableUpload="true"
         />
-        <FollowButton :userId="userId" />
+        <FollowButton :userId="userId" customClass="custom-follow-button" />
         <BlogPosts :posts="posts" @likePost="likePost" @bookmarkPost="bookmarkPost" />
+         <h3>MyBlug</h3>
         <PublicFeed />
       </div>
       <div class="right-column">
@@ -164,14 +165,10 @@ export default defineComponent({
   display: flex;
   flex-direction: column;
   height: 100vh;
-  background-color: #ffffff;
+  background-color: #000000;
   padding-right: 50px;
   padding-left: 50px;
-  padding-top: 82px;
-}
-
-.navbar {
-  flex-shrink: 0;
+  padding-top: 40px;
 }
 
 .content {
@@ -181,19 +178,13 @@ export default defineComponent({
 }
 
 .left-column {
-  width: 75%;
+  width: 65%;
   overflow-y: auto;
   height: 100%;
-  background-color: #2b3138;
-}
-
-.feed-container {
-  padding: 10px;
-  border: solid 5px #0c1118;
 }
 
 .right-column {
-  width: 25%;
+  width: 35%;
   background-color: #1e2127;
   height: 100%;
   overflow-y: auto;
@@ -201,19 +192,93 @@ export default defineComponent({
   flex-direction: column;
 }
 
-button {
-  width: 15%;
-  padding: 10px;
-  margin-left: 15px;
-  font-size: 16px;
-  border: none;
-  border-radius: 20px;
-  cursor: pointer;
-  margin-top: 10px;
-  background-color: #fd662f; /* Button color */
-  color: white; /* White text */
+.custom-follow-button {
+  margin-top: 20px;
+  margin-bottom: 20px;
+  align-self: center;
   position: absolute;
-  right: 400px;
-  top: 310px;
+  top: 240px;
+  right: 480px;
+}
+
+h3 {
+  
+  display: flex;
+  justify-content: center;
+  /* background-color: #f53; */
+  background-color: none;
+  color: bisque;
+  width: 90%;
+  max-height: 50px;
+  padding: 10px;
+}
+
+@media (max-width: 430px) {
+  .new-user-page {
+    padding-right: 1px;
+    padding-left: 1px;
+  }
+
+  .content {
+    flex-direction: column;
+  }
+
+  .left-column,
+  .right-column {
+    width: 100%;
+    overflow-y: auto;
+    height: auto;
+  }
+
+  .custom-follow-button {
+  margin-top: 20px;
+  margin-bottom: 20px;
+  align-self: center;
+  position: absolute;
+  top: 285px;
+  right: 35px;
+}
+
+
+}
+
+@media (max-width: 780px) {
+  .new-user-page {
+    padding-right: 1px;
+    padding-left: 1px;
+  }
+
+  .content {
+    flex-direction: column;
+  }
+
+  .left-column,
+  .right-column {
+    width: 100%;
+    overflow-y: auto;
+    height: auto;
+  }
+
+  .custom-follow-button {
+  margin-top: 20px;
+  margin-bottom: 20px;
+  align-self: center;
+  position: absolute;
+  top: 285px;
+  right: 35px;
+}
+
+}
+
+@media (max-width:1022px){
+
+}
+
+@media (max-width: 1024px) {
+  .new-user-page {
+    padding-right: 10px;
+    padding-left: 10px;
+    padding-top: 82px;
+  }
 }
 </style>

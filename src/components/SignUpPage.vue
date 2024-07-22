@@ -20,7 +20,7 @@
               <input type="text" placeholder="Full Name" v-model="fullName" @input="generateChatterName" required />
             </div>
             <div class="form-group">
-              <input type="text" placeholder="Chatter Name" v-model="chatterName" @input="validateChatterName" required />
+              <input type="text" placeholder="Blugger Name" v-model="chatterName" @input="validateChatterName" required />
               <p v-if="chatterNameWarning" class="warning">{{ chatterNameWarning }}</p>
             </div>
             <div class="form-group">
@@ -32,7 +32,7 @@
             </div>
             <div class="form-group">
               <textarea placeholder="About Me" v-model="aboutMe" @input="limitAboutMeWords" maxlength="200"></textarea>
-              <p>{{ aboutMeWordCount }} / 200 words</p>
+              <p class="word-counter">{{ aboutMeWordCount }} / 200 words</p>
             </div>
             <button type="submit" class="btn btn-signup">Create Account</button>
           </form>
@@ -249,7 +249,7 @@ export default defineComponent({
 .signup-container h1 {
   font-size: 24px;
   color: #cebfad;
-  margin-bottom: 20px;
+  margin-bottom: 40px;
 }
 
 .signup-container .btn {
@@ -328,11 +328,18 @@ p {
   color: #333;
 }
 
+.word-counter {
+  font-size: 10px;
+}
+
 /* Media query for phone view */
 @media (max-width: 768px) {
   .columns-container {
     flex-direction: column;
     height: auto;
+    width: 90%;
+    height: 90vh;
+    
   }
 
   .left-column {

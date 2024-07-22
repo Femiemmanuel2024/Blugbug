@@ -1,0 +1,44 @@
+/* Light Mode (default) */
+body {
+    background-color: #ffffff;
+    color: #000000;
+  }
+  
+  .navbar, .left-column, .right-column {
+    background-color: #f0f0f0;
+    color: #000000;
+  }
+  
+  .button, .post-title, .post-actions i {
+    color: #000000;
+  }
+  
+  .button:hover, .post-title:hover, .post-actions i:hover {
+    color: #fd662f;
+  }
+  
+  /* Dark Mode */
+  body.dark-mode {
+    background-color: #202329;
+    color: #cebfad;
+  }
+  
+  body.dark-mode .navbar, 
+  body.dark-mode .left-column, 
+  body.dark-mode .right-column {
+    background-color: #1e2127;
+    color: #cebfad;
+  }
+  
+  body.dark-mode .button, 
+  body.dark-mode .post-title, 
+  body.dark-mode .post-actions i {
+    color: #cebfad;
+  }
+  
+  body.dark-mode .button:hover, 
+  body.dark-mode .post-title:hover, 
+  body.dark-mode .post-actions i:hover {
+    color: #fd662f;
+  }
+  

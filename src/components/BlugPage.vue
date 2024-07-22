@@ -232,7 +232,7 @@ export default defineComponent({
   height: 100vh;
   padding-right: 50px;
   padding-left: 50px;
-  padding-top: 82px;
+  padding-top: 40px;
 }
 
 .navbar {

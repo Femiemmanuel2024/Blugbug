@@ -3,7 +3,7 @@
     <div class="columns-container">
       <div class="column left-column">
         
-      <h1>Welcome to Bloggabug</h1>
+      <h1>Welcome to Blugbug</h1>
         <p>We're excited to have you join our vibrant community. Connect with friends, share your thoughts, and explore new ideas. Happy chatting!
           
         </p>
@@ -13,7 +13,7 @@
           <h1>Login</h1>
           <form @submit.prevent="onSubmit">
             <div class="form-group">
-              <input type="text" placeholder="Email Address or Chatter Name" v-model="username" required />
+              <input type="text" placeholder="Email Address or Blugger Name" v-model="username" required />
             </div>
             <div class="form-group password-group">
               <input :type="passwordFieldType" placeholder="Password" v-model="password" required />

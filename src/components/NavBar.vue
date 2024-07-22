@@ -1,10 +1,7 @@
 <template>
   <nav class="navbar">
     <div class="navbar-left">
-      <ActionNotification class="nav-icon" @click="animateIcon($event)" />
-    </div>
-    <div class="navbar-center">
-      <div class="brandlogo">BloggaBug</div>
+      <img src="/brand_logo.svg" alt="BloggaBug Logo" class="brandlogo" />
     </div>
     <div class="navbar-right">
       <router-link to="/home" class="nav-icon" @click="animateIcon($event)">
@@ -19,6 +16,9 @@
         <font-awesome-icon :icon="['fas', 'globe']" />
         <span class="icon-label">Blug</span>
       </router-link>
+      <div class="nav-icon alert-icon" @click="animateIcon($event)">
+        <ActionNotification />
+      </div>
       <router-link to="/settings" class="nav-icon" @click="animateIcon($event)">
         <font-awesome-icon :icon="['fas', 'gear']" />
         <span class="icon-label">Settings</span>
@@ -32,7 +32,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue';
+import { defineComponent, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import ActionNotification from './infofeatures/ActionNotification.vue';
 
@@ -86,55 +86,39 @@ export default defineComponent({
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 10px;
+  /* padding: 10px 10px; */
   background-color: #1e2127;
   box-shadow: 0 0px 5px rgba(0, 0, 0, 0.9);
   z-index: 9998;
 }
 
-.navbar-left, .navbar-center, .navbar-right {
+.navbar-left, .navbar-right {
   display: flex;
   align-items: center;
 }
 
 .navbar-left {
-  justify-content: flex-start;
-  width: 20%;
   padding-left: 60px;
 }
 
-.navbar-center {
-  justify-content: center;
-  width: 60%;
-}
-
 .navbar-right {
-  justify-content: center;
-  overflow: hidden;
-  border-radius: 0px;
-  height: 70px;
-  width: 24.2%;
+  justify-content: flex-end;
   padding-right: 60px;
 }
 
 .nav-icon {
   display: flex;
-  flex-direction: column;
-  justify-content: center;
   align-items: center;
   color: rgb(255, 255, 255);
   text-decoration: none;
   font-size: 14px;
   margin: 0 10px;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
   transition: transform 0.3s;
 }
 
-.icon-label {
-  font-size: 12px;
-  margin-top: 5px;
+.nav-icon .icon-label {
+  margin-left: 5px;
+  font-size: 14px;
 }
 
 .nav-icon:active {
@@ -154,7 +138,8 @@ export default defineComponent({
 }
 
 .brandlogo {
-  color: bisque;
+  height: 50px; /* Adjust height as needed */
+  width: 100%;
 }
 
 @keyframes click-animation {
@@ -201,38 +186,65 @@ export default defineComponent({
   animation: hover-animation 0.3s ease;
 }
 
-/* Media query for screen size 414px by 896px */
-@media (max-width: 430px) {
+/* Add z-index to ActionNotification to make it top-most */
+::v-deep .notification-list {
+  z-index: 10000;
+}
+
+/* Media query for mobile devices (less than 768px) */
+@media (max-width: 767.98px) {
   .navbar {
     flex-direction: column;
     align-items: center;
+    gap: 20px;
     padding: 10px 0;
     background-color: #1e2127;
     box-shadow: 0 0px 5px rgba(0, 0, 0, 0.9);
     z-index: 9999;
     width: 100%;
   }
-  .navbar-left, .navbar-center, .navbar-right {
+  .navbar-left, .navbar-right {
     justify-content: center;
     width: 100%;
   }
 
   .navbar-left {
-  padding-left: 0px;
-}
+    padding-left: 0px;
+  }
 
-.navbar-center {
-  justify-content: center;
-  width: 60%;
-}
-
-.navbar-right {
-  
-  padding-right: 0px;
-}
+  .navbar-right {
+    padding-right: 0px;
+  }
   .nav-icon {
     font-size: 30px;
   }
+  .icon-label {
+    display: none;
+  }
+}
+
+/* Media query for tablets (768px to 1024px) */
+@media (min-width: 768px) and (max-width: 1024px) {
+  .navbar {
+    padding: 10px 10px;
+  }
+  .navbar-left {
+    padding-left: 30px;
+  }
+  .navbar-right {
+    padding-right: 20px;
+  }
+  .nav-icon {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    color: rgb(255, 255, 255);
+    text-decoration: none;
+    font-size: 14px;
+    margin: 0 10px;
+    transition: transform 0.3s;
+  }
+
   .icon-label {
     display: none;
   }

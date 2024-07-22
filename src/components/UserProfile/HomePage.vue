@@ -12,7 +12,7 @@
         />
         <div class="header-toggle">
           <h3 :class="{ active: currentComponent === 'Feed' }" @click="showBlug">Blug</h3>
-          <h3 :class="{ active: currentComponent === 'InterestPage' }" @click="showInterestFeed">Interest-Based Feed</h3>
+          <h3 :class="{ active: currentComponent === 'InterestPage' }" @click="showInterestFeed">BlugBug</h3>
         </div>
         <div class="feed-container">
           <component :is="currentComponent" />
@@ -123,7 +123,7 @@ export default defineComponent({
   background-color: #000000;
   padding-right: 50px;
   padding-left: 50px;
-  padding-top: 82px;
+  padding-top: 40px;
 }
 
 .navbar {
@@ -137,25 +137,27 @@ export default defineComponent({
 }
 
 .left-column {
-  width: 75%;
+  width: 65%;
   overflow-y: auto;
   height: 100%;
 }
 
 .feed-container {
-  background-color: #2b3138;
-  padding: 10px;
+  /* background-color: #2b3138; */
+  padding: 0px;
   border: solid 5px #0c1118;
-  padding-right: 50px;
+  padding-right: 70px;
+  padding-left: 10px;
 }
 
 .header-toggle {
   display: flex;
   justify-content: space-around;
   cursor: pointer;
-  background-color: #1e2127;
+  background-color: #2b3138;
   padding: 10px;
   color: #cebfad;
+  border: solid 5px #0c1118;
 }
 
 .header-toggle h3 {
@@ -169,11 +171,11 @@ export default defineComponent({
 
 .header-toggle h3.active {
   color: rgb(255, 255, 255);
-  border-bottom: 2px solid #f53;
+  border-bottom: 2px solid rgb(255, 255, 255);
 }
 
 .right-column {
-  width: 25%;
+  width: 35%;
   background-color: #1e2127;
   height: 100%;
   overflow-y: auto;
@@ -182,14 +184,12 @@ export default defineComponent({
 }
 
 h3 {
-  border-bottom: 1px solid #ccc;
+  
   display: flex;
   justify-content: center;
-  background-color: #f53;
   width: 100%;
   margin-left: 10px;
-  border-radius: 10px 10px 0px 0px;
-  max-height: 50px;
+  max-height: 80px;
   padding: 10px;
 }
 
@@ -217,5 +217,52 @@ h3 {
   .navbar {
     max-width: 100%;
   }
+}
+
+
+@media (max-width: 780px) {
+  .new-user-page {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    background-color: #020202;
+    padding-right: 1px;
+    padding-left: 1px;
+  }
+
+  .content {
+    flex-direction: column;
+  }
+
+  .left-column,
+  .right-column {
+    width: 100%;
+    overflow-y: auto;
+    height: auto;
+  }
+
+  .navbar {
+    max-width: 100%;
+  }
+
+  .feed-container {
+  /* background-color: #2b3138; */
+  padding: 0px;
+  border: solid 5px #0c1118;
+  padding-right: 10px;
+  padding-left: 10px;
+}
+}
+
+@media (max-width: 1024px){
+  .new-user-page {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background-color: #000000;
+  padding-right: 10px;
+  padding-left: 10px;
+  padding-top: 82px;
+}
 }
 </style>

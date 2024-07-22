@@ -5,15 +5,15 @@
         <div class="left-column">
           <div class="left-container">
             <div class="feedheader">
-              <h3>Bloggas</h3>
+              <!-- <h3>MyBlug</h3> -->
             </div>
             <ul>
               <li v-for="(post, index) in posts" :key="post.id">
                 <div @click="viewPost(index)" class="post-title">{{ post.title }}</div>
                 <div class="post-meta">by {{ post.userFullName }} on {{ formatDateTime(post.date) }}</div>
                 <div class="post-actions">
-                  <span>Likes: {{ post.likes }}</span>
-                  <button @click="readPost(post.title)">Read</button>
+                  <span class="action-item">Likes: {{ post.likes }}</span>
+                  <button @click="readPost(post.title)" class="action-item">Read</button>
                 </div>
                 <div v-if="selectedPost && selectedPost.id === post.id" class="post-content" v-html="selectedPost.bodyContent"></div>
               </li>
@@ -171,17 +171,17 @@ ul {
   padding: 0;
   color: #cebfad;
   padding-left: 30px;
+  padding-right: 10px;
 }
 
 li {
   display: flex;
   flex-direction: column;
   padding: 10px 0;
-  border-bottom: none; /* Remove the inner border */
+  border-bottom: solid 1px #cebfad; /* Remove the inner border */
 }
 
 .feedheader {
-  border-bottom: 1px solid #ccc;
   display: flex;
   justify-content: center;
   background-color: #f53;
@@ -209,17 +209,25 @@ h3 {
 
 .post-actions {
   display: flex;
-  justify-content: flex-end;
-  gap: 10px;
+  justify-content: space-between; /* Adjust spacing between items */
+  align-items: center; /* Align items vertically */
   margin-top: 10px;
 }
 
-.post-actions button {
+.post-actions .action-item {
+  display: flex;
+  align-items: center;
+  font-size: 14px;
   background: none;
   border: none;
   color: #f53;
   cursor: pointer;
-  font-size: 20px;
+  font-size: 14px;
+  padding: 5px;
+}
+
+.post-actions .action-item:hover {
+  color: #fd662f;
 }
 
 .post-content {
@@ -230,4 +238,13 @@ h3 {
   color: #cebfad;
   font-size: 15px;
 }
+
+@media (max-width: 780px){
+  ul {
+  
+  padding-left: 10px;
+  padding-right: 10px;
+}
+}
+
 </style>

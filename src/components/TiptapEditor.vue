@@ -95,7 +95,7 @@ export default defineComponent({
               return {
                 ...this.parent?.(),
                 width: {
-                  default: '500px',
+                  default: '1000px',
                   parseHTML: element => element.style.width.replace('px', ''),
                   renderHTML: attributes => ({
                     style: `width: ${attributes.width}px; height: auto;`,
@@ -222,11 +222,11 @@ export default defineComponent({
     };
 
     const indent = () => {
-      editor.value?.commands.sinkListItem('listItem');
+      editor.value?.chain().focus().sinkListItem('listItem').run();
     };
 
     const outdent = () => {
-      editor.value?.commands.liftListItem('listItem');
+      editor.value?.chain().focus().liftListItem('listItem').run();
     };
 
     const insertLink = () => {
@@ -267,8 +267,8 @@ export default defineComponent({
       const file = target.files?.[0];
       if (file) {
         try {
-          const resizedImageUrl = await resizeImageFile(file, 1500);
-          editor.value?.chain().focus().setImage({ src: resizedImageUrl, width: 1500 }).run();
+          const resizedImageUrl = await resizeImageFile(file, 1000); // Resizing image to max 1000px width
+          editor.value?.chain().focus().setImage({ src: resizedImageUrl, width: 1000 }).run();
         } catch (error) {
           console.error('Error resizing image:', error);
         }
@@ -325,30 +325,39 @@ export default defineComponent({
   height: 400px;
   background-color: white;
   color: black;
-  border: none; /* Remove border */
+  border: none;
   padding: 10px;
   overflow-y: auto;
 }
+
 .toolbar {
   display: flex;
   gap: 5px;
   margin-top: 10px;
 }
+
 .toolbar button {
-  background: none; /* Remove background */
-  border: none; /* Remove border */
+  background: none;
+  border: none;
   padding: 5px 10px;
   cursor: pointer;
-  color: white; /* Set color to white */
+  color: white;
 }
+
 .toolbar button i {
   font-size: 16px;
 }
+
+.toolbar button:hover {
+  color: orange;
+}
+
 .resizable-image-container {
   position: relative;
   display: inline-block;
   border: 2px solid green;
 }
+
 .resize-handle {
   position: absolute;
   bottom: -5px;
@@ -372,9 +381,10 @@ export default defineComponent({
   color: white;
 }
 
-.resize-options button:hover{
+.resize-options button:hover {
   color: #ed6834;
 }
+
 .resize-options button i {
   font-size: 16px;
 }

@@ -3,7 +3,7 @@
     <NavBar />
     <div class="content">
       <div class="container">
-        <div class="left-column">
+        <div class="left-column" v-if="!isLeftColumnHidden">
           <div class="left-title">
             <h1 class="blog-header">My Blug Posts</h1>
           </div>
@@ -19,7 +19,10 @@
             </ul>
           </div>
         </div>
-        <div class="right-column">
+        <div class="right-column" :class="{ 'expanded': isLeftColumnHidden }">
+          <div class="top-bar" v-if="isLeftColumnHidden">
+            <i class="fas fa-arrow-left" @click="showLeftColumn" title="Back"></i>
+          </div>
           <div v-if="selectedPost" :key="currentComponentKey">
             <h2>{{ selectedPost.title }}</h2>
             <div v-html="selectedPost.bodyContent" class="postbody"></div>
@@ -57,6 +60,7 @@ export default defineComponent({
     const posts = ref<Post[]>([]);
     const selectedPost = ref<Post | null>(null);
     const currentComponentKey = ref<number>(0); // Key to force component re-render
+    const isLeftColumnHidden = ref<boolean>(false); // State to control the visibility of the left column
 
     const fetchPostsFromBucket = async (userId: string) => {
       const { data, error } = await supabase.storage
@@ -161,6 +165,13 @@ export default defineComponent({
 
       selectedPost.value = { ...post, title, bodyContent };
       currentComponentKey.value += 1; // Update the key to force re-render
+
+      // Hide the left column when a post is viewed
+      isLeftColumnHidden.value = true;
+    };
+
+    const showLeftColumn = () => {
+      isLeftColumnHidden.value = false;
     };
 
     const deletePost = async (index: number) => {
@@ -224,6 +235,8 @@ export default defineComponent({
       currentComponentKey,
       formatDate,
       formatTime,
+      isLeftColumnHidden,
+      showLeftColumn,
     };
   },
 });
@@ -236,7 +249,7 @@ export default defineComponent({
   height: 100vh;
   padding-right: 50px;
   padding-left: 50px;
-  padding-top: 82px;
+  padding-top: 40px;
 }
 
 .navbar {
@@ -260,6 +273,7 @@ export default defineComponent({
   padding: 20px;
   background-color: none;
   overflow-y: hidden;
+  transition: width 0.5s;
 }
 
 .left-container {
@@ -270,13 +284,13 @@ export default defineComponent({
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
-.left-title  {
+.left-title {
   background-color: #1e2127;
   width: 100%;
   padding: 2px;
 }
 
-.left-title h1{
+.left-title h1 {
   text-align: center;
   width: 100%;
   font-size: 14px;
@@ -285,11 +299,22 @@ export default defineComponent({
 }
 
 .right-column {
-  width: 70%;
+  width: 75%;
   padding: 20px;
   background-color: #1e2127;
   overflow-y: auto;
   color: #cebfad;
+  transition: width 0.5s;
+}
+
+.right-column.expanded {
+  width: 100%;
+}
+
+.top-bar {
+  display: flex;
+  justify-content: flex-start;
+  margin-bottom: 20px;
 }
 
 ul {
@@ -399,7 +424,7 @@ h2 {
   }
 }
 
-.list-container{
+.list-container {
   display: flex;
 }
 </style>

@@ -1,5 +1,5 @@
 <template>
-  <div class="feed-contain">
+  <div class="feed-containers">
     <div class="feedheader">
       <!-- <h3>MyBlug</h3> -->
     </div>
@@ -11,12 +11,13 @@
         <div @click="toggleContent(post.id)" class="post-title">{{ post.title }}</div>
         <div class="post-meta">by {{ post.userFullName }} on {{ formatDateTime(post.date) }}</div>
         <div class="post-actions">
-          <span>Likes: {{ post.likes }}</span>
+          <span class="action-item">Likes: {{ post.likes }}</span>
           <i 
-            :class="['fas', 'fa-bookmark', { 'bookmarked': isBookmarked(post.bookmarked_by) }]"
+            class="fas fa-bookmark action-item" 
+            :class="{ 'bookmarked': isBookmarked(post.bookmarked_by) }"
             @click.stop="toggleBookmark(post.id, post.bookmarked_by)"
           ></i>
-          <button @click="readPost(post.title)">Read</button>
+          <button @click="readPost(post.title)" class="action-item">Read</button>
         </div>
         <div v-if="expandedPost === post.id" class="post-content" v-html="post.content"></div>
       </li>
@@ -184,9 +185,10 @@ export default defineComponent({
 
 ul {
   list-style-type: none;
-  padding: 0;
   color: #cebfad;
   padding-left: 30px;
+  padding-right: 10px;
+  width: 100%;
 }
 
 li {
@@ -198,7 +200,7 @@ li {
 
 .no-interest-message {
   font-size: 18px;
-  color: red;
+  color: #cebfad;
   text-align: center;
   margin-top: 20px;
 }
@@ -216,18 +218,24 @@ li {
 
 .post-actions {
   display: flex;
-  justify-content: flex-end;
-  align-items: center;
+  justify-content: space-between; /* Adjust spacing between items */
+  align-items: center; /* Align items vertically */
   margin-top: 10px;
-  gap: 15px;
 }
 
-.post-actions button {
+.post-actions .action-item {
+  display: flex;
+  align-items: center;
+  font-size: 14px;
   background: none;
   border: none;
   color: #f53;
   cursor: pointer;
-  font-size: 20px;
+  padding: 5px;
+}
+
+.post-actions .action-item:hover {
+  color: #fd662f;
 }
 
 .post-actions .fa-bookmark.bookmarked {
@@ -237,4 +245,14 @@ li {
 .post-content {
   margin-top: 10px;
 }
+
+@media (max-width: 780px){
+  ul {
+  
+  padding-left: 0px;
+  padding-right: 0px;
+}
+}
+
+
 </style>

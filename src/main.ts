@@ -3,6 +3,7 @@ import App from './App.vue';
 import router from './router';
 import { QuillEditor } from '@vueup/vue-quill'; // Import QuillEditor from '@vueup/vue-quill'
 import '@vueup/vue-quill/dist/vue-quill.snow.css'; // Import Quill CSS
+// import './styles/styles.css';
 
 import { library } from '@fortawesome/fontawesome-svg-core';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
@@ -28,7 +29,9 @@ import {
   faCircleChevronDown, // Import faCircleChevronDown
   faCompressAlt, // Import faCompressAlt
   faExpandAlt, // Import faExpandAlt
-  faExpand // Import faExpand
+  faExpand, // Import faExpand
+  faToggleOn, // Import faToggleOn
+  faToggleOff // Import faToggleOff
 } from '@fortawesome/free-solid-svg-icons';
 
 // Add the icons to the library
@@ -54,7 +57,9 @@ library.add(
   faCircleChevronDown,
   faCompressAlt,
   faExpandAlt,
-  faExpand
+  faExpand,
+  faToggleOn,
+  faToggleOff
 );
 
 const app = createApp(App);

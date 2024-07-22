@@ -78,7 +78,7 @@ export default defineComponent({
     };
 
     const truncateTitle = (title: string) => {
-      return title.length > 15 ? title.substring(0, 15) + '...' : title;
+      return title.length > 35 ? title.substring(0, 35) + '...' : title;
     };
 
     const readBlog = (title: string) => {

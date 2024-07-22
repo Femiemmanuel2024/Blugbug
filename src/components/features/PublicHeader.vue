@@ -301,7 +301,7 @@ export default defineComponent({
   background-color: #fff;
   border-radius: 50%;
   position: absolute;
-  top: 340px;
+  top: 300px;
   left: 190px;
 }
 
@@ -310,21 +310,17 @@ export default defineComponent({
   height: 100%;
   object-fit: cover;
   border-radius: 50%;
+  
 }
 
 @media (max-width: 430px) {
   .checkmark-icon-circle {
-    width: 20px;
-    height: 20px;
-    background-color: #fff;
-    border-radius: 50%;
-    position: absolute;
+  
     top: 340px;
     left: 140px;
   }
-}
 
-.upload-header-icon {
+  upload-header-icon {
   position: absolute;
   bottom: 90px;
   right: 10px;
@@ -356,4 +352,16 @@ export default defineComponent({
   color: #cebfad;
   font-size: 14px;
 }
+}
+
+@media (max-width:1022px){
+  .about-me {
+  padding-left: 20px;
+  padding-right: 20px;
+  font-size: 16px;
+  color: gray;
+}
+}
+
+
 </style>

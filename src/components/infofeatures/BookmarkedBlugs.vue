@@ -86,7 +86,7 @@
       };
   
       const truncateTitle = (title: string) => {
-        return title.length > 15 ? title.substring(0, 15) + '...' : title;
+        return title.length > 35 ? title.substring(0, 35) + '...' : title;
       };
   
       const readBlog = (title: string) => {
@@ -170,6 +170,33 @@
   
   .bookmarked-blugs button:hover {
     background-color: #e04a2e;
+  }
+
+  @media (max-width: 1024px) {
+    .bookmarked-blugs .title {
+    flex: 1;
+    color: #ffffff;
+    padding-top: 30px;
+  }
+
+  .bookmarked-blugs button {
+    background-color: #fd662f;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-top: 25px;
+    
+  }
+  }
+
+  @media (max-width:450px){
+     
+  .bookmarked-blugs li {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: -12px;
+  }
   }
   </style>
   

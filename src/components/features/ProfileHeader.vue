@@ -17,9 +17,6 @@
     </div>
     <div class="name-container">
       <h1 class="name">{{ user.fullName }}</h1>
-      <div v-if="checkmarkIconUrl" class="checkmark-icon-circle">
-        <img :src="checkmarkIconUrl" alt="Checkmark Icon" class="checkmark-icon" />
-      </div>
       <p class="chatter-name">@{{ user.chatterName }}</p>
     </div>
     <p class="about-me">{{ user.aboutMe }}</p>
@@ -33,6 +30,9 @@
     </div>
     <FileUpload v-if="showFileUpload" :type="uploadType" @uploadComplete="fetchUserData" @close="closeFileUploadModal" />
     <CreateBlogPost v-if="showCreatePost" :isModalVisible="showCreatePost" @closeModal="hideCreatePostModal" />
+    <div v-if="checkmarkIconUrl" class="checkmark-icon-circle">
+        <img :src="checkmarkIconUrl" alt="Checkmark Icon" class="checkmark-icon" />
+      </div>
   </div>
 </template>
 
@@ -221,14 +221,14 @@ export default defineComponent({
 
 .upload-header-icon {
   position: absolute;
-  bottom: 80px;
-  right: 450px;
+  bottom: 50%;
+  right: 50%;
   background-color: rgba(0, 0, 0, 0.5);
   color: #fff;
   padding: 10px;
   border-radius: 50%;
   cursor: pointer;
-  opacity: 1;
+  opacity: 0.0;
   transition: opacity 0.3s ease;
 }
 
@@ -284,7 +284,7 @@ export default defineComponent({
 }
 
 .create-post-button {
-  margin-left: 530px;
+  margin-left: 425px;
   margin-top: 80px;
   padding: 10px 20px;
   background-color: #fd662f;
@@ -334,7 +334,7 @@ export default defineComponent({
   background-color: #fff;
   border-radius: 50%;
   position: absolute;
-  top: 340px;
+  top: 300px;
   left: 190px;
 }
 
@@ -345,19 +345,9 @@ export default defineComponent({
   border-radius: 50%;
 }
 
-@media (min-width: 430px) {
-  .checkmark-icon-circle {
-    width: 20px;
-    height: 20px;
-    background-color: #fff;
-    border-radius: 50%;
-    position: absolute;
-    top: 340px;
-    left: 140px;
-  }
-}
 
-.upload-header-icon {
+
+/* .upload-header-icon {
   position: absolute;
   bottom: 90px;
   right: 10px;
@@ -372,20 +362,14 @@ export default defineComponent({
 
 .upload-header-icon:hover {
   opacity: 1;
-}
+} */
 
 .chatter-name {
   font-size: 14px;
   color: #cebfad;
 }
 
-.about-me {
-  padding-left: 20px;
-  padding-right: 20px;
-  font-size: 16px;
-  color: gray;
-  text-align: left;
-}
+
 
 .stats-container {
   padding-left: 20px;
@@ -395,17 +379,53 @@ export default defineComponent({
 }
 
 /* Additional Media Queries */
+@media (max-width: 1024px){
+  .create-post-button {
+    margin-left: 410px;
+    margin-top: 80px;
+  }
+  .checkmark-icon-circle {
+  top: 340px;
+  left: 149px;
+}
+
+}
+
+@media (max-width:1022px){
+  
+}
+
+@media (max-width:850px){
+  .create-post-button {
+    margin-left: 260px;
+    margin-top: 80px;
+  }
+}
+
 @media (max-width: 768px) {
   .create-post-button {
     margin-left: 20px;
     margin-top: 20px;
   }
+  .checkmark-icon-circle {
+  top: 340px;
+  left: 145px;
+}
 }
 
 @media (max-width: 480px) {
   .create-post-button {
-    margin-left: 70px;
+    margin-left: 30px;
     margin-top: 80px;
+    
   }
+
+  .checkmark-icon-circle {
+  top: 340px;
+  left: 145px;
+}
+
+
+
 }
 </style>
