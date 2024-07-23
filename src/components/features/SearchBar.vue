@@ -80,7 +80,6 @@ export default defineComponent({
 .search-bar-container {
   position: relative;
   width: 100%;
-  z-index: 9997;
   
 }
 

@@ -13,7 +13,7 @@
         />
         <FollowButton :userId="userId" customClass="custom-follow-button" />
         <BlogPosts :posts="posts" @likePost="likePost" @bookmarkPost="bookmarkPost" />
-         <h3>MyBlug</h3>
+        <h3>MyBlug</h3>
         <PublicFeed />
       </div>
       <div class="right-column">
@@ -70,6 +70,9 @@ export default defineComponent({
   setup() {
     const route = useRoute();
     const userId = ref<string>(Array.isArray(route.params.userId) ? route.params.userId[0] : route.params.userId);
+    // Log userId to verify it's being set correctly
+    console.log('Extracted userId:', userId.value);
+
     const user = ref<User | null>(null);
     const posts = ref<Post[]>([]);
     const totalLikes = ref<number>(0);
@@ -202,10 +205,8 @@ export default defineComponent({
 }
 
 h3 {
-  
   display: flex;
   justify-content: center;
-  /* background-color: #f53; */
   background-color: none;
   color: bisque;
   width: 90%;
@@ -231,15 +232,13 @@ h3 {
   }
 
   .custom-follow-button {
-  margin-top: 20px;
-  margin-bottom: 20px;
-  align-self: center;
-  position: absolute;
-  top: 285px;
-  right: 35px;
-}
-
-
+    margin-top: 20px;
+    margin-bottom: 20px;
+    align-self: center;
+    position: absolute;
+    top: 285px;
+    right: 35px;
+  }
 }
 
 @media (max-width: 780px) {
@@ -260,18 +259,13 @@ h3 {
   }
 
   .custom-follow-button {
-  margin-top: 20px;
-  margin-bottom: 20px;
-  align-self: center;
-  position: absolute;
-  top: 285px;
-  right: 35px;
-}
-
-}
-
-@media (max-width:1022px){
-
+    margin-top: 20px;
+    margin-bottom: 20px;
+    align-self: center;
+    position: absolute;
+    top: 285px;
+    right: 35px;
+  }
 }
 
 @media (max-width: 1024px) {
