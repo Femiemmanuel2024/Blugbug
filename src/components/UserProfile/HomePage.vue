@@ -192,8 +192,8 @@ export default defineComponent({
   display: flex;
   flex-direction: column;
   position: fixed;
-  right: -35%;
   top: 40px;
+  right: 0;
   margin-right: 19px;
   transition: right 0.3s ease-in-out;
 }
@@ -261,7 +261,6 @@ h3 {
     top: 49px;
     right: 35px;
     font-size: 30px;
-    color: white;
     cursor: pointer;
     z-index: 10000;
     align-items: center;
@@ -318,7 +317,7 @@ h3 {
   }
 }
 
-@media (max-width: 1024px) {
+@media (min-width: 1024px) {
   .new-user-page {
     display: flex;
     flex-direction: column;
