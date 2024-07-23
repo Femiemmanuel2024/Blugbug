@@ -94,7 +94,7 @@ export default defineComponent({
           return null;
         }
 
-        chatterName.value = data.chatter_name;
+        chatterName.value = data?.chatter_name || null;
       }
     };
 
@@ -119,8 +119,8 @@ export default defineComponent({
         likes.value = data.likes;
         comments.value = data.comments || [];
         commentDetails.value = data.comment_details || [];
-        isLiked.value = data.liked_by.includes(userId.value || '');
-        isBookmarked.value = data.bookmarked_by.includes(userId.value || '');
+        isLiked.value = data.liked_by?.includes(userId.value || '') || false;
+        isBookmarked.value = data.bookmarked_by?.includes(userId.value || '') || false;
         blogOwnerId.value = data.user_id;
         blogTitle.value = data.title;
       }
@@ -129,23 +129,42 @@ export default defineComponent({
     const createNotification = async (message: string, mentionedUserId: string | null = null) => {
       if (blogOwnerId.value && blogOwnerId.value !== userId.value) {
         const userIdToNotify = mentionedUserId || blogOwnerId.value;
-        const { error } = await supabase
-          .from('notifications')
-          .insert([
-            {
-              user_id: userIdToNotify,
-              message: message,
-              blog_title: blogTitle.value,
-              read: false,
-              created_at: new Date().toISOString(),
-              displayed: false,
-            },
-          ]);
 
-        if (error) {
-          console.error('Error creating notification:', error.message);
+        // Check for existing notification to avoid duplicates
+        const { data: existingNotification, error: existingNotificationError } = await supabase
+          .from('notifications')
+          .select('id')
+          .eq('user_id', userIdToNotify)
+          .eq('message', message)
+          .eq('blog_title', blogTitle.value)
+          .single();
+
+        if (existingNotificationError && existingNotificationError.code !== 'PGRST116') { // PGRST116 is "No rows returned"
+          console.error('Error checking existing notification:', existingNotificationError.message);
+          return;
+        }
+
+        if (!existingNotification) {
+          const { error } = await supabase
+            .from('notifications')
+            .insert([
+              {
+                user_id: userIdToNotify,
+                message: message,
+                blog_title: blogTitle.value,
+                read: false,
+                created_at: new Date().toISOString(),
+                displayed: false,
+              },
+            ]);
+
+          if (error) {
+            console.error('Error creating notification:', error.message);
+          } else {
+            console.log('Notification created successfully.');
+          }
         } else {
-          console.log('Notification created successfully.');
+          console.log('Duplicate notification detected. Notification not created.');
         }
       }
     };
