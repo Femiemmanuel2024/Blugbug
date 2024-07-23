@@ -4,7 +4,56 @@
     <div class="content">
       <h1>Profile Settings</h1>
       <table v-if="user">
-        <!-- Table rows for user profile settings -->
+        <tr>
+          <th>Full Name</th>
+          <td>
+            <input v-if="editing.full_name" v-model="user.full_name" />
+            <span v-else>{{ user.full_name }}</span>
+          </td>
+          <td>
+            <button @click="toggleEdit('full_name')">{{ editing.full_name ? 'Save' : 'Edit' }}</button>
+          </td>
+        </tr>
+        <tr>
+          <th>Chatter Name</th>
+          <td>
+            <input v-if="editing.chatter_name" v-model="user.chatter_name" />
+            <span v-else>{{ user.chatter_name }}</span>
+          </td>
+          <td>
+            <button @click="toggleEdit('chatter_name')">{{ editing.chatter_name ? 'Save' : 'Edit' }}</button>
+          </td>
+        </tr>
+        <tr>
+          <th>Email</th>
+          <td>
+            <input v-if="editing.email" v-model="user.email" />
+            <span v-else>{{ user.email }}</span>
+          </td>
+          <td>
+            <button @click="toggleEdit('email')">{{ editing.email ? 'Save' : 'Edit' }}</button>
+          </td>
+        </tr>
+        <tr>
+          <th>Password</th>
+          <td>
+            <input v-if="editing.password" type="password" v-model="user.password" />
+            <span v-else>********</span>
+          </td>
+          <td>
+            <button @click="toggleEdit('password')">{{ editing.password ? 'Save' : 'Edit' }}</button>
+          </td>
+        </tr>
+        <tr>
+          <th>About Me</th>
+          <td>
+            <textarea v-if="editing.about_me" v-model="user.about_me"></textarea>
+            <span v-else>{{ user.about_me }}</span>
+          </td>
+          <td>
+            <button @click="toggleEdit('about_me')">{{ editing.about_me ? 'Save' : 'Edit' }}</button>
+          </td>
+        </tr>
       </table>
       <div v-else>
         Loading user data...
@@ -34,7 +83,7 @@
           <button @click="saveCategories" class="accept-button">Accept</button>
         </div>
       </div>
-      <p class="deactivate-message">
+      <p class='deactivate-message'>
         If you're considering deactivating your account, please reach out to us first. We're here to help resolve any issues you may be experiencing, and you may not need to deactivate your account after all.
       </p>
       <button class="deactivate-button" @click="showDeactivateModal">Deactivate Account</button>
@@ -353,8 +402,9 @@ button:hover {
   border-radius: 4px;
   padding: 5px;
   margin-right: 5px;
-  width: auto;
-  margin-bottom: 30px;
+  width: 120px;
+  margin-bottom: 10px;
+  border-bottom: 1px solid #cebfad;
 }
 
 .category-buttons {
@@ -497,6 +547,7 @@ button:hover {
     height: 100vh;
     padding-right: 1px;
     padding-left: 1px;
+    padding-top: 130px;
   }
 
   .content {
@@ -515,11 +566,12 @@ button:hover {
   }
 
   .category-buttons button {
-    width: 107px; /* Fixed width for buttons */
-  }
+  width: 107px; /* Fixed width for buttons */
 }
 
-@media (min-width: 381px) and (max-width: 430px) {
+}
+
+@media (min-width:381px) and (max-width: 430px) {
   .profile-settings {
     height: 100vh;
     padding-right: 1px;
@@ -540,9 +592,9 @@ button:hover {
     background-color: red;
     align-self: center;
   }
-
   .category-buttons button {
-    width: 120px; /* Fixed width for buttons */
-  }
+  width: 120px; /* Fixed width for buttons */
+}
+
 }
 </style>

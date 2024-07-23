@@ -218,7 +218,7 @@ export default defineComponent({
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 9999;
+  z-index: 10050;
 }
 
 .modal-content {
@@ -231,7 +231,7 @@ export default defineComponent({
   width: 1200px;
   height: 450px;
   text-align: center;
-  z-index: 9999;
+  z-index: 10050;
   margin-bottom: 140px;
 }
 
@@ -301,7 +301,7 @@ button:hover {
 @media (max-width: 430px) {
   .modal-content {
     position: relative;
-    top: 0px;
+    top: 100px;
     background-color: #333;
     color: white;
     padding: 20px;
@@ -309,7 +309,7 @@ button:hover {
     width: 90%;
     height: 550px;
     text-align: center;
-    z-index: 9999;
+    z-index: 10050;
   }
 
   .category-selection select {
