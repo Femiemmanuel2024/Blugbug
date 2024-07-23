@@ -293,6 +293,7 @@ export default defineComponent({
   border-radius: 4px;
   cursor: pointer;
   margin-top: 80px;
+  margin-right: 10px;
 }
 
 .create-post-button:hover {
@@ -323,13 +324,16 @@ export default defineComponent({
 
 .about-me {
   padding-left: 20px;
-  font-size: 16px;
+  font-size: 14px;
   color: gray;
+  padding-right: 20px;
 }
 
 .stats-container {
   padding-left: 20px;
   color: #cebfad;
+  padding-right: 20px;
+  font-size: 14px;
 }
 
 .checkmark-icon-circle {

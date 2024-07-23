@@ -172,7 +172,7 @@
     background-color: #e04a2e;
   }
 
-  @media (max-width: 1024px) {
+  /* @media (max-width: 1024px) {
     .bookmarked-blugs .title {
     flex: 1;
     color: #ffffff;
@@ -197,6 +197,6 @@
     justify-content: space-between;
     margin-bottom: -12px;
   }
-  }
+  } */
   </style>
   

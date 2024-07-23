@@ -12,7 +12,7 @@
         />
         <div class="header-toggle">
           <h3 :class="{ active: currentComponent === 'Feed' }" @click="showBlug">Blug</h3>
-          <h3 :class="{ active: currentComponent === 'InterestPage' }" @click="showInterestFeed">BlugBug</h3>
+          <h3 :class="{ active: currentComponent === 'InterestPage' }" @click="showInterestFeed">Blugspot</h3>
         </div>
         <div class="feed-container">
           <component :is="currentComponent" />
@@ -148,7 +148,7 @@ export default defineComponent({
 }
 
 .left-column {
-  width: 65%;
+  width: 63.9%;
   overflow-y: auto;
   height: 100%;
 }
@@ -275,7 +275,7 @@ h3 {
   .new-user-page {
     padding-right: 1px;
     padding-left: 1px;
-    margin-top: 100px;
+    margin-top: 30px;
   }
 
   .content {
@@ -301,8 +301,11 @@ h3 {
   }
 
   .right-column {
-    width: 100%;
+    width: 65%;
     right: -100%;
+    margin-top: 110px;
+    z-index: 9999;
+    
   }
 
   .right-column-visible {
@@ -312,12 +315,17 @@ h3 {
   .toggle-button {
     display: flex;
     position: fixed;
-    top: 200px;
-    right: 10px;
+    top: 80px;
+    right: 20px;
+    font-size: 40px;
+    background-color: rgb(0, 0, 0);
+    color: #cebfad;
+    padding: 10px;
+    border-radius: 40px;
   }
 }
 
-@media (min-width: 1024px) {
+@media (min-width: 780px) and (max-width:1024px) {
   .new-user-page {
     display: flex;
     flex-direction: column;
@@ -326,6 +334,10 @@ h3 {
     padding-right: 10px;
     padding-left: 10px;
     padding-top: 2px;
+  }
+
+  .right-column{
+    margin-top: 19px;
   }
 }
 </style>

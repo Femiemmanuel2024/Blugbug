@@ -104,7 +104,7 @@ export default defineComponent({
 
 .navbar-right {
   justify-content: flex-end;
-  padding-right: 60px;
+  padding-right: 40px;
 }
 
 .nav-icon {
