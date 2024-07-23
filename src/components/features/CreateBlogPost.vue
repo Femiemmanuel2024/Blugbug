@@ -259,6 +259,19 @@ export default defineComponent({
   border: 1px solid #ccc;
 }
 
+.category-selection select:focus {
+  outline: none;
+  box-shadow: 0 0 5px #fd662f;
+  border-color: #fd662f;
+}
+
+.category-selection option {
+  padding: 10px;
+  font-size: 16px;
+  background-color: #333;
+  color: white;
+}
+
 .error-message {
   color: red;
   margin-top: 5px;
@@ -293,10 +306,23 @@ button:hover {
     color: white;
     padding: 20px;
     border-radius: 10px;
-    width: 100%;
+    width: 90%;
     height: 550px;
     text-align: center;
     z-index: 9999;
   }
+
+  .category-selection select {
+    font-size: 16px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+    width: 99%;
+  }
+
+  .category-selection option {
+  font-size: 10px;
+  background-color: #333;
+  color: white;
+}
 }
 </style>

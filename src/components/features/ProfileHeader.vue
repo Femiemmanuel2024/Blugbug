@@ -74,7 +74,7 @@ export default defineComponent({
   },
   setup(props) {
     const user = ref<User>({
-      fullName: '',
+      fullName: 'Default Name',
       chatterName: '',
       aboutMe: '',
       id: '',
@@ -198,6 +198,7 @@ export default defineComponent({
   },
 });
 </script>
+
 
 <style scoped>
 .profile-header {
@@ -373,6 +374,19 @@ export default defineComponent({
 
   .create-post-button {
     margin-top: 60px;
+  }
+
+  .upload-header-icon {
+    position: absolute;
+    bottom: 50%;
+    right: 50%;
+    background-color: rgba(0, 0, 0, 0.5);
+    color: #fff;
+    padding: 10px;
+    border-radius: 50%;
+    cursor: pointer;
+    opacity: 0.1;
+    transition: opacity 0.3s ease;
   }
 }
 </style>

@@ -397,4 +397,14 @@ export default defineComponent({
   text-align: left;
   overflow: scroll;
 }
+
+/* @media (max-width: 430px) {
+  .toolbar {
+  display: flex;
+  gap: 5px;
+  margin-top: 30px;
+}
+
+} */
+
 </style>

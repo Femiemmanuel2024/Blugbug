@@ -18,8 +18,11 @@
           <component :is="currentComponent" />
         </div>
       </div>
-      <div class="right-column">
+      <div class="right-column" :class="{ 'right-column-visible': rightColumnVisible }">
         <InfoData />
+      </div>
+      <div class="toggle-button" @click="toggleRightColumn">
+        <font-awesome-icon :icon="['fas', 'bars']" />
       </div>
     </div>
   </div>
@@ -62,6 +65,7 @@ export default defineComponent({
     const followersCount = ref<number>(0);
 
     const currentComponent = ref('Feed');
+    const rightColumnVisible = ref(false);
 
     const fetchUserData = async () => {
       const { data, error } = await supabase
@@ -96,6 +100,10 @@ export default defineComponent({
       currentComponent.value = 'InterestPage';
     };
 
+    const toggleRightColumn = () => {
+      rightColumnVisible.value = !rightColumnVisible.value;
+    };
+
     onMounted(() => {
       fetchUserData();
     });
@@ -108,8 +116,10 @@ export default defineComponent({
       followingCount,
       followersCount,
       currentComponent,
+      rightColumnVisible,
       showBlug,
       showInterestFeed,
+      toggleRightColumn,
     };
   },
 });
@@ -134,6 +144,7 @@ export default defineComponent({
   display: flex;
   flex-grow: 1;
   width: 100%;
+  position: relative;
 }
 
 .left-column {
@@ -143,7 +154,6 @@ export default defineComponent({
 }
 
 .feed-container {
-  /* background-color: #2b3138; */
   padding: 0px;
   border: solid 5px #0c1118;
   padding-right: 70px;
@@ -181,10 +191,22 @@ export default defineComponent({
   overflow-y: auto;
   display: flex;
   flex-direction: column;
+  position: fixed;
+  right: -35%;
+  top: 40px;
+  margin-right: 19px;
+  transition: right 0.3s ease-in-out;
+}
+
+.right-column-visible {
+  right: 0;
+}
+
+.toggle-button {
+  display: none;
 }
 
 h3 {
-  
   display: flex;
   justify-content: center;
   width: 100%;
@@ -193,41 +215,11 @@ h3 {
   padding: 10px;
 }
 
-@media (max-width: 430px) {
+@media (max-width: 480px) {
   .new-user-page {
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
-    background-color: #020202;
     padding-right: 1px;
     padding-left: 1px;
-  }
-
-  .content {
-    flex-direction: column;
-  }
-
-  .left-column,
-  .right-column {
-    width: 100%;
-    overflow-y: auto;
-    height: auto;
-  }
-
-  .navbar {
-    max-width: 100%;
-  }
-}
-
-
-@media (max-width: 780px) {
-  .new-user-page {
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
-    background-color: #020202;
-    padding-right: 1px;
-    padding-left: 1px;
+    margin-top: 100px;
   }
 
   .content {
@@ -246,23 +238,95 @@ h3 {
   }
 
   .feed-container {
-  /* background-color: #2b3138; */
-  padding: 0px;
-  border: solid 5px #0c1118;
-  padding-right: 10px;
-  padding-left: 10px;
-}
+    padding: 0px;
+    border: solid 5px #0c1118;
+    padding-right: 10px;
+    padding-left: 10px;
+  }
+
+  .right-column {
+    width: 100%;
+    right: -100%;
+    margin-top: 100px;
+    margin-right: 1px;
+  }
+
+  .right-column-visible {
+    right: 0;
+  }
+
+  .toggle-button {
+    display: flex;
+    position: fixed;
+    top: 49px;
+    right: 35px;
+    font-size: 30px;
+    color: white;
+    cursor: pointer;
+    z-index: 10000;
+    align-items: center;
+    justify-content: center;
+    background-color: transparent;
+    border: none;
+    color: #f53;
+  }
 }
 
-@media (max-width: 1024px){
+@media (min-width: 481px) and (max-width: 780px) {
   .new-user-page {
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-  background-color: #000000;
-  padding-right: 10px;
-  padding-left: 10px;
-  padding-top: 42px;
+    padding-right: 1px;
+    padding-left: 1px;
+    margin-top: 100px;
+  }
+
+  .content {
+    flex-direction: column;
+  }
+
+  .left-column,
+  .right-column {
+    width: 100%;
+    overflow-y: auto;
+    height: auto;
+  }
+
+  .navbar {
+    max-width: 100%;
+  }
+
+  .feed-container {
+    padding: 0px;
+    border: solid 5px #0c1118;
+    padding-right: 10px;
+    padding-left: 10px;
+  }
+
+  .right-column {
+    width: 100%;
+    right: -100%;
+  }
+
+  .right-column-visible {
+    right: 0;
+  }
+
+  .toggle-button {
+    display: flex;
+    position: fixed;
+    top: 200px;
+    right: 10px;
+  }
 }
+
+@media (max-width: 1024px) {
+  .new-user-page {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    background-color: #000000;
+    padding-right: 10px;
+    padding-left: 10px;
+    padding-top: 2px;
+  }
 }
 </style>

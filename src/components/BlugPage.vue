@@ -23,9 +23,14 @@
                 </div>
               </li>
             </ul>
-            <div v-if="remainingPosts.length > 0" class="see-more-container">
-              <font-awesome-icon :icon="['fas', 'circle-chevron-down']" @click="loadMorePosts" class="see-more-icon" />
-            </div>
+          </div>
+          <div class="navigation-buttons">
+            <button @click="prevPage" :disabled="!hasPrevPage">
+              <font-awesome-icon :icon="['fas', 'circle-left']" />
+            </button>
+            <button @click="nextPage" :disabled="!hasNextPage">
+              <font-awesome-icon :icon="['fas', 'circle-right']" />
+            </button>
           </div>
         </div>
         <div class="bottom-column">
@@ -68,12 +73,12 @@ export default defineComponent({
   setup() {
     const posts = ref<Post[]>([]);
     const displayedPosts = ref<Post[]>([]);
-    const remainingPosts = ref<Post[]>([]);
     const selectedPost = ref<Post | null>(null);
     const currentComponentKey = ref<number>(0);
     const searchQuery = ref<string>('');
     const route = useRoute();
-    const postsPerLoad = ref<number>(10);
+    const postsPerPage = ref<number>(10);
+    const currentPage = ref<number>(0);
 
     const fetchPostsFromDatabase = async () => {
       const { data, error } = await supabase.from('blog_post').select('*');
@@ -125,15 +130,9 @@ export default defineComponent({
     };
 
     const updateDisplayedPosts = () => {
-      displayedPosts.value = posts.value.slice(0, postsPerLoad.value);
-      remainingPosts.value = posts.value.slice(postsPerLoad.value);
-    };
-
-    const loadMorePosts = () => {
-      const currentLength = displayedPosts.value.length;
-      const newPosts = remainingPosts.value.slice(0, postsPerLoad.value);
-      displayedPosts.value = newPosts;
-      remainingPosts.value = remainingPosts.value.slice(postsPerLoad.value);
+      const start = currentPage.value * postsPerPage.value;
+      const end = start + postsPerPage.value;
+      displayedPosts.value = posts.value.slice(start, end);
     };
 
     const viewPost = async (index: number) => {
@@ -179,11 +178,27 @@ export default defineComponent({
     };
 
     const filteredPosts = computed(() => {
-      const filtered = posts.value.filter((post) =>
+      return posts.value.filter((post) =>
         post.title?.toLowerCase().includes(searchQuery.value.toLowerCase())
       );
-      return filtered.slice(0, postsPerLoad.value);
     });
+
+    const prevPage = () => {
+      if (currentPage.value > 0) {
+        currentPage.value--;
+        updateDisplayedPosts();
+      }
+    };
+
+    const nextPage = () => {
+      if ((currentPage.value + 1) * postsPerPage.value < posts.value.length) {
+        currentPage.value++;
+        updateDisplayedPosts();
+      }
+    };
+
+    const hasPrevPage = computed(() => currentPage.value > 0);
+    const hasNextPage = computed(() => (currentPage.value + 1) * postsPerPage.value < posts.value.length);
 
     onMounted(() => {
       loadPosts().then(() => {
@@ -199,27 +214,29 @@ export default defineComponent({
         }
       });
 
-      const updatePostsPerLoad = () => {
-        postsPerLoad.value = window.innerWidth <= 430 ? 5 : 10;
+      const updatePostsPerPage = () => {
+        postsPerPage.value = window.innerWidth <= 430 ? 5 : 10;
         updateDisplayedPosts();
       };
 
-      window.addEventListener('resize', updatePostsPerLoad);
-      updatePostsPerLoad(); // Initial call to set postsPerLoad based on screen size
+      window.addEventListener('resize', updatePostsPerPage);
+      updatePostsPerPage(); // Initial call to set postsPerPage based on screen size
 
       return () => {
-        window.removeEventListener('resize', updatePostsPerLoad);
+        window.removeEventListener('resize', updatePostsPerPage);
       };
     });
 
     return {
       displayedPosts,
-      remainingPosts,
       selectedPost,
       viewPost,
       currentComponentKey,
       searchQuery,
-      loadMorePosts,
+      prevPage,
+      nextPage,
+      hasPrevPage,
+      hasNextPage,
     };
   },
 });
@@ -259,9 +276,9 @@ export default defineComponent({
   font-size: 12px;
   border: none;
   box-sizing: border-box;
-  background-color: #2b3138; /* Background color */
-  color: #d7c9b7; /* Text color */
-  padding-right: 30px; /* Add space for the icon */
+  background-color: #2b3138;
+  color: #d7c9b7;
+  padding-right: 30px;
   font-size: 14px;
   border-radius: 10px;
 }
@@ -291,7 +308,7 @@ export default defineComponent({
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   gap: 10px;
-  justify-content: center; /* Center the blog list items */
+  justify-content: center;
 }
 
 .left-title {
@@ -334,19 +351,19 @@ li {
   width: 200px;
   height: 100px;
   overflow: hidden;
-  justify-content: space-between; /* Ensure the read button stays at the bottom */
-  transition: transform 0.2s; /* Add transition for hover effect */
+  justify-content: space-between;
+  transition: transform 0.2s;
 }
 
 li:hover {
-  transform: scale(1.05); /* Enlarge slightly on hover */
+  transform: scale(1.05);
 }
 
 .title-row {
   width: 100%;
   text-align: center;
   flex-grow: 1;
-  padding: 10px; /* Add padding to all sides of the title row */
+  padding: 10px;
 }
 
 .post-title {
@@ -359,8 +376,8 @@ li:hover {
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   white-space: normal;
-  padding-left: 10px; /* Add space to the left of the title */
-  padding-right: 10px; /* Add space to the right of the title */
+  padding-left: 10px;
+  padding-right: 10px;
 }
 
 .read-button-row {
@@ -369,7 +386,7 @@ li:hover {
   align-items: center;
   width: 100%;
   background-color: #fd662f;
-  flex-shrink: 0; /* Prevent the row from shrinking */
+  flex-shrink: 0;
   cursor: pointer;
   height: 25%;
 }
@@ -388,20 +405,28 @@ li:hover {
   background-color: #e04a2e;
 }
 
-.see-more-container {
+.navigation-buttons {
   display: flex;
   justify-content: center;
-  margin-top: 10px;
+  margin-top: 20px;
+  gap: 10px;
 }
 
-.see-more-icon {
-  font-size: 24px;
-  color: #fd662f;
+.navigation-buttons button {
+  background-color: #fd662f;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 10px 20px;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  margin: 10px 10px; /* Add margin between buttons */
 }
 
-.see-more-icon:hover {
-  color: #e04a2e;
+.navigation-buttons button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
 }
 
 h2 {
@@ -447,7 +472,7 @@ h2 {
   .blog-list {
     display: flex;
     flex-direction: column;
-    align-items: center; /* Center the blog list items on smaller screens */
+    align-items: center;
   }
 
   ul {
@@ -458,7 +483,7 @@ h2 {
     display: block;
     margin-bottom: 5px;
     height: 100px;
-    width: 100%; /* Make the list item take full width on smaller screens */
+    width: 100%;
   }
 
   .post-title {
@@ -471,9 +496,9 @@ h2 {
     font-size: 12px;
     border: none;
     box-sizing: border-box;
-    background-color: #2b3138; /* Background color */
-    color: #d7c9b7; /* Text color */
-    padding-right: 30px; /* Add space for the icon */
+    background-color: #2b3138;
+    color: #d7c9b7;
+    padding-right: 30px;
     font-size: 14px;
     border-radius: 10px;
   }

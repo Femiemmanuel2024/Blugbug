@@ -224,7 +224,7 @@ const handleClick = async () => {
 onMounted(() => {
   handleClick();
   fetchNotifications();
-  setInterval(fetchNotifications, 300000); // Fetch notifications every 5 minutes
+  setInterval(fetchNotifications, 3000000); 
 });
 </script>
 

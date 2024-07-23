@@ -1,9 +1,8 @@
 import { createApp } from 'vue';
 import App from './App.vue';
 import router from './router';
-import { QuillEditor } from '@vueup/vue-quill'; // Import QuillEditor from '@vueup/vue-quill'
-import '@vueup/vue-quill/dist/vue-quill.snow.css'; // Import Quill CSS
-// import './styles/styles.css';
+import { QuillEditor } from '@vueup/vue-quill';
+import '@vueup/vue-quill/dist/vue-quill.snow.css';
 
 import { library } from '@fortawesome/fontawesome-svg-core';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
@@ -18,23 +17,25 @@ import {
   faBookmark, 
   faCircleCheck, 
   faCircleXmark,
-  faBold, // Import faBold
-  faItalic, // Import faItalic
-  faAlignLeft, // Import faAlignLeft
-  faAlignCenter, // Import faAlignCenter
-  faAlignRight, // Import faAlignRight
-  faImage, // Import faImage
-  faLink, // Import faLink
-  faBookOpenReader, // Import faBookOpenReader
-  faCircleChevronDown, // Import faCircleChevronDown
-  faCompressAlt, // Import faCompressAlt
-  faExpandAlt, // Import faExpandAlt
-  faExpand, // Import faExpand
-  faToggleOn, // Import faToggleOn
-  faToggleOff // Import faToggleOff
+  faBold, 
+  faItalic, 
+  faAlignLeft, 
+  faAlignCenter, 
+  faAlignRight, 
+  faImage, 
+  faLink, 
+  faBookOpenReader, 
+  faCircleChevronDown, 
+  faCompressAlt, 
+  faExpandAlt, 
+  faExpand, 
+  faToggleOn, 
+  faToggleOff,
+  faCircleRight, 
+  faCircleLeft,
+  faBars // Import faBars
 } from '@fortawesome/free-solid-svg-icons';
 
-// Add the icons to the library
 library.add(
   faHouse, 
   faComments, 
@@ -59,12 +60,15 @@ library.add(
   faExpandAlt,
   faExpand,
   faToggleOn,
-  faToggleOff
+  faToggleOff,
+  faCircleRight, 
+  faCircleLeft,
+  faBars // Add faBars to library
 );
 
 const app = createApp(App);
 
-app.component('QuillEditor', QuillEditor); // Register QuillEditor globally
-app.component('font-awesome-icon', FontAwesomeIcon); // Register FontAwesomeIcon globally
+app.component('QuillEditor', QuillEditor);
+app.component('font-awesome-icon', FontAwesomeIcon);
 
 app.use(router).mount('#app');
