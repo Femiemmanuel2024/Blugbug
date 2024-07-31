@@ -8,7 +8,7 @@
         <h1>Welcome to Blugbug</h1>
         <p>
           We're excited to have you join our vibrant community. Connect with
-          friends, share your thoughts, and explore new ideas. Happy chatting!
+          friends, share your thoughts, and explore new ideas. Happy  Blugging!
         </p>
         
       </div>

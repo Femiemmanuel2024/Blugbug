@@ -2,36 +2,61 @@
   <div class="signupbody">
     <div class="columns-container">
       <div class="column left-column">
-        <div class="login-options">
-          <h2>Login Options</h2>
-          <button class="btn btn-google" @click="signUpWithGmail">
-            <img src="@/assets/google-logo.png" alt="Google Logo" class="auth-logo" /> Sign Up with Google
-          </button>
-          <button class="btn btn-facebook" @click="signUpWithFacebook">
-            <img src="@/assets/facebook-logo.png" alt="Facebook Logo" class="auth-logo" /> Sign Up with Facebook
-          </button>
-        </div>
+        <img src="/Signup.svg" alt="Sign Up" class="signup-image" />
+        <p class="signup-message">Join us today and start your journey with Blugbug!</p>
       </div>
       <div class="column right-column">
         <div class="signup-container">
           <h1>Create Account</h1>
-          <form @submit.prevent="onSubmit">
+          <form @submit.prevent="onSubmit" autocomplete="off">
             <div class="form-group">
-              <input type="text" placeholder="Full Name" v-model="fullName" @input="generateChatterName" required />
+              <input
+                type="text"
+                placeholder="Full Name"
+                v-model="fullName"
+                @input="generateChatterName"
+                required
+                autocomplete="off"
+              />
             </div>
             <div class="form-group">
-              <input type="text" placeholder="Blugger Name" v-model="chatterName" @input="validateChatterName" required />
+              <input
+                type="text"
+                placeholder="Blugger Name"
+                v-model="chatterName"
+                @input="validateChatterName"
+                required
+                autocomplete="off"
+              />
               <p v-if="chatterNameWarning" class="warning">{{ chatterNameWarning }}</p>
             </div>
             <div class="form-group">
-              <input type="email" placeholder="Email Address" v-model="email" required />
+              <input
+                type="email"
+                placeholder="Email Address"
+                v-model="email"
+                required
+                autocomplete="off"
+              />
             </div>
             <div class="form-group password-group">
-              <input :type="passwordFieldType" placeholder="Password" v-model="password" required />
+              <input
+                :type="passwordFieldType"
+                placeholder="Password"
+                v-model="password"
+                required
+                autocomplete="off"
+              />
               <i :class="passwordFieldIcon" @click="togglePasswordVisibility"></i>
             </div>
             <div class="form-group">
-              <textarea placeholder="About Me" v-model="aboutMe" @input="limitAboutMeWords" maxlength="200"></textarea>
+              <textarea
+                placeholder="About Me"
+                v-model="aboutMe"
+                @input="limitAboutMeWords"
+                maxlength="200"
+                autocomplete="off"
+              ></textarea>
               <p class="word-counter">{{ aboutMeWordCount }} / 200 words</p>
             </div>
             <button type="submit" class="btn btn-signup">Create Account</button>
@@ -132,21 +157,10 @@ export default defineComponent({
           localStorage.setItem('currentUser', JSON.stringify(data[0]));
         }
       } catch (err) {
-        // Ignore the error completely
-        console.error('Unexpected error:', err);
+        // Handle the error if necessary
       } finally {
         showConfirmation.value = true;
       }
-    };
-
-    const signUpWithGmail = async () => {
-      const { error } = await supabase.auth.signInWithOAuth({ provider: 'google' });
-      if (error) console.error('Error signing in with Google:', error.message);
-    };
-
-    const signUpWithFacebook = async () => {
-      const { error } = await supabase.auth.signInWithOAuth({ provider: 'facebook' });
-      if (error) console.error('Error signing in with Facebook:', error.message);
     };
 
     const togglePasswordVisibility = () => {
@@ -171,8 +185,6 @@ export default defineComponent({
       showConfirmation,
       aboutMeWordCount,
       onSubmit,
-      signUpWithGmail,
-      signUpWithFacebook,
       togglePasswordVisibility,
       generateChatterName,
       validateChatterName,
@@ -183,18 +195,24 @@ export default defineComponent({
 </script>
 
 <style scoped>
-.auth-logo{
-  width: 10%;
-  height: 10%;
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
+html, body {
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+}
 
 .signupbody {
   background: linear-gradient(45deg, #202329, #4e545b);
   display: flex;
   justify-content: center;
   align-items: center;
-  width: 100vw;
+  width: 100%;
   height: 100vh;
   position: relative;
 }
@@ -222,12 +240,20 @@ export default defineComponent({
   justify-content: center;
   align-items: center;
   flex-direction: column;
-  padding: 20px;
 }
 
-.login-options h2 {
-  color: #ffffff;
-  margin-bottom: 20px;
+.signup-image {
+  width: 100%; /* Adjusts the width to be 100% of the container */
+  max-width: 600px; /* Sets a maximum width to prevent it from becoming too large */
+  height: auto; /* Maintains the aspect ratio */
+  margin: 20px; /* Adds some margin around the image */
+}
+
+.signup-message {
+  color: #cebfad; /* Text color */
+  margin-top: 20px; /* Adds margin to the top */
+  font-size: 16px; /* Font size */
+  text-align: center; /* Centers the text */
 }
 
 .right-column {
@@ -260,23 +286,6 @@ export default defineComponent({
   border-radius: 20px;
   cursor: pointer;
   margin-top: 10px;
-}
-
-.signup-container .btn img.auth-logo {
-  width: 20px;
-  height: 20px;
-  margin-right: 10px;
-  vertical-align: middle;
-}
-
-.btn-google {
-  background-color: #4285F4;
-  color: white;
-}
-
-.btn-facebook {
-  background-color: #3b5998;
-  color: white;
 }
 
 .btn-signup {
@@ -338,13 +347,20 @@ p {
     flex-direction: column;
     height: auto;
     width: 90%;
-    height: 90vh;
-    
+    height: 100vh;
+    margin-top: 20px;
   }
 
-  .left-column {
+  .signup-image {
+  width: 60%; /* Adjusts the width to be 100% of the container */
+  max-width: 600px; /* Sets a maximum width to prevent it from becoming too large */
+  height: auto; /* Maintains the aspect ratio */
+  margin: 20px; /* Adds some margin around the image */
+}
+
+  /* .left-column {
     display: none;
-  }
+  } */
 
   .right-column {
     flex-basis: 100%;
@@ -356,5 +372,15 @@ p {
     margin: 20px;
     max-width: 100%;
   }
+
+  .btn-signup {
+  background-color: #FF5733;
+  color: white;
+  width: 300px;
+}
+  .signup-message{
+    margin-bottom: 10px;
+  }
+
 }
 </style>
