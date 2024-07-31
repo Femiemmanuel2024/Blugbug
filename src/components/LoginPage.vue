@@ -338,5 +338,10 @@ p {
     align-items: center;
     padding-bottom: 200px;
   }
+
+  p {
+  margin-top: 50px; /* Spacing */
+  color: #d7c9b7; /* Text color */
+}
 }
 </style>
