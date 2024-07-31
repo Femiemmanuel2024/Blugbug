@@ -2,21 +2,35 @@
   <div class="loginbody">
     <div class="columns-container">
       <div class="column left-column">
-        
-      <h1>Welcome to Blugbug</h1>
-        <p>We're excited to have you join our vibrant community. Connect with friends, share your thoughts, and explore new ideas. Happy chatting!
-          
+        <div class="image-container">
+          <img src="/Signinsvg.svg" alt="Sign In" class="signin-image" />
+        </div>
+        <h1>Welcome to Blugbug</h1>
+        <p>
+          We're excited to have you join our vibrant community. Connect with
+          friends, share your thoughts, and explore new ideas. Happy chatting!
         </p>
+        
       </div>
       <div class="column right-column">
         <div class="login-container">
           <h1>Login</h1>
           <form @submit.prevent="onSubmit">
             <div class="form-group">
-              <input type="text" placeholder="Email Address or Blugger Name" v-model="username" required />
+              <input
+                type="text"
+                placeholder="Email Address or Blugger Name"
+                v-model="username"
+                required
+              />
             </div>
             <div class="form-group password-group">
-              <input :type="passwordFieldType" placeholder="Password" v-model="password" required />
+              <input
+                :type="passwordFieldType"
+                placeholder="Password"
+                v-model="password"
+                required
+              />
               <i :class="passwordFieldIcon" @click="togglePasswordVisibility"></i>
             </div>
             <button
@@ -26,7 +40,10 @@
               {{ isInvalidLogin ? 'Wrong Details' : 'Login' }}
             </button>
           </form>
-          <p>Don't have an account? <router-link to="/signup">Sign Up</router-link></p>
+          <p>
+            Don't have an account?
+            <router-link to="/signup">Sign Up</router-link>
+          </p>
         </div>
       </div>
     </div>
@@ -66,7 +83,7 @@ export default defineComponent({
 
         localStorage.setItem('currentUser', JSON.stringify({ id: user.id, email: user.email }));
         router.push({ path: '/home' });
-      } catch (err: any) {  // Specify 'any' type here
+      } catch (err: any) {
         console.error('Unexpected error:', err);
         alert(`Unexpected error: ${err.message}`);
       }
@@ -109,8 +126,6 @@ html, body {
   overflow: hidden;
 }
 
-
-
 .loginbody {
   background: linear-gradient(45deg, #202329, #4e545b);
   display: flex;
@@ -143,24 +158,34 @@ html, body {
 
 .left-column h1 {
   color: #ed6834; /* Text color for "Chatter" */
-  font-size: 50PX;
+  font-size: 50px;
   font-weight: bolder;
-  text-align: left;
-  padding-left: 30px;
-  padding-right: 30px;
-  width: 90%;
+  text-align: center;
+  width: 100%;
   line-height: 0.9;
-  margin-top: -40px;
+  
 }
 
 .left-column p {
-  margin-top: 50px;
-  padding-left: 30px;
-  padding-right: 100px;
+  margin-top: 30px;
+  padding-left: 50px;
+  padding-right: 50px;
   font-size: 14px;
-  justify-content: center;
+  text-align: center;
 }
 
+.image-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 20px;
+}
+
+.image-container .signin-image {
+  width: 100%;
+  max-width: 400px;
+  border-radius: 10px;
+}
 
 .right-column {
   background-color: #2b3138; /* Background color for the right column */
@@ -246,10 +271,6 @@ p {
 
 /* Media query for phone view */
 @media (max-width: 430px) {
-
-
-
-
   .columns-container {
     flex-direction: column;
     width: 90%;
@@ -259,18 +280,12 @@ p {
     align-self: center;
   }
 
- 
-
   .left-column h1 {
     color: #ed6834; /* Text color for "Chatter" */
-    font-size: 30px;
+    font-size: 25px;
     font-weight: bolder;
-    text-align: left;
-    padding-left: 30px;
-    padding-right: 30px;
-    width: 90%;
-    line-height: 0.9;
-    margin-top: 20px;
+    text-align: center;
+    width: 100%;
   }
 
   .login-container {
@@ -279,50 +294,49 @@ p {
   }
 
   .loginbody {
-  background: linear-gradient(45deg, #202329, #4e545b);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  width: 100%;
-  height: 100%;
-  
-  overflow: hidden;
-  position: relative; /* Allow absolute positioning for the login container */
-}
+    background: linear-gradient(45deg, #202329, #4e545b);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    position: relative; /* Allow absolute positioning for the login container */
+  }
 
-.left-column p {
-  margin-top: 50px;
-  padding-left: 30px;
-  padding-right: 10px;
-  font-size: 16px;
-  justify-content: center;
-}
-.login-container {
-  height: 100%;
-  width: 100%;
-  max-width: 500px;
-  padding: 20px;
-  background-color: none; /* Container background color */
-  border-radius: 10px;
-  text-align: center;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Add shadow to the login container */
-}
+  .left-column p {
+    margin-top: 10px;
+    margin-bottom: 20px;
+    padding-left: 20px;
+    padding-right: 20px;
+    font-size: 12px;
+    justify-content: center;
+  }
 
-.login-container h1 {
-  font-size: 24px;
-  color: #cebfad; /* Text color */
-  margin-top: 10px;
-  margin-bottom: 20px;
-}
+  .login-container {
+    height: 100%;
+    width: 100%;
+    max-width: 500px;
+    padding: 20px;
+    background-color: none; /* Container background color */
+    border-radius: 10px;
+    text-align: center;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Add shadow to the login container */
+  }
 
-.right-column {
-  background-color: #2b3138; /* Background color for the right column */
-  display: flex; /* Ensure flexbox properties apply */
-  justify-content: center; /* Center the login container horizontally */
-  align-items: center; 
-  padding-bottom: 200px;
-}
+  .login-container h1 {
+    font-size: 24px;
+    color: #cebfad; /* Text color */
+    margin-top: 10px;
+    margin-bottom: 20px;
+  }
 
-
+  .right-column {
+    background-color: #2b3138; /* Background color for the right column */
+    display: flex; /* Ensure flexbox properties apply */
+    justify-content: center; /* Center the login container horizontally */
+    align-items: center;
+    padding-bottom: 200px;
+  }
 }
 </style>
