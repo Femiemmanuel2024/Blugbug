@@ -75,7 +75,6 @@ export default defineComponent({
         .single();
 
       if (error) {
-        console.error('Error fetching user data:', error.message);
         return;
       }
 
@@ -305,7 +304,6 @@ h3 {
     right: -100%;
     margin-top: 110px;
     z-index: 9999;
-    
   }
 
   .right-column-visible {
@@ -325,7 +323,7 @@ h3 {
   }
 }
 
-@media (min-width: 780px) and (max-width:1024px) {
+@media (min-width: 780px) and (max-width: 1024px) {
   .new-user-page {
     display: flex;
     flex-direction: column;
@@ -336,8 +334,45 @@ h3 {
     padding-top: 2px;
   }
 
-  .right-column{
+  .right-column {
     margin-top: 19px;
   }
+}
+
+::-webkit-scrollbar {
+  width: 12px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-background-soft);
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: red;
+  border-radius: 10px;
+  border: 3px solid var(--color-background-soft);
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: red var(--color-background-soft);
+}
+
+::-ms-scrollbar {
+  width: 12px;
+}
+
+::-ms-scrollbar-track {
+  background: var(--color-background-soft);
+}
+
+::-ms-scrollbar-thumb {
+  background-color: red;
+  border-radius: 10px;
+  border: 3px solid var(--color-background-soft);
+}
+
+html {
+  scroll-behavior: smooth;
 }
 </style>

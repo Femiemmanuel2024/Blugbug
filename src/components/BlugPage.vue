@@ -12,7 +12,7 @@
           </div>
           <div class="top-container">
             <ul class="blog-list">
-              <li class="list-container" v-for="(post, index) in displayedPosts" :key="index" @click="viewPost(index)">
+              <li class="list-container" v-for="(post, index) in displayedPosts" :key="index" @click="viewPost(post)">
                 <div class="title-row post-title-container">
                   <span class="post-title">{{ post.title }}</span>
                 </div>
@@ -24,7 +24,7 @@
               </li>
             </ul>
           </div>
-          <div class="navigation-buttons">
+          <div class="navigation-buttons" v-if="!searchQuery">
             <button @click="prevPage" :disabled="!hasPrevPage">
               <font-awesome-icon :icon="['fas', 'circle-left']" />
             </button>
@@ -46,7 +46,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, computed, onMounted } from 'vue';
+import { defineComponent, ref, computed, onMounted, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import NavBar from './NavBar.vue';
 import { supabase } from './supabase';
@@ -82,29 +82,18 @@ export default defineComponent({
 
     const fetchPostsFromDatabase = async () => {
       const { data, error } = await supabase.from('blog_post').select('*');
-
-      if (error) {
-        console.error('Error fetching posts:', error.message);
-        return [];
-      }
-
+      if (error) return [];
       return data || [];
     };
 
     const fetchPostContent = async (filePath: string) => {
       const { data, error } = await supabase.storage.from('blog-post').download(filePath);
-
-      if (error) {
-        console.error('Error fetching post content:', error.message);
-        return '';
-      }
-
+      if (error) return '';
       return data ? await data.text() : '';
     };
 
     const loadPosts = async () => {
       const postFiles = await fetchPostsFromDatabase();
-
       const loadedPosts = await Promise.all(
         postFiles.map(async (post) => {
           const filePath = `${post.user_id}/${post.blog_id}.html`;
@@ -121,10 +110,7 @@ export default defineComponent({
           };
         })
       );
-
-      // Shuffle the loaded posts array
       loadedPosts.sort(() => Math.random() - 0.5);
-
       posts.value = loadedPosts;
       updateDisplayedPosts();
     };
@@ -132,22 +118,21 @@ export default defineComponent({
     const updateDisplayedPosts = () => {
       const start = currentPage.value * postsPerPage.value;
       const end = start + postsPerPage.value;
-      displayedPosts.value = posts.value.slice(start, end);
+      if (searchQuery.value) {
+        displayedPosts.value = filteredPosts.value;
+      } else {
+        displayedPosts.value = filteredPosts.value.slice(start, end);
+      }
     };
 
-    const viewPost = async (index: number) => {
-      const post = displayedPosts.value[index];
-
+    const viewPost = async (post: Post) => {
       const { data, error } = await supabase
         .from('blog_post')
         .select('id, user_id, blog_id')
         .eq('id', post.id)
         .single();
 
-      if (error) {
-        console.error('Error fetching post details:', error.message);
-        return;
-      }
+      if (error) return;
 
       const { id, user_id, blog_id } = data;
       const filePath = `${user_id}/${blog_id}.html`;
@@ -178,8 +163,9 @@ export default defineComponent({
     };
 
     const filteredPosts = computed(() => {
+      const query = searchQuery.value.toLowerCase();
       return posts.value.filter((post) =>
-        post.title?.toLowerCase().includes(searchQuery.value.toLowerCase())
+        post.title?.toLowerCase().includes(query)
       );
     });
 
@@ -191,14 +177,14 @@ export default defineComponent({
     };
 
     const nextPage = () => {
-      if ((currentPage.value + 1) * postsPerPage.value < posts.value.length) {
+      if ((currentPage.value + 1) * postsPerPage.value < filteredPosts.value.length) {
         currentPage.value++;
         updateDisplayedPosts();
       }
     };
 
     const hasPrevPage = computed(() => currentPage.value > 0);
-    const hasNextPage = computed(() => (currentPage.value + 1) * postsPerPage.value < posts.value.length);
+    const hasNextPage = computed(() => (currentPage.value + 1) * postsPerPage.value < filteredPosts.value.length);
 
     onMounted(() => {
       loadPosts().then(() => {
@@ -209,7 +195,7 @@ export default defineComponent({
             (post) => post.title?.toLowerCase() === searchParam.toLowerCase()
           );
           if (postIndex !== -1) {
-            viewPost(postIndex);
+            viewPost(posts.value[postIndex]);
           }
         }
       });
@@ -220,12 +206,14 @@ export default defineComponent({
       };
 
       window.addEventListener('resize', updatePostsPerPage);
-      updatePostsPerPage(); // Initial call to set postsPerPage based on screen size
+      updatePostsPerPage();
 
       return () => {
         window.removeEventListener('resize', updatePostsPerPage);
       };
     });
+
+    watch(searchQuery, updateDisplayedPosts);
 
     return {
       displayedPosts,
@@ -378,6 +366,7 @@ li:hover {
   white-space: normal;
   padding-left: 10px;
   padding-right: 10px;
+  line-clamp: 3;
 }
 
 .read-button-row {
@@ -421,7 +410,7 @@ li:hover {
   cursor: pointer;
   display: flex;
   align-items: center;
-  margin: 10px 10px; /* Add margin between buttons */
+  margin: 10px 10px;
 }
 
 .navigation-buttons button:disabled {
