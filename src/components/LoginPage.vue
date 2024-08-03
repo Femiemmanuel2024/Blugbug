@@ -8,9 +8,8 @@
         <h1>Welcome to Blugbug</h1>
         <p>
           We're excited to have you join our vibrant community. Connect with
-          friends, share your thoughts, and explore new ideas. Happy  Blugging!
+          friends, share your thoughts, and explore new ideas. Happy Blugging!
         </p>
-        
       </div>
       <div class="column right-column">
         <div class="login-container">
@@ -53,7 +52,7 @@
 <script lang="ts">
 import { defineComponent, ref } from 'vue';
 import { useRouter } from 'vue-router';
-import { supabase } from './supabase'; // Import Supabase
+import { supabase } from './supabase';
 
 export default defineComponent({
   name: 'LoginPage',
@@ -84,7 +83,6 @@ export default defineComponent({
         localStorage.setItem('currentUser', JSON.stringify({ id: user.id, email: user.email }));
         router.push({ path: '/home' });
       } catch (err: any) {
-        console.error('Unexpected error:', err);
         alert(`Unexpected error: ${err.message}`);
       }
     };
@@ -113,7 +111,6 @@ export default defineComponent({
 </script>
 
 <style scoped>
-/* CSS Reset */
 * {
   margin: 0;
   padding: 0;
@@ -134,16 +131,16 @@ html, body {
   width: 100vw;
   height: 100vh;
   overflow: hidden;
-  position: relative; /* Allow absolute positioning for the login container */
+  position: relative;
 }
 
 .columns-container {
   display: flex;
   width: 70%;
   height: 80vh;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.9); /* Drop shadow */
-  border-radius: 20px; /* Border radius */
-  overflow: hidden; /* Ensure the border radius is applied correctly */
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.9);
+  border-radius: 20px;
+  overflow: hidden;
   border: solid 5px #0c1118;
 }
 
@@ -157,13 +154,12 @@ html, body {
 }
 
 .left-column h1 {
-  color: #ed6834; /* Text color for "Chatter" */
+  color: #ed6834;
   font-size: 50px;
   font-weight: bolder;
   text-align: center;
   width: 100%;
   line-height: 0.9;
-  
 }
 
 .left-column p {
@@ -188,10 +184,10 @@ html, body {
 }
 
 .right-column {
-  background-color: #2b3138; /* Background color for the right column */
-  display: flex; /* Ensure flexbox properties apply */
-  justify-content: center; /* Center the login container horizontally */
-  align-items: center; /* Center the login container vertically */
+  background-color: #2b3138;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .login-container {
@@ -199,39 +195,36 @@ html, body {
   width: 100%;
   max-width: 400px;
   padding: 20px;
-  background-color: none; /* Container background color */
+  background-color: none;
   border-radius: 10px;
   text-align: center;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Add shadow to the login container */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
 .login-container h1 {
   font-size: 24px;
-  color: #cebfad; /* Text color */
+  color: #cebfad;
   margin-top: 60px;
   margin-bottom: 20px;
 }
 
 .login-container .btn {
-  width: 50%;
+  width: 100%;
   padding: 10px;
   font-size: 16px;
   border: none;
   border-radius: 20px;
   cursor: pointer;
   margin-top: 10px;
-  background-color: #fd662f; /* Button color */
-  color: white; /* White text */
+  color: white;
 }
 
 .btn-login {
-  background-color: #fd662f; /* Button color */
-  color: white; /* White text */
+  background-color: #fd662f;
 }
 
 .btn-invalid {
-  background-color: red; /* Invalid login button color */
-  color: white; /* White text */
+  background-color: red;
 }
 
 .form-group {
@@ -246,8 +239,8 @@ html, body {
   border: none;
   border-radius: 20px;
   box-sizing: border-box;
-  background-color: #2b3138; /* Background color */
-  color: #d7c9b7; /* Text color */
+  background-color: #2b3138;
+  color: #d7c9b7;
 }
 
 .password-group i {
@@ -256,20 +249,19 @@ html, body {
   top: 50%;
   transform: translateY(-50%);
   cursor: pointer;
-  color: #d7c9b7; /* Icon color */
+  color: #d7c9b7;
 }
 
 a {
-  color: #ed6834; /* Link color */
+  color: #ed6834;
   text-decoration: none;
 }
 
 p {
-  margin-top: 120px; /* Spacing */
-  color: #d7c9b7; /* Text color */
+  margin-top: 120px;
+  color: #d7c9b7;
 }
 
-/* Media query for phone view */
 @media (max-width: 430px) {
   .columns-container {
     flex-direction: column;
@@ -281,7 +273,7 @@ p {
   }
 
   .left-column h1 {
-    color: #ed6834; /* Text color for "Chatter" */
+    color: #ed6834;
     font-size: 25px;
     font-weight: bolder;
     text-align: center;
@@ -290,7 +282,7 @@ p {
 
   .login-container {
     margin: 20px;
-    max-width: 100%; /* Adjust the max-width for mobile view */
+    max-width: 100%;
   }
 
   .loginbody {
@@ -301,7 +293,7 @@ p {
     width: 100%;
     height: 100%;
     overflow: hidden;
-    position: relative; /* Allow absolute positioning for the login container */
+    position: relative;
   }
 
   .left-column p {
@@ -318,30 +310,30 @@ p {
     width: 100%;
     max-width: 500px;
     padding: 20px;
-    background-color: none; /* Container background color */
+    background-color: none;
     border-radius: 10px;
     text-align: center;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Add shadow to the login container */
+    box-shadow: none;
   }
 
   .login-container h1 {
     font-size: 24px;
-    color: #cebfad; /* Text color */
+    color: #cebfad;
     margin-top: 10px;
     margin-bottom: 20px;
   }
 
   .right-column {
-    background-color: #2b3138; /* Background color for the right column */
-    display: flex; /* Ensure flexbox properties apply */
-    justify-content: center; /* Center the login container horizontally */
+    background-color: #2b3138;
+    display: flex;
+    justify-content: center;
     align-items: center;
     padding-bottom: 200px;
   }
 
   p {
-  margin-top: 50px; /* Spacing */
-  color: #d7c9b7; /* Text color */
-}
+    margin-top: 50px;
+    color: #d7c9b7;
+  }
 }
 </style>

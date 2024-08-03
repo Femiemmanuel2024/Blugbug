@@ -71,7 +71,6 @@
 
 <script lang="ts">
 import { defineComponent, ref } from 'vue';
-import { useRouter } from 'vue-router';
 import { supabase } from './supabase';
 import SignUpConfirmation from './SignUpConfirmation.vue';
 
@@ -95,7 +94,6 @@ export default defineComponent({
     SignUpConfirmation
   },
   setup() {
-    const router = useRouter();
     const fullName = ref('');
     const chatterName = ref('');
     const chatterNameWarning = ref('');
@@ -137,7 +135,7 @@ export default defineComponent({
           generateChatterName();
         }
 
-        const { data, error } = await supabase.from('users').insert([
+        const { data } = await supabase.from('users').insert([
           {
             full_name: fullName.value,
             chatter_name: chatterName.value,
@@ -221,9 +219,9 @@ html, body {
   display: flex;
   width: 70%;
   height: 80vh;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.9); /* Drop shadow */
-  border-radius: 20px; /* Border radius */
-  overflow: hidden; /* Ensure the border radius is applied correctly */
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.9);
+  border-radius: 20px;
+  overflow: hidden;
   border: solid 5px #0c1118;
 }
 
@@ -243,24 +241,26 @@ html, body {
 }
 
 .signup-image {
-  width: 100%; /* Adjusts the width to be 100% of the container */
-  max-width: 600px; /* Sets a maximum width to prevent it from becoming too large */
-  height: auto; /* Maintains the aspect ratio */
-  margin: 20px; /* Adds some margin around the image */
+  width: 100%;
+  max-width: 600px;
+  height: auto;
+  margin: 20px;
 }
 
 .signup-message {
-  color: #cebfad; /* Text color */
-  margin-top: 20px; /* Adds margin to the top */
-  font-size: 16px; /* Font size */
-  text-align: center; /* Centers the text */
+  color: #cebfad;
+  margin-top: 20px;
+  font-size: 16px;
+  text-align: center;
 }
 
 .right-column {
-  background-color: #2b3138; /* Background color for the right column */
-  display: flex; /* Ensure flexbox properties apply */
-  justify-content: center; /* Center the signup container horizontally */
-  align-items: center; /* Center the signup container vertically */
+  background-color: #2b3138;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  height: 100%;
 }
 
 .signup-container {
@@ -279,7 +279,6 @@ html, body {
 }
 
 .signup-container .btn {
-  width: 50%;
   padding: 10px;
   font-size: 16px;
   border: none;
@@ -291,6 +290,7 @@ html, body {
 .btn-signup {
   background-color: #FF5733;
   color: white;
+  width: 100%;
 }
 
 .signup-container p {
@@ -324,7 +324,7 @@ html, body {
   top: 50%;
   transform: translateY(-50%);
   cursor: pointer;
-  color: #FF5733; /* Icon color */
+  color: #FF5733;
 }
 
 a {
@@ -341,26 +341,21 @@ p {
   font-size: 10px;
 }
 
-/* Media query for phone view */
-@media (max-width: 768px) {
+@media (min-width: 414px) and (max-width: 768px) {
   .columns-container {
     flex-direction: column;
     height: auto;
     width: 90%;
-    height: 100vh;
+    height: 800px;
     margin-top: 20px;
   }
 
   .signup-image {
-  width: 60%; /* Adjusts the width to be 100% of the container */
-  max-width: 600px; /* Sets a maximum width to prevent it from becoming too large */
-  height: auto; /* Maintains the aspect ratio */
-  margin: 20px; /* Adds some margin around the image */
-}
-
-  /* .left-column {
-    display: none;
-  } */
+    width: 60%;
+    max-width: 600px;
+    height: auto;
+    margin: 20px;
+  }
 
   .right-column {
     flex-basis: 100%;
@@ -374,13 +369,57 @@ p {
   }
 
   .btn-signup {
-  background-color: #FF5733;
-  color: white;
-  width: 300px;
-}
-  .signup-message{
-    margin-bottom: 10px;
+    background-color: #FF5733;
+    color: white;
+    width: 100%;
   }
 
+  .signup-message {
+    margin-bottom: 10px;
+  }
+}
+
+@media (max-width: 478px) {
+  .signupbody {
+    height: 900px;
+  }
+
+  .columns-container {
+    flex-direction: column;
+    width: 90%;
+    height: 850px;
+  }
+
+  .signup-image {
+    width: 60%;
+    max-width: 600px;
+    height: auto;
+    margin: 20px;
+  }
+
+  .right-column {
+    flex-basis: 100%;
+    justify-content: center;
+    padding-right: 0;
+  }
+
+  .signup-container {
+    width: 100%;
+    max-width: 400px;
+    padding: 20px;
+    background-color: none;
+    border-radius: 10px;
+    text-align: center;
+  }
+
+  .btn-signup {
+    background-color: #FF5733;
+    color: white;
+    width: 100%;
+  }
+
+  .signup-message {
+    margin-bottom: 10px;
+  }
 }
 </style>
