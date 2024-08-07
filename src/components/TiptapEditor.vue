@@ -119,7 +119,7 @@ export default defineComponent({
 
                 img.addEventListener('click', () => {
                   selectedImage.value = img;
-                  img.style.border = '2px solid green';
+                  img.style.border = '5px solid green';
                 });
 
                 const resizeHandle = document.createElement('button');
@@ -244,7 +244,7 @@ export default defineComponent({
 
     const resizeImage = (size: 'small' | 'medium' | 'large') => {
       if (!selectedImage.value) return;
-      const maxWidth = size === 'small' ? 500 : size === 'medium' ? 1000 : 1000;
+      const maxWidth = size === 'small' ? 500 : size === 'medium' ? 1000 : window.innerWidth;
       const aspectRatio = selectedImage.value.naturalWidth / selectedImage.value.naturalHeight;
       const width = Math.min(maxWidth, selectedImage.value.naturalWidth);
       selectedImage.value.style.width = `${width}px`;
@@ -267,10 +267,10 @@ export default defineComponent({
       const file = target.files?.[0];
       if (file) {
         try {
-          const resizedImageUrl = await resizeImageFile(file, 1000);
-          editor.value?.chain().focus().setImage({ src: resizedImageUrl, width: 1000 }).run();
+          const resizedImageUrl = await resizeImageFile(file, window.innerWidth);
+          editor.value?.chain().focus().setImage({ src: resizedImageUrl, width: window.innerWidth }).run();
         } catch (error) {
-          console.error('Error resizing image:', error);
+          console.error('Image resizing failed:', error);
         }
       }
     };
@@ -278,22 +278,27 @@ export default defineComponent({
     const resizeImageFile = (file: File, maxWidth: number): Promise<string> => {
       return new Promise((resolve, reject) => {
         const reader = new FileReader();
-        reader.onload = (event) => {
-          const img = new window.Image();
+        reader.onload = (e) => {
+          const img = document.createElement('img');
+          img.src = e.target?.result as string;
           img.onload = () => {
-            const aspectRatio = img.width / img.height;
-            const width = Math.min(maxWidth, img.width);
-            const height = width / aspectRatio;
             const canvas = document.createElement('canvas');
             const ctx = canvas.getContext('2d')!;
-            canvas.width = width;
-            canvas.height = height;
+            const ratio = img.width / img.height;
+            canvas.width = Math.min(maxWidth, img.width);
+            canvas.height = canvas.width / ratio;
             ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-            resolve(canvas.toDataURL(file.type));
+            canvas.toBlob((blob) => {
+              if (blob) {
+                const resizedImageUrl = URL.createObjectURL(blob);
+                resolve(resizedImageUrl);
+              } else {
+                reject(new Error('Blob creation failed'));
+              }
+            });
           };
-          img.src = event.target?.result as string;
         };
-        reader.onerror = reject;
+        reader.onerror = () => reject(new Error('File reading failed'));
         reader.readAsDataURL(file);
       });
     };
@@ -312,13 +317,13 @@ export default defineComponent({
       outdent,
       insertLink,
       triggerImageUpload,
-      uploadImage,
       resizeImage,
-      selectedImage,
+      uploadImage,
     };
   },
 });
 </script>
+
 
 <style scoped>
 .tiptap-container {
