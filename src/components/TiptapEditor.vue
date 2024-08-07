@@ -1,45 +1,49 @@
 <template>
   <div class="blug-editor">
     <div ref="editorContainer" class="tiptap-container"></div>
-    <div class="toolbar">
-      <button @click="toggleBold">
-        <i class="fas fa-bold"></i>
-      </button>
-      <button @click="toggleItalic">
-        <i class="fas fa-italic"></i>
-      </button>
-      <button @click="toggleUnderline">
-        <i class="fas fa-underline"></i>
-      </button>
-      <button @click="toggleAlignLeft">
-        <i class="fas fa-align-left"></i>
-      </button>
-      <button @click="toggleAlignCenter">
-        <i class="fas fa-align-center"></i>
-      </button>
-      <button @click="toggleAlignRight">
-        <i class="fas fa-align-right"></i>
-      </button>
-      <button @click="insertLink">
-        <i class="fas fa-link"></i>
-      </button>
-      <button @click="toggleBulletList">
-        <i class="fas fa-list-ul"></i>
-      </button>
-      <button @click="toggleOrderedList">
-        <i class="fas fa-list-ol"></i>
-      </button>
-      <button @click="indent">
-        <i class="fas fa-indent"></i>
-      </button>
-      <button @click="outdent">
-        <i class="fas fa-outdent"></i>
-      </button>
-      <input type="file" @change="uploadImage" id="imageUpload" style="display: none;" />
-      <button @click="triggerImageUpload">
-        <i class="fas fa-image"></i>
-      </button>
-    </div>
+    
+    <div class="toolbar-container"> 
+      <div class="toolbar">
+        <button @click="toggleBold">
+          <i class="fas fa-bold"></i>
+        </button>
+        <button @click="toggleItalic">
+          <i class="fas fa-italic"></i>
+        </button>
+        <button @click="toggleUnderline">
+          <i class="fas fa-underline"></i>
+        </button>
+        <button @click="toggleAlignLeft">
+          <i class="fas fa-align-left"></i>
+        </button>
+        <button @click="toggleAlignCenter">
+          <i class="fas fa-align-center"></i>
+        </button>
+        <button @click="toggleAlignRight">
+          <i class="fas fa-align-right"></i>
+        </button>
+        <button @click="insertLink">
+          <i class="fas fa-link"></i>
+        </button>
+        <button @click="toggleBulletList">
+          <i class="fas fa-list-ul"></i>
+        </button>
+        <button @click="toggleOrderedList">
+          <i class="fas fa-list-ol"></i>
+        </button>
+        <button @click="indent">
+          <i class="fas fa-indent"></i>
+        </button>
+        <button @click="outdent">
+          <i class="fas fa-outdent"></i>
+        </button>
+        <input type="file" @change="uploadImage" id="imageUpload" style="display: none;" />
+        <button @click="triggerImageUpload">
+          <i class="fas fa-image"></i>
+        </button>
+      </div>
+  </div>
+
     <div v-if="selectedImage" class="resize-options">
       <button @click="resizeImage('small')">
         <i class="fas fa-compress-alt"></i>
@@ -326,10 +330,18 @@ export default defineComponent({
   overflow-y: auto;
 }
 
+.toolbar-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+
+  padding: 10px;
+}
+
 .toolbar {
   display: flex;
+  flex-wrap: wrap;
   gap: 5px;
-  margin-top: 10px;
 }
 
 .toolbar button {
@@ -338,6 +350,7 @@ export default defineComponent({
   padding: 5px 10px;
   cursor: pointer;
   color: white;
+  flex: 1 1 auto; /* Allow buttons to shrink and wrap */
 }
 
 .toolbar button i {
@@ -395,5 +408,42 @@ export default defineComponent({
   border: none;
   text-align: left;
   overflow: scroll;
+}
+
+@media (max-width: 400px) {
+  .toolbar button i {
+    font-size: 12px;
+    margin: 5px;
+  }
+
+  .toolbar button {
+    flex: 1 1 auto; /* Ensure buttons wrap properly on small screens */
+  }
+  .toolbar-container {
+    margin: 0px 5px;
+    padding: 0px 9px;
+  }
+}
+
+@media (min-width: 401px) and (max-width: 768px){
+  ::v-deep .tiptap {
+  background-color: rgb(255, 255, 255);
+  width: 100%;
+  height: 700px;
+  border: none;
+  text-align: left;
+  overflow: scroll;
+  text-indent: 2px;
+}
+
+.tiptap-container {
+  height: 550px;
+  background-color: white;
+  color: black;
+  border: none;
+  padding: 10px;
+  overflow-y: auto;
+}
+
 }
 </style>

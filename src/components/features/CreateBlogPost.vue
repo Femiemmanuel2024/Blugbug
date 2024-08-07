@@ -214,7 +214,7 @@ export default defineComponent({
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.7);
+  background-color: rgba(0, 0, 0, 0.9);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -229,10 +229,10 @@ export default defineComponent({
   padding: 20px;
   border-radius: 10px;
   width: 1200px;
-  height: 450px;
+  height: 600px;
   text-align: center;
   z-index: 10050;
-  margin-bottom: 140px;
+  margin-bottom: 10px;
 }
 
 .title-input {
@@ -298,18 +298,21 @@ button:hover {
   background-color: #e04a2e;
 }
 
-@media (max-width: 430px) {
+@media (max-width: 400px) {
   .modal-content {
     position: relative;
     top: 100px;
     background-color: #333;
     color: white;
-    padding: 20px;
     border-radius: 10px;
     width: 90%;
-    height: 550px;
+    height: 100%;
     text-align: center;
     z-index: 10050;
+    margin-bottom: 150px;
+    margin-left: 2px;
+    margin-right: 2px;
+    margin-top: 30px;
   }
 
   .category-selection select {
@@ -325,4 +328,33 @@ button:hover {
   color: white;
 }
 }
+
+@media (min-width: 401px) and (max-width: 768px){
+  .modal-content {
+    position: relative;
+    top: 100px;
+    background-color: #333;
+    color: white;
+    border-radius: 10px;
+    width: 90%;
+    height: 100%;
+    text-align: center;
+    z-index: 10050;
+    margin-bottom: 80px;
+  }
+
+  .category-selection select {
+    font-size: 16px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+    width: 99%;
+  }
+
+  .category-selection option {
+  font-size: 10px;
+  background-color: #333;
+  color: white;
+}
+}
+
 </style>
