@@ -96,8 +96,8 @@ export default defineComponent({
                 ...this.parent?.(),
                 width: {
                   default: '1000px',
-                  parseHTML: element => element.style.width.replace('px', ''),
-                  renderHTML: attributes => ({
+                  parseHTML: (element) => element.style.width.replace('px', ''),
+                  renderHTML: (attributes) => ({
                     style: `width: ${attributes.width}px; height: auto;`,
                   }),
                 },
@@ -118,20 +118,30 @@ export default defineComponent({
                   img.style.border = '2px solid green';
                 });
 
-                const resizeHandle = document.createElement('div');
+                const resizeHandle = document.createElement('button');
+                resizeHandle.textContent = 'Resize Image';
                 resizeHandle.classList.add('resize-handle');
                 resizeHandle.style.position = 'absolute';
                 resizeHandle.style.bottom = '0';
                 resizeHandle.style.right = '0';
-                resizeHandle.style.width = '10px';
-                resizeHandle.style.height = '10px';
-                resizeHandle.style.backgroundColor = 'red';
                 resizeHandle.style.cursor = 'se-resize';
 
                 dom.appendChild(img);
                 dom.appendChild(resizeHandle);
 
-                const updateImageSize = (width) => {
+                let startX: number, startWidth: number;
+
+                const onMouseMove = (e: MouseEvent) => {
+                  const newWidth = startWidth + (e.clientX - startX);
+                  if (newWidth > 50) {
+                    img.style.width = newWidth + 'px';
+                  }
+                };
+
+                const onMouseUp = () => {
+                  document.removeEventListener('mousemove', onMouseMove);
+                  document.removeEventListener('mouseup', onMouseUp);
+                  const width = parseInt(img.style.width.replace('px', ''));
                   const transaction = editor.state.tr.setNodeMarkup(getPos(), null, {
                     ...node.attrs,
                     width,
@@ -139,19 +149,7 @@ export default defineComponent({
                   editor.view.dispatch(transaction);
                 };
 
-                let startX, startWidth;
-                const onMouseMove = (e) => {
-                  const newWidth = startWidth + (e.clientX - startX);
-                  if (newWidth > 50) {
-                    img.style.width = newWidth + 'px';
-                  }
-                };
-                const onMouseUp = () => {
-                  document.removeEventListener('mousemove', onMouseMove);
-                  document.removeEventListener('mouseup', onMouseUp);
-                  updateImageSize(parseInt(img.style.width.replace('px', '')));
-                };
-                const onMouseDown = (e) => {
+                const onMouseDown = (e: MouseEvent) => {
                   startX = e.clientX;
                   startWidth = img.clientWidth;
                   document.addEventListener('mousemove', onMouseMove);
@@ -178,7 +176,6 @@ export default defineComponent({
           ListItem,
         ],
         content: '',
-        placeholder: 'Start Blogging',
         onUpdate({ editor }) {
           emit('updateContent', editor.getHTML(), new Date().toLocaleString());
         },
@@ -241,12 +238,11 @@ export default defineComponent({
       imageUpload.click();
     };
 
-    const resizeImage = async (size: 'small' | 'medium' | 'large') => {
+    const resizeImage = (size: 'small' | 'medium' | 'large') => {
       if (!selectedImage.value) return;
-      const maxWidth = size === 'small' ? 500 : size === 'medium' ? 1000 : 1920;
+      const maxWidth = size === 'small' ? 500 : size === 'medium' ? 1000 : 1000;
       const aspectRatio = selectedImage.value.naturalWidth / selectedImage.value.naturalHeight;
       const width = Math.min(maxWidth, selectedImage.value.naturalWidth);
-      const height = width / aspectRatio;
       selectedImage.value.style.width = `${width}px`;
       selectedImage.value.style.height = 'auto';
 
@@ -267,7 +263,7 @@ export default defineComponent({
       const file = target.files?.[0];
       if (file) {
         try {
-          const resizedImageUrl = await resizeImageFile(file, 1000); // Resizing image to max 1000px width
+          const resizedImageUrl = await resizeImageFile(file, 1000);
           editor.value?.chain().focus().setImage({ src: resizedImageUrl, width: 1000 }).run();
         } catch (error) {
           console.error('Error resizing image:', error);
@@ -362,10 +358,13 @@ export default defineComponent({
   position: absolute;
   bottom: -5px;
   right: -5px;
-  width: 10px;
-  height: 10px;
+  width: 100px;
+  height: 20px;
   background-color: red;
-  cursor: se-resize;
+  cursor: pointer;
+  color: white;
+  text-align: center;
+  line-height: 20px;
 }
 
 .resize-options {
@@ -397,14 +396,4 @@ export default defineComponent({
   text-align: left;
   overflow: scroll;
 }
-
-/* @media (max-width: 430px) {
-  .toolbar {
-  display: flex;
-  gap: 5px;
-  margin-top: 30px;
-}
-
-} */
-
 </style>

@@ -1,23 +1,46 @@
-describe('Registration Page', () => {
-    it('should display the registration page', () => {
-      cy.visit('/signup');
-      cy.contains('Sign Up').should('be.visible');
-    });
-  
-    it('should display an error message for missing fields', () => {
-      cy.visit('/signup');
-      cy.get('input[name="email"]').type('newuser@example.com');
-      cy.get('form').submit();
-      cy.contains('All fields are required').should('be.visible');
-    });
-  
-    it('should register successfully with valid details', () => {
-      cy.visit('/signup');
-      cy.get('input[name="email"]').type('newuser@example.com');
-      cy.get('input[name="username"]').type('newuser');
-      cy.get('input[name="password"]').type('password123');
-      cy.get('form').submit();
-      cy.url().should('include', '/welcome');
-    });
+// cypress/e2e/signup-page.spec.js
+
+describe('Sign Up Page', () => {
+  beforeEach(() => {
+    cy.visit('/signup');
   });
-  
+
+  it('should display the signup page', () => {
+    cy.contains('Create Account').should('be.visible');
+  });
+
+  it('should fill out the form and display confirmation modal on submit', () => {
+    const timestamp = Date.now();
+
+    cy.get('input[placeholder="Full Name"]').type('Test User');
+    cy.get('input[placeholder="Blugger Name"]').type(`testuser${timestamp}`);
+    cy.get('input[placeholder="Email Address"]').type(`testuser${timestamp}@example.com`);
+    cy.get('input[placeholder="Password"]').type('password123');
+    cy.get('textarea[placeholder="About Me"]').type('This is a test user.');
+
+    cy.get('form').submit();
+
+    cy.get('.confirmation-overlay').should('be.visible');
+  });
+
+  it('should limit the About Me field to 200 characters', () => {
+    const longText = 'a'.repeat(250);
+    cy.get('textarea[placeholder="About Me"]').type(longText);
+
+    cy.get('textarea[placeholder="About Me"]').invoke('val').should('have.length', 200);
+  });
+
+  it('should toggle password visibility', () => {
+    cy.get('input[placeholder="Password"]').type('password123');
+    
+    cy.get('input[placeholder="Password"]').should('have.attr', 'type', 'password');
+    
+    cy.get('.password-group i').click();
+    
+    cy.get('input[placeholder="Password"]').should('have.attr', 'type', 'text');
+    
+    cy.get('.password-group i').click();
+    
+    cy.get('input[placeholder="Password"]').should('have.attr', 'type', 'password');
+  });
+});

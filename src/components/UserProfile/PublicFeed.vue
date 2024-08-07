@@ -4,16 +4,14 @@
       <div class="container">
         <div class="left-column">
           <div class="left-container">
-            <div class="feedheader">
-              <!-- <h3>MyBlug</h3> -->
-            </div>
+            <div class="feedheader"></div>
             <ul>
               <li v-for="(post, index) in posts" :key="post.id">
                 <div @click="viewPost(index)" class="post-title">{{ post.title }}</div>
                 <div class="post-meta">by {{ post.userFullName }} on {{ formatDateTime(post.date) }}</div>
                 <div class="post-actions">
                   <span class="action-item">Likes: {{ post.likes }}</span>
-                  <button @click="readPost(post.title)" class="action-item">Read</button>
+                  <button @click="readPost(post.title ?? '')" class="action-item">Read</button>
                 </div>
                 <div v-if="selectedPost && selectedPost.id === post.id" class="post-content" v-html="selectedPost.bodyContent"></div>
               </li>
@@ -109,14 +107,14 @@ export default defineComponent({
           const { title, content, bodyContent } = extractPostElements(htmlContent);
           return {
             id: post.id,
-            title: post.title, // Use the blog title from the database
+            title: post.title ?? 'Untitled',
             content,
             bodyContent,
             userId: userId.value,
-            userFullName: 'Unknown', // This could be fetched from another source if needed
+            userFullName: 'Unknown',
             date: post.created_at,
             likes: post.likes,
-            bookmarked_by: [], // Initialize empty bookmarked_by array
+            bookmarked_by: [],
           };
         })
       );
@@ -178,7 +176,7 @@ li {
   display: flex;
   flex-direction: column;
   padding: 10px 0;
-  border-bottom: solid 1px #cebfad; /* Remove the inner border */
+  border-bottom: solid 1px #cebfad;
 }
 
 .feedheader {
@@ -209,8 +207,8 @@ h3 {
 
 .post-actions {
   display: flex;
-  justify-content: space-between; /* Adjust spacing between items */
-  align-items: center; /* Align items vertically */
+  justify-content: space-between;
+  align-items: center;
   margin-top: 10px;
 }
 
@@ -239,12 +237,10 @@ h3 {
   font-size: 15px;
 }
 
-@media (max-width: 780px){
+@media (max-width: 780px) {
   ul {
-  
-  padding-left: 10px;
-  padding-right: 10px;
+    padding-left: 10px;
+    padding-right: 10px;
+  }
 }
-}
-
 </style>

@@ -262,6 +262,8 @@ p {
   color: #d7c9b7;
 }
 
+
+
 @media (max-width: 430px) {
   .columns-container {
     flex-direction: column;

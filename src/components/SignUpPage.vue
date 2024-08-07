@@ -53,11 +53,11 @@
               <textarea
                 placeholder="About Me"
                 v-model="aboutMe"
-                @input="limitAboutMeWords"
+                @input="limitAboutMeCharacters"
                 maxlength="200"
                 autocomplete="off"
               ></textarea>
-              <p class="word-counter">{{ aboutMeWordCount }} / 200 words</p>
+              <p class="char-counter">{{ aboutMeCharCount }} / 200 characters</p>
             </div>
             <button type="submit" class="btn btn-signup">Create Account</button>
           </form>
@@ -103,7 +103,7 @@ export default defineComponent({
     const passwordFieldIcon = ref('fas fa-eye');
     const aboutMe = ref('');
     const showConfirmation = ref(false);
-    const aboutMeWordCount = ref(0);
+    const aboutMeCharCount = ref(0);
 
     const generateChatterName = () => {
       const randomSuffix = Math.floor(Math.random() * 1000);
@@ -121,12 +121,11 @@ export default defineComponent({
       chatterName.value = chatterName.value.toLowerCase();
     };
 
-    const limitAboutMeWords = () => {
-      const words = aboutMe.value.split(/\s+/);
-      if (words.length > 200) {
-        aboutMe.value = words.slice(0, 200).join(' ');
+    const limitAboutMeCharacters = () => {
+      if (aboutMe.value.length > 200) {
+        aboutMe.value = aboutMe.value.substring(0, 200);
       }
-      aboutMeWordCount.value = words.length;
+      aboutMeCharCount.value = aboutMe.value.length;
     };
 
     const onSubmit = async () => {
@@ -181,12 +180,12 @@ export default defineComponent({
       passwordFieldIcon,
       aboutMe,
       showConfirmation,
-      aboutMeWordCount,
+      aboutMeCharCount,
       onSubmit,
       togglePasswordVisibility,
       generateChatterName,
       validateChatterName,
-      limitAboutMeWords,
+      limitAboutMeCharacters,
     };
   },
 });
@@ -337,7 +336,7 @@ p {
   color: #333;
 }
 
-.word-counter {
+.char-counter {
   font-size: 10px;
 }
 

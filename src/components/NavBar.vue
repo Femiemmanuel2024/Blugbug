@@ -8,23 +8,23 @@
     </div>
     <div class="navbar-right">
       <router-link to="/home" class="nav-icon" @click="animateIcon($event)">
-        <font-awesome-icon :icon="['fas', 'house']" />
+        <font-awesome-icon :icon="['fas', 'house']" class="icon" />
         <span class="icon-label">Home</span>
       </router-link>
       <router-link to="/MyBlug" class="nav-icon" @click="animateIcon($event)">
-        <font-awesome-icon :icon="['fas', 'comments']" />
+        <font-awesome-icon :icon="['fas', 'comments']" class="icon" />
         <span class="icon-label">MyBlug</span>
       </router-link>
       <router-link to="/BlugPage" class="nav-icon blug-icon" @click="animateFlipIcon($event)">
-        <font-awesome-icon :icon="['fas', 'globe']" />
+        <font-awesome-icon :icon="['fas', 'globe']" class="icon" />
         <span class="icon-label">Blug</span>
       </router-link>
       <router-link to="/settings" class="nav-icon" @click="animateIcon($event)">
-        <font-awesome-icon :icon="['fas', 'gear']" />
+        <font-awesome-icon :icon="['fas', 'gear']" class="icon" />
         <span class="icon-label">Settings</span>
       </router-link>
-      <router-link to="/login" class="nav-icon" @click.native="logout">
-        <font-awesome-icon :icon="['fas', 'sign-out-alt']" />
+      <router-link to="/login" class="nav-icon" @click="logout">
+        <font-awesome-icon :icon="['fas', 'sign-out-alt']" class="icon" />
         <span class="icon-label">Logout</span>
       </router-link>
     </div>
@@ -32,7 +32,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref } from 'vue';
+import { defineComponent } from 'vue';
 import { useRouter } from 'vue-router';
 import ActionNotification from './infofeatures/ActionNotification.vue';
 
@@ -134,14 +134,19 @@ export default defineComponent({
   animation: click-animation 0.3s ease;
 }
 
-.animate-flip {
+.animate-flip .icon {
   animation: flip-animation 0.3s ease;
 }
 
 .brandlogo {
-  height: 50px; /* Adjust height as needed */
+  height: 70px;
   width: auto;
-  margin-right: 0px; /* Space between logo and notification icon */
+  margin-right: 0px;
+  transition: transform 0.3s ease;
+}
+
+.brandlogo:hover {
+  transform: scale(1.1);
 }
 
 @keyframes click-animation {
@@ -184,16 +189,14 @@ export default defineComponent({
   color: #fd662f !important;
 }
 
-.blug-icon:hover {
+.blug-icon:hover .icon {
   animation: hover-animation 0.3s ease;
 }
 
-/* Add z-index to ActionNotification to make it top-most */
 ::v-deep .notification-list {
   z-index: 10000;
 }
 
-/* Media query for mobile devices (less than 768px) */
 @media (max-width: 480px) {
   .navbar {
     flex-direction: column;
@@ -214,7 +217,6 @@ export default defineComponent({
     margin-bottom: 20px;
     width: 100%;
     padding-left: 16px;
-    
   }
   .icon-label {
     display: none;
@@ -222,12 +224,8 @@ export default defineComponent({
 }
 
 @media (min-width:481px) and (max-width:768px){
-  
 }
 
-
-
-/* Media query for tablets (768px to 1024px) */
 @media (min-width: 768px) and (max-width: 1024px) {
   .navbar {
     padding: 5px 5px;
@@ -248,6 +246,5 @@ export default defineComponent({
     margin: 0 10px;
     transition: transform 0.3s;
   }
-
 }
 </style>

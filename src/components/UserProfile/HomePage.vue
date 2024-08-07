@@ -132,7 +132,7 @@ export default defineComponent({
   background-color: #000000;
   padding-right: 50px;
   padding-left: 50px;
-  padding-top: 40px;
+  padding-top: 63px;
 }
 
 .navbar {
@@ -191,7 +191,7 @@ export default defineComponent({
   display: flex;
   flex-direction: column;
   position: fixed;
-  top: 40px;
+  top: 63px;
   right: 0;
   margin-right: 19px;
   transition: right 0.3s ease-in-out;

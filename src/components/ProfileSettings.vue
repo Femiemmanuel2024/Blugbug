@@ -156,7 +156,6 @@ export default defineComponent({
     const fetchUserData = async () => {
       const currentUser = localStorage.getItem('currentUser');
       if (!currentUser) {
-        console.error('User ID not found in local storage');
         return;
       }
 
@@ -169,12 +168,10 @@ export default defineComponent({
         .single();
 
       if (error) {
-        console.error('Error fetching user data:', error.message);
         return;
       }
 
       if (data) {
-        console.log('User data fetched:', data);
         user.value = data;
         selectedCategories.value = data.interest_id ? data.interest_id.split(',') : [];
       }
@@ -184,17 +181,14 @@ export default defineComponent({
       if (!user.value) return;
 
       if (editing.value[field]) {
-        console.log(`Saving ${field}:`, user.value[field]);
         const { error } = await supabase
           .from('users')
           .update({ [field]: user.value[field] })
           .eq('id', user.value.id);
 
         if (error) {
-          console.error(`Error updating ${field}:`, error.message);
           return;
         }
-        console.log(`${field} saved successfully.`);
       }
 
       editing.value[field] = !editing.value[field];
@@ -219,42 +213,35 @@ export default defineComponent({
     const confirmDeactivation = async () => {
       if (!user.value) return;
 
-      // Delete related notifications
       const { error: deleteNotificationsError } = await supabase
         .from('notifications')
         .delete()
         .eq('user_id', user.value.id);
 
       if (deleteNotificationsError) {
-        console.error('Error deleting related notifications:', deleteNotificationsError.message);
         return;
       }
 
-      // Delete related blog posts
       const { error: deleteBlogPostsError } = await supabase
         .from('blog_post')
         .delete()
         .eq('user_id', user.value.id);
 
       if (deleteBlogPostsError) {
-        console.error('Error deleting related blog posts:', deleteBlogPostsError.message);
         return;
       }
 
-      // Delete the user
       const { error } = await supabase
         .from('users')
         .delete()
         .eq('id', user.value.id);
 
       if (error) {
-        console.error('Error deactivating account:', error.message);
         return;
       }
 
-      console.log('Account deactivated successfully.');
       localStorage.removeItem('currentUser');
-      router.push('/login'); // Redirect to login page
+      router.push('/login');
     };
 
     const saveCategories = async () => {
@@ -266,16 +253,14 @@ export default defineComponent({
         .eq('id', user.value.id);
 
       if (error) {
-        console.error('Error saving categories:', error.message);
         return;
       }
-
-      console.log('Categories saved successfully.');
     };
 
     const showTooltip = (event: MouseEvent, category: string) => {
       const tooltip = (event.currentTarget as HTMLElement).querySelector('.tooltip') as HTMLElement;
       tooltip.style.visibility = 'visible';
+      tooltip.textContent = category; // Use the category parameter to set the tooltip text
     };
 
     const hideTooltip = (event: MouseEvent) => {
@@ -307,7 +292,6 @@ export default defineComponent({
 </script>
 
 <style scoped>
-/* CSS Reset */
 * {
   margin: 0;
   padding: 0;
@@ -324,7 +308,7 @@ html, body {
   height: 100vh;
   padding-right: 50px;
   padding-left: 50px;
-  padding-top: 40px;
+  padding-top: 63px;
 }
 
 .content {
@@ -332,7 +316,7 @@ html, body {
   padding: 20px 50px 20px 50px;
   width: 100%;
   max-width: 100%;
-  min-height: 100vh; /* Ensure content covers full height */
+  min-height: 100vh;
 }
 
 h1 {
@@ -365,7 +349,7 @@ td textarea {
   color: #cebfad;
   border: none;
   border-radius: 4px;
-  resize: none; /* Disable resize for textarea */
+  resize: none;
   height: 50px;
 }
 
@@ -402,7 +386,7 @@ button:hover {
   border-radius: 4px;
   padding: 5px;
   margin-right: 5px;
-  width: 120px;
+  width: 200px;
   margin-bottom: 10px;
   border-bottom: 1px solid #cebfad;
 }
@@ -418,18 +402,18 @@ button:hover {
   color: #cebfad;
   border: none;
   border-radius: 4px;
-  padding: 5px 10px; /* Make the buttons smaller */
+  padding: 5px 10px;
   cursor: pointer;
-  width: 205px; /* Fixed width for buttons */
+  width: 205px;
   white-space: nowrap;
   text-overflow: ellipsis;
   overflow: hidden;
-  position: relative; /* Position relative for tooltip */
+  position: relative;
 }
 
 .category-buttons button.selected {
-  background-color: #fd662f; /* Orange background for selected categories */
-  color: white; /* White text for selected categories */
+  background-color: #fd662f;
+  color: white;
 }
 
 .category-buttons button .tooltip {
@@ -442,7 +426,7 @@ button:hover {
   padding: 5px;
   position: absolute;
   z-index: 1;
-  bottom: 100%; /* Position the tooltip above the button */
+  bottom: 100%;
   left: 50%;
   transform: translateX(-50%);
   margin-bottom: 5px;
@@ -455,7 +439,7 @@ button:hover {
 
 .accept-button-container {
   display: flex;
-  justify-content: flex-end; /* Move the Accept button to the far right */
+  justify-content: flex-end;
 }
 
 .accept-button {
@@ -555,7 +539,7 @@ button:hover {
     padding: 20px 5px 20px 5px;
     width: 100%;
     max-width: 100%;
-    min-height: 100vh; /* Ensure content covers full height */
+    min-height: 100vh;
   }
 
   .deactivate-button {
@@ -566,9 +550,8 @@ button:hover {
   }
 
   .category-buttons button {
-  width: 107px; /* Fixed width for buttons */
-}
-
+    width: 107px;
+  }
 }
 
 @media (min-width:381px) and (max-width: 430px) {
@@ -583,7 +566,7 @@ button:hover {
     padding: 20px 5px 20px 5px;
     width: 100%;
     max-width: 100%;
-    min-height: 100vh; /* Ensure content covers full height */
+    min-height: 100vh;
   }
 
   .deactivate-button {
@@ -592,9 +575,9 @@ button:hover {
     background-color: red;
     align-self: center;
   }
-  .category-buttons button {
-  width: 120px; /* Fixed width for buttons */
-}
 
+  .category-buttons button {
+    width: 120px;
+  }
 }
 </style>
