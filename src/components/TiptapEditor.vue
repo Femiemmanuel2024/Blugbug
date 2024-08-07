@@ -411,6 +411,25 @@ export default defineComponent({
 }
 
 @media (max-width: 400px) {
+
+  ::v-deep .tiptap {
+  background-color: rgb(255, 255, 255);
+  width: 100%;
+  height: 700px;
+  border: none;
+  text-align: left;
+  overflow: scroll;
+  text-indent: 2px;
+}
+
+.tiptap-container {
+  height: 330px;
+  background-color: white;
+  color: black;
+  border: none;
+  padding: 10px;
+  overflow-y: auto;
+}
   .toolbar button i {
     font-size: 12px;
     margin: 5px;

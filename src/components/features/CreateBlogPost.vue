@@ -306,10 +306,10 @@ button:hover {
     color: white;
     border-radius: 10px;
     width: 90%;
-    height: 100%;
+    height: 85%;
     text-align: center;
     z-index: 10050;
-    margin-bottom: 150px;
+    margin-bottom: 220px;
     margin-left: 2px;
     margin-right: 2px;
     margin-top: 30px;
