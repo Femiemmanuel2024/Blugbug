@@ -1,14 +1,14 @@
 <template>
   <div class="profile-header">
     <div class="header-image-container">
-      <img :src="headerImage" alt="Header Image" class="header-image" />
+      <img :src="headerImage" alt="Header Image" class="header-image" loading="lazy" />
       <label v-if="!disableUpload" class="upload-header-icon" @click="showFileUploadModal('header')">
         <i class="fas fa-camera"></i>
       </label>
     </div>
     <div class="profile-info-container">
       <div class="profile-picture-circle">
-        <img :src="profilePicture" alt="Profile Picture" class="profile-image" />
+        <img :src="profilePicture" alt="Profile Picture" class="profile-image" loading="lazy" />
         <label v-if="!disableUpload" class="upload-icon" @click="showFileUploadModal('profile')">
           <i class="fas fa-camera"></i>
         </label>
@@ -94,7 +94,14 @@ export default defineComponent({
     const checkmarkIconUrl = ref<string | null>(null);
 
     const fetchUserData = async () => {
-      console.log(`Fetching data for user ID: ${props.userId}`);
+      const cachedData = localStorage.getItem(`user_data_${props.userId}`);
+      if (cachedData) {
+        user.value = JSON.parse(cachedData);
+        profilePicture.value = user.value.profile_image_url;
+        headerImage.value = user.value.header_image_url;
+        checkmarkIconUrl.value = user.value.checkmark_url;
+      }
+
       const { data, error } = await supabase
         .from('users')
         .select('full_name, chatter_name, about_me, id, profile_image_url, header_image_url, checkmark_url, followers, following')
@@ -121,11 +128,9 @@ export default defineComponent({
         profilePicture.value = user.value.profile_image_url;
         headerImage.value = user.value.header_image_url;
         checkmarkIconUrl.value = user.value.checkmark_url;
-        console.log('Fetched user data:', user.value);
-        console.log('Profile picture URL:', profilePicture.value);
-        console.log('Header image URL:', headerImage.value);
 
-        // Fetch total likes and bookmarks after fetching user data
+        localStorage.setItem(`user_data_${props.userId}`, JSON.stringify(user.value));
+
         await fetchTotalLikesAndBookmarks();
       }
     };
@@ -176,6 +181,71 @@ export default defineComponent({
       }
     };
 
+    const uploadImage = async (event: Event) => {
+      const target = event.target as HTMLInputElement;
+      const file = target.files?.[0];
+      if (file) {
+        try {
+          const resizedImageBlob = await resizeImageFile(file, window.innerWidth * 0.75, 'image/webp');
+          const path = `public/${props.userId}/${uploadType.value}.webp`;
+
+          const { data, error } = await supabase.storage
+            .from('your-bucket')
+            .upload(path, resizedImageBlob, {
+              cacheControl: '3600',
+              upsert: true,
+              contentType: 'image/webp',
+            });
+
+          if (error) {
+            console.error('Error uploading image:', error.message);
+            return;
+          }
+
+          const publicUrl = supabase.storage.from('your-bucket').getPublicUrl(path).publicURL;
+
+          if (uploadType.value === 'profile') {
+            profilePicture.value = publicUrl;
+            await supabase.from('users').update({ profile_image_url: publicUrl }).eq('id', props.userId);
+          } else if (uploadType.value === 'header') {
+            headerImage.value = publicUrl;
+            await supabase.from('users').update({ header_image_url: publicUrl }).eq('id', props.userId);
+          }
+
+          fetchUserData();
+        } catch (error) {
+          console.error('Image processing failed:', error);
+        }
+      }
+    };
+
+    const resizeImageFile = (file: File, maxWidth: number, outputFormat: string): Promise<Blob> => {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const img = document.createElement('img');
+          img.src = e.target?.result as string;
+          img.onload = () => {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d')!;
+            const ratio = img.width / img.height;
+            canvas.width = Math.min(maxWidth, img.width);
+            canvas.height = canvas.width / ratio;
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            canvas.toBlob((blob) => {
+              if (blob) {
+                resolve(blob);
+              } else {
+                reject(new Error('Blob creation failed'));
+              }
+            }, outputFormat);
+          };
+        };
+        reader.onerror = () => reject(new Error('File reading failed'));
+        reader.readAsDataURL(file);
+      });
+    };
+
     watch(() => props.userId, fetchUserData, { immediate: true });
 
     return {
@@ -194,11 +264,11 @@ export default defineComponent({
       totalLikes,
       totalBookmarks,
       formatCount,
+      uploadImage,
     };
   },
 });
 </script>
-
 
 <style scoped>
 .profile-header {

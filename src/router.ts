@@ -9,8 +9,8 @@ import PublicProfile from './components/UserProfile/PublicProfile.vue';
 import SignUpConfirmation from './components/SignUpConfirmation.vue';
 import ProfileSettings from './components/ProfileSettings.vue';
 import FileUpload from './components/features/FileUpload.vue'; 
-import TestPage from './components/TiptapfullPage.vue';
 import TiptapfullPage from './components/TiptapfullPage.vue';
+import NotFound from './components/NotFound.vue';
 
 const routes = [
   { path: '/', redirect: '/login' },
@@ -26,6 +26,7 @@ const routes = [
   { path: '/signup-confirmation', component: SignUpConfirmation },
   { path: '/upload/:type', name: 'FileUpload', component: FileUpload }, 
   { path: '/fullpage', component: TiptapfullPage },
+  { path: '/:catchAll(.*)', name: 'NotFound', component: NotFound }  // This catches all undefined routes
 ];
 
 const router = createRouter({

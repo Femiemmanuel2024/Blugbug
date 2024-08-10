@@ -301,7 +301,7 @@ export default defineComponent({
   background-color: #fff;
   border-radius: 50%;
   position: absolute;
-  top: 300px;
+  top: 320px;
   left: 190px;
 }
 

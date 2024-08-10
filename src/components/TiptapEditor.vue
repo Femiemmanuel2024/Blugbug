@@ -1,8 +1,8 @@
 <template>
-  <div class="blug-editor">
+  <div class="blug-editor" @click="handleEditorClick">
     <div ref="editorContainer" class="tiptap-container"></div>
-    
-    <div class="toolbar-container"> 
+
+    <div class="toolbar-container">
       <div class="toolbar">
         <button @click="toggleBold">
           <i class="fas fa-bold"></i>
@@ -42,18 +42,6 @@
           <i class="fas fa-image"></i>
         </button>
       </div>
-  </div>
-
-    <div v-if="selectedImage" class="resize-options">
-      <button @click="resizeImage('small')">
-        <i class="fas fa-compress-alt"></i>
-      </button>
-      <button @click="resizeImage('medium')">
-        <i class="fas fa-expand-alt"></i>
-      </button>
-      <button @click="resizeImage('large')">
-        <i class="fas fa-expand"></i>
-      </button>
     </div>
   </div>
 </template>
@@ -77,6 +65,7 @@ export default defineComponent({
     const editorContainer = ref<HTMLDivElement | null>(null);
     const editor = ref<Editor | null>(null);
     const selectedImage = ref<HTMLImageElement | null>(null);
+    const transformationTool = ref<HTMLDivElement | null>(null);
 
     onMounted(() => {
       editor.value = new Editor({
@@ -111,56 +100,119 @@ export default defineComponent({
               return ({ node, getPos, editor }) => {
                 const dom = document.createElement('div');
                 dom.classList.add('resizable-image-container');
+                dom.style.position = 'relative';
+
                 const img = document.createElement('img');
                 img.src = node.attrs.src;
                 img.style.width = node.attrs.width + 'px';
                 img.style.height = 'auto';
                 img.style.cursor = 'pointer';
 
-                img.addEventListener('click', () => {
-                  selectedImage.value = img;
-                  img.style.border = '5px solid green';
+                const tool = document.createElement('div');
+                tool.style.position = 'absolute';
+                tool.style.top = '0';
+                tool.style.left = '0';
+                tool.style.width = '100%';
+                tool.style.height = '100%';
+                tool.style.border = '2px solid blue';
+                tool.style.display = 'none';
+                tool.style.boxSizing = 'border-box';
+                tool.style.zIndex = '10';
+                transformationTool.value = tool;
+
+                const updateTransformationToolSize = () => {
+                  tool.style.width = img.clientWidth + 'px';
+                  tool.style.height = img.clientHeight + 'px';
+                };
+
+                const corners = ['top-left', 'top-right', 'bottom-left', 'bottom-right'];
+
+                corners.forEach(corner => {
+                  const handle = document.createElement('div');
+                  handle.style.width = '10px';
+                  handle.style.height = '10px';
+                  handle.style.backgroundColor = 'red';
+                  handle.style.position = 'absolute';
+                  handle.style.cursor = 'pointer';
+
+                  switch (corner) {
+                    case 'top-left':
+                      handle.style.top = '-5px';
+                      handle.style.left = '-5px';
+                      handle.style.cursor = 'nwse-resize';
+                      break;
+                    case 'top-right':
+                      handle.style.top = '-5px';
+                      handle.style.right = '-5px';
+                      handle.style.cursor = 'nesw-resize';
+                      break;
+                    case 'bottom-left':
+                      handle.style.bottom = '-5px';
+                      handle.style.left = '-5px';
+                      handle.style.cursor = 'nesw-resize';
+                      break;
+                    case 'bottom-right':
+                      handle.style.bottom = '-5px';
+                      handle.style.right = '-5px';
+                      handle.style.cursor = 'nwse-resize';
+                      break;
+                  }
+
+                  handle.addEventListener('mousedown', (e) => {
+                    e.stopPropagation();
+                    let startX = e.clientX;
+                    let startY = e.clientY;
+                    let startWidth = img.clientWidth;
+                    let startHeight = img.clientHeight;
+                    const aspectRatio = startWidth / startHeight;
+
+                    const onMouseMove = (e) => {
+                      let newWidth = startWidth + (e.clientX - startX);
+                      let newHeight = newWidth / aspectRatio;
+
+                      if (newWidth > 50 && newHeight > 50) {
+                        img.style.width = newWidth + 'px';
+                        img.style.height = newHeight + 'px';
+                        updateTransformationToolSize();
+                      }
+                    };
+
+                    const onMouseUp = () => {
+                      document.removeEventListener('mousemove', onMouseMove);
+                      document.removeEventListener('mouseup', onMouseUp);
+
+                      const width = parseInt(img.style.width.replace('px', ''));
+                      const transaction = editor.state.tr.setNodeMarkup(getPos(), null, {
+                        ...node.attrs,
+                        width,
+                      });
+                      editor.view.dispatch(transaction);
+                    };
+
+                    document.addEventListener('mousemove', onMouseMove);
+                    document.addEventListener('mouseup', onMouseUp);
+                  });
+
+                  tool.appendChild(handle);
                 });
 
-                const resizeHandle = document.createElement('button');
-                resizeHandle.textContent = 'Resize Image';
-                resizeHandle.classList.add('resize-handle');
-                resizeHandle.style.position = 'absolute';
-                resizeHandle.style.bottom = '0';
-                resizeHandle.style.right = '0';
-                resizeHandle.style.cursor = 'se-resize';
+                img.addEventListener('click', (e) => {
+                  e.stopPropagation();
+                  if (tool.style.display === 'block') {
+                    tool.style.display = 'none';
+                    selectedImage.value = null;
+                  } else {
+                    if (selectedImage.value) {
+                      selectedImage.value.style.border = '';
+                    }
+                    selectedImage.value = img;
+                    tool.style.display = 'block';
+                    updateTransformationToolSize();
+                  }
+                });
 
                 dom.appendChild(img);
-                dom.appendChild(resizeHandle);
-
-                let startX: number, startWidth: number;
-
-                const onMouseMove = (e: MouseEvent) => {
-                  const newWidth = startWidth + (e.clientX - startX);
-                  if (newWidth > 50) {
-                    img.style.width = newWidth + 'px';
-                  }
-                };
-
-                const onMouseUp = () => {
-                  document.removeEventListener('mousemove', onMouseMove);
-                  document.removeEventListener('mouseup', onMouseUp);
-                  const width = parseInt(img.style.width.replace('px', ''));
-                  const transaction = editor.state.tr.setNodeMarkup(getPos(), null, {
-                    ...node.attrs,
-                    width,
-                  });
-                  editor.view.dispatch(transaction);
-                };
-
-                const onMouseDown = (e: MouseEvent) => {
-                  startX = e.clientX;
-                  startWidth = img.clientWidth;
-                  document.addEventListener('mousemove', onMouseMove);
-                  document.addEventListener('mouseup', onMouseUp);
-                };
-
-                resizeHandle.addEventListener('mousedown', onMouseDown);
+                dom.appendChild(tool);
 
                 return {
                   dom,
@@ -168,6 +220,7 @@ export default defineComponent({
                     if (updatedNode.type.name !== 'image') return false;
                     img.src = updatedNode.attrs.src;
                     img.style.width = updatedNode.attrs.width + 'px';
+                    updateTransformationToolSize();
                     return true;
                   },
                 };
@@ -181,14 +234,30 @@ export default defineComponent({
         ],
         content: '',
         onUpdate({ editor }) {
-          emit('updateContent', editor.getHTML(), new Date().toLocaleString());
+          emit('updateContent', editor.getHTML());
         },
       });
+
+      document.addEventListener('click', handleOutsideClick);
     });
 
     onBeforeUnmount(() => {
       editor.value?.destroy();
+      document.removeEventListener('click', handleOutsideClick);
     });
+
+    const handleOutsideClick = (event: MouseEvent) => {
+      if (selectedImage.value && !editorContainer.value?.contains(event.target as Node)) {
+        if (transformationTool.value) {
+          transformationTool.value.style.display = 'none';
+        }
+        selectedImage.value = null;
+      }
+    };
+
+    const handleEditorClick = (event: MouseEvent) => {
+      event.stopPropagation();
+    };
 
     const toggleBold = () => {
       editor.value?.chain().focus().toggleBold().run();
@@ -242,33 +311,13 @@ export default defineComponent({
       imageUpload.click();
     };
 
-    const resizeImage = (size: 'small' | 'medium' | 'large') => {
-      if (!selectedImage.value) return;
-      const maxWidth = size === 'small' ? 500 : size === 'medium' ? 1000 : window.innerWidth;
-      const aspectRatio = selectedImage.value.naturalWidth / selectedImage.value.naturalHeight;
-      const width = Math.min(maxWidth, selectedImage.value.naturalWidth);
-      selectedImage.value.style.width = `${width}px`;
-      selectedImage.value.style.height = 'auto';
-
-      const transaction = editor.value?.state.tr.setNodeMarkup(
-        editor.value?.state.selection.anchor - 1,
-        null,
-        {
-          src: selectedImage.value.src,
-          width,
-        }
-      );
-      editor.value?.view.dispatch(transaction!);
-      selectedImage.value = null;
-    };
-
     const uploadImage = async (event: Event) => {
       const target = event.target as HTMLInputElement;
       const file = target.files?.[0];
       if (file) {
         try {
-          const resizedImageUrl = await resizeImageFile(file, window.innerWidth);
-          editor.value?.chain().focus().setImage({ src: resizedImageUrl, width: window.innerWidth }).run();
+          const resizedImageUrl = await resizeImageFile(file, window.innerWidth * 0.75);
+          editor.value?.chain().focus().setImage({ src: resizedImageUrl, width: window.innerWidth * 0.75 }).run();
         } catch (error) {
           console.error('Image resizing failed:', error);
         }
@@ -317,13 +366,12 @@ export default defineComponent({
       outdent,
       insertLink,
       triggerImageUpload,
-      resizeImage,
       uploadImage,
+      handleEditorClick,
     };
   },
 });
 </script>
-
 
 <style scoped>
 .tiptap-container {
@@ -332,14 +380,17 @@ export default defineComponent({
   color: black;
   border: none;
   padding: 10px;
-  overflow-y: auto;
+  overflow-y: visible;
+  border-radius: 4px;
+  caret-color: red;
 }
+
+
 
 .toolbar-container {
   display: flex;
   flex-wrap: wrap;
   gap: 5px;
-
   padding: 10px;
 }
 
@@ -355,7 +406,7 @@ export default defineComponent({
   padding: 5px 10px;
   cursor: pointer;
   color: white;
-  flex: 1 1 auto; /* Allow buttons to shrink and wrap */
+  flex: 1 1 auto;
 }
 
 .toolbar button i {
@@ -369,42 +420,9 @@ export default defineComponent({
 .resizable-image-container {
   position: relative;
   display: inline-block;
-  border: 2px solid green;
 }
 
-.resize-handle {
-  position: absolute;
-  bottom: -5px;
-  right: -5px;
-  width: 100px;
-  height: 20px;
-  background-color: red;
-  cursor: pointer;
-  color: white;
-  text-align: center;
-  line-height: 20px;
-}
 
-.resize-options {
-  margin-top: 10px;
-}
-
-.resize-options button {
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 5px 10px;
-  margin-right: 5px;
-  color: white;
-}
-
-.resize-options button:hover {
-  color: #ed6834;
-}
-
-.resize-options button i {
-  font-size: 16px;
-}
 
 ::v-deep .tiptap {
   background-color: rgb(255, 255, 255);
@@ -413,61 +431,50 @@ export default defineComponent({
   border: none;
   text-align: left;
   overflow: scroll;
+  
 }
 
 @media (max-width: 400px) {
-
   ::v-deep .tiptap {
-  background-color: rgb(255, 255, 255);
-  width: 100%;
-  height: 700px;
-  border: none;
-  text-align: left;
-  overflow: scroll;
-  text-indent: 2px;
-}
+    width: 100%;
+    height: 700px;
+    overflow: scroll;
+    text-indent: 2px;
+  }
 
-.tiptap-container {
-  height: 330px;
-  background-color: white;
-  color: black;
-  border: none;
-  padding: 10px;
-  overflow-y: auto;
-}
+  .tiptap-container {
+    height: 330px;
+    padding: 10px;
+    overflow-y: auto;
+  }
+
   .toolbar button i {
     font-size: 12px;
     margin: 5px;
   }
 
   .toolbar button {
-    flex: 1 1 auto; /* Ensure buttons wrap properly on small screens */
+    flex: 1 1 auto;
   }
+
   .toolbar-container {
     margin: 0px 5px;
     padding: 0px 9px;
   }
 }
 
-@media (min-width: 401px) and (max-width: 768px){
+@media (min-width: 401px) and (max-width: 768px) {
   ::v-deep .tiptap {
-  background-color: rgb(255, 255, 255);
-  width: 100%;
-  height: 700px;
-  border: none;
-  text-align: left;
-  overflow: scroll;
-  text-indent: 2px;
-}
+    width: 100%;
+    height: 700px;
+    overflow: scroll;
+    text-indent: 2px;
+  }
 
-.tiptap-container {
-  height: 550px;
-  background-color: white;
-  color: black;
-  border: none;
-  padding: 10px;
-  overflow-y: auto;
-}
-
+  .tiptap-container {
+    height: 550px;
+    padding: 10px;
+    overflow-y: auto;
+  }
 }
 </style>

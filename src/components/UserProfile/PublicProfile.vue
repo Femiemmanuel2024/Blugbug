@@ -171,7 +171,7 @@ export default defineComponent({
   background-color: #000000;
   padding-right: 50px;
   padding-left: 50px;
-  padding-top: 40px;
+  padding-top: 63px;
 }
 
 .content {
@@ -200,7 +200,7 @@ export default defineComponent({
   margin-bottom: 20px;
   align-self: center;
   position: absolute;
-  top: 240px;
+  top: 260px;
   right: 480px;
 }
 
