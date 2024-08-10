@@ -154,7 +154,7 @@ export default defineComponent({
     };
 
     const sharePost = (post: Post) => {
-      const postUrl = `${window.location.origin}/blugpage?postId=${post.id}`;
+      const postUrl = `${window.location.origin}/BlugPage?postId=${post.id}`;
 
       if (navigator.share) {
         navigator.share({
