@@ -59,6 +59,18 @@
               ></textarea>
               <p class="char-counter">{{ aboutMeCharCount }} / 200 characters</p>
             </div>
+            <div class="form-group terms-group">
+              <input
+                type="checkbox"
+                v-model="agreedToTerms"
+                id="terms"
+                required
+              />
+              <label for="terms">
+                I agree to the
+                <span @click="openModal" class="terms-link">terms and conditions</span>
+              </label>
+            </div>
             <button type="submit" class="btn btn-signup">Create Account</button>
           </form>
           <p>Already have an account? <router-link to="/login">Login</router-link></p>
@@ -66,6 +78,7 @@
       </div>
     </div>
     <SignUpConfirmation v-if="showConfirmation" :chatterName="chatterName" />
+    <TermsModal v-if="showModal" :isVisible="showModal" @close="closeModal" />
   </div>
 </template>
 
@@ -73,25 +86,13 @@
 import { defineComponent, ref } from 'vue';
 import { supabase } from './supabase';
 import SignUpConfirmation from './SignUpConfirmation.vue';
-
-interface User {
-  fullName: string;
-  chatterName: string;
-  email: string;
-  password: string;
-  aboutMe: string;
-  followers: number;
-  following: number;
-  likes: number;
-  bookmarks: number;
-  posts: any[];
-  bookmarksList: any[];
-}
+import TermsModal from './features/TermsAndConditions.vue';
 
 export default defineComponent({
   name: 'SignUpPage',
   components: {
-    SignUpConfirmation
+    SignUpConfirmation,
+    TermsModal
   },
   setup() {
     const fullName = ref('');
@@ -104,6 +105,8 @@ export default defineComponent({
     const aboutMe = ref('');
     const showConfirmation = ref(false);
     const aboutMeCharCount = ref(0);
+    const agreedToTerms = ref(false);
+    const showModal = ref(false);
 
     const generateChatterName = () => {
       const randomSuffix = Math.floor(Math.random() * 1000);
@@ -129,6 +132,11 @@ export default defineComponent({
     };
 
     const onSubmit = async () => {
+      if (!agreedToTerms.value) {
+        alert('You must agree to the terms and conditions before signing up.');
+        return;
+      }
+
       try {
         if (!chatterName.value) {
           generateChatterName();
@@ -148,7 +156,7 @@ export default defineComponent({
             posts: [],
             bookmarksList: []
           }
-        ]) as { data: User[] | null, error: any };
+        ]);
 
         if (data && data.length > 0) {
           localStorage.setItem('currentUser', JSON.stringify(data[0]));
@@ -161,13 +169,16 @@ export default defineComponent({
     };
 
     const togglePasswordVisibility = () => {
-      if (passwordFieldType.value === 'password') {
-        passwordFieldType.value = 'text';
-        passwordFieldIcon.value = 'fas fa-eye-slash';
-      } else {
-        passwordFieldType.value = 'password';
-        passwordFieldIcon.value = 'fas fa-eye';
-      }
+      passwordFieldType.value = passwordFieldType.value === 'password' ? 'text' : 'password';
+      passwordFieldIcon.value = passwordFieldType.value === 'password' ? 'fas fa-eye' : 'fas fa-eye-slash';
+    };
+
+    const openModal = () => {
+      showModal.value = true;
+    };
+
+    const closeModal = () => {
+      showModal.value = false;
     };
 
     return {
@@ -181,11 +192,15 @@ export default defineComponent({
       aboutMe,
       showConfirmation,
       aboutMeCharCount,
+      agreedToTerms,
+      showModal,
       onSubmit,
       togglePasswordVisibility,
       generateChatterName,
       validateChatterName,
       limitAboutMeCharacters,
+      openModal,
+      closeModal,
     };
   },
 });
@@ -301,6 +316,7 @@ html, body {
   width: 100%;
   margin-bottom: 10px;
   position: relative;
+  
 }
 
 .form-group input,
@@ -326,6 +342,20 @@ html, body {
   color: #FF5733;
 }
 
+.terms-group {
+  display: flex;
+  align-items: center;
+  gap: 0px;
+  margin-top: 5px;
+  margin-left: -50px;
+}
+
+.terms-link {
+  color: #ff5733;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
 a {
   color: #FF5733;
   text-decoration: none;
@@ -340,7 +370,19 @@ p {
   font-size: 10px;
 }
 
-@media (min-width: 414px) and (max-width: 768px) {
+.form-group input[type="checkbox"] {
+  margin-left: 100px;
+}
+
+.form-group label {
+  color: #cebfad;
+  font-size: 14px;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+@media (min-width: 479px) and (max-width: 768px) {
+
   .columns-container {
     flex-direction: column;
     height: auto;
@@ -379,6 +421,14 @@ p {
 }
 
 @media (max-width: 478px) {
+  .terms-group {
+  display: flex;
+  align-items: center;
+  gap: 0px;
+  margin-top: 5px;
+  margin-left: -65px;
+}
+
   .signupbody {
     height: 900px;
   }

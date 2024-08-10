@@ -44,7 +44,9 @@
     "@tiptap/pm": "^2.5.1",
     "@tiptap/starter-kit": "^2.5.1",
     "@tiptap/vue-3": "^2.5.1",
+    "@types/bcryptjs": "^2.4.6",
     "@vueup/vue-quill": "^1.2.0",
+    "argon2-browser": "^1.18.0",
     "marked": "^13.0.2",
     "mitt": "^3.0.1",
     "pinia": "^2.1.7",
@@ -58,6 +60,7 @@
     "@babel/preset-typescript": "^7.24.7",
     "@rushstack/eslint-patch": "^1.8.0",
     "@tsconfig/node20": "^20.1.4",
+    "@types/argon2-browser": "^1.18.4",
     "@types/jest": "^29.5.12",
     "@types/jsdom": "^21.1.7",
     "@types/node": "^20.14.5",
@@ -82,6 +85,7 @@
     "typescript": "~5.4.0",
     "vite": "^5.3.1",
     "vite-plugin-vue-devtools": "^7.3.1",
+    "vite-plugin-wasm": "^3.3.0",
     "vitest": "^1.6.0",
     "vue-tsc": "^2.0.21"
   }

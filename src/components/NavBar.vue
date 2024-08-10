@@ -7,19 +7,19 @@
       </div>
     </div>
     <div class="navbar-right">
-      <router-link to="/home" class="nav-icon" @click="animateIcon($event)">
+      <router-link to="/home" class="nav-icon" @click="navigate('/home', $event)">
         <font-awesome-icon :icon="['fas', 'house']" class="icon" />
         <span class="icon-label">Home</span>
       </router-link>
-      <router-link to="/MyBlug" class="nav-icon" @click="animateIcon($event)">
+      <router-link to="/MyBlug" class="nav-icon" @click="navigate('/MyBlug', $event)">
         <font-awesome-icon :icon="['fas', 'comments']" class="icon" />
         <span class="icon-label">MyBlug</span>
       </router-link>
-      <router-link to="/BlugPage" class="nav-icon blug-icon" @click="animateFlipIcon($event)">
+      <router-link to="/BlugPage" class="nav-icon blug-icon" @click="navigate('/BlugPage', $event)">
         <font-awesome-icon :icon="['fas', 'globe']" class="icon" />
         <span class="icon-label">Blug</span>
       </router-link>
-      <router-link to="/settings" class="nav-icon" @click="animateIcon($event)">
+      <router-link to="/settings" class="nav-icon" @click="navigate('/settings', $event)">
         <font-awesome-icon :icon="['fas', 'gear']" class="icon" />
         <span class="icon-label">Settings</span>
       </router-link>
@@ -32,7 +32,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue';
+import { defineComponent, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import ActionNotification from './infofeatures/ActionNotification.vue';
 
@@ -43,6 +43,25 @@ export default defineComponent({
   },
   setup(_, { emit }) {
     const router = useRouter();
+
+    const isUserLoggedIn = (): boolean => {
+      const currentUser = localStorage.getItem('currentUser');
+      return currentUser !== null;
+    };
+
+    const navigate = async (path: string, event: MouseEvent) => {
+      event.preventDefault();
+
+      const publicPaths = ['/BlugPage'];
+
+      if (publicPaths.includes(path) || isUserLoggedIn()) {
+        router.push(path);
+      } else if (['/home', '/MyBlug', '/settings'].includes(path)) {
+        router.push('/login');
+      } else {
+        router.push('/404');
+      }
+    };
 
     const logout = () => {
       localStorage.clear();
@@ -58,18 +77,16 @@ export default defineComponent({
       }, 300);
     };
 
-    const animateFlipIcon = (event: MouseEvent) => {
-      const icon = event.currentTarget as HTMLElement;
-      icon.classList.add('animate-flip');
-      setTimeout(() => {
-        icon.classList.remove('animate-flip');
-      }, 300);
-    };
+    onMounted(() => {
+      if (!isUserLoggedIn() && !['/BlugPage'].includes(router.currentRoute.value.path)) {
+        router.push('/login');
+      }
+    });
 
     return {
       logout,
+      navigate,
       animateIcon,
-      animateFlipIcon,
     };
   },
 });
