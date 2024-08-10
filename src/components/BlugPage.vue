@@ -83,37 +83,40 @@ export default defineComponent({
     const postsPerPage = ref<number>(10);
     const currentPage = ref<number>(0);
 
+    // Fetch metadata of posts without their content
     const fetchPostsFromDatabase = async () => {
       const { data, error } = await supabase.from('blog_post').select('*');
       if (error) return [];
       return data || [];
     };
 
+    // Fetch the actual content of the post on demand
     const fetchPostContent = async (filePath: string) => {
-      const { data, error } = await supabase.storage.from('blog-post').download(filePath);
-      if (error) return '';
-      return data ? await data.text() : '';
+      console.log('Fetching file from path:', filePath); // Debugging: Log the file path
+      try {
+        const { data, error } = await supabase.storage.from('blog-post').download(filePath);
+        if (error) throw error;
+        if (data) {
+          return await data.text();
+        }
+      } catch (error) {
+        console.error('Error fetching post content:', error.message); // Log any errors encountered
+        return '';
+      }
     };
 
     const loadPosts = async () => {
       const postFiles = await fetchPostsFromDatabase();
-      const loadedPosts = await Promise.all(
-        postFiles.map(async (post) => {
-          const filePath = `${post.user_id}/${post.blog_id}.html`;
-          const htmlContent = await fetchPostContent(filePath);
-          const { title, bodyContent } = extractPostElements(htmlContent);
-          return {
-            id: post.id,
-            title: title || post.title,
-            content: htmlContent,
-            bodyContent,
-            userId: post.user_id,
-            userFullName: post.user_full_name || 'Unknown',
-            date: post.created_at,
-          };
-        })
-      );
-      loadedPosts.sort(() => Math.random() - 0.5);
+      const loadedPosts = postFiles.map((post) => ({
+        id: post.id,
+        title: post.title,
+        content: '', // Leave content empty initially
+        bodyContent: '', // Leave bodyContent empty initially
+        userId: post.user_id,
+        userFullName: post.user_full_name || 'Unknown',
+        date: post.created_at,
+      }));
+      loadedPosts.sort(() => Math.random() - 0.5); // Shuffle posts
       posts.value = loadedPosts;
       updateDisplayedPosts();
     };
@@ -128,17 +131,28 @@ export default defineComponent({
       }
     };
 
+    // Fetch and display the content of the post when the user clicks "Read"
     const viewPost = async (post: Post) => {
+      console.log('Post ID:', post.id);
+      
       const { data, error } = await supabase
         .from('blog_post')
         .select('id, user_id, blog_id')
         .eq('id', post.id)
         .single();
 
-      if (error) return;
+      if (error) {
+        console.error('Error fetching post details:', error.message);
+        return;
+      }
 
       const { id, user_id, blog_id } = data;
+      console.log('User ID:', user_id);
+      console.log('Blog ID:', blog_id);
+
       const filePath = `${user_id}/${blog_id}.html`;
+      console.log('Fetching file from path:', filePath);
+      
       const htmlContent = await fetchPostContent(filePath);
       const { title, bodyContent } = extractPostElements(htmlContent);
 

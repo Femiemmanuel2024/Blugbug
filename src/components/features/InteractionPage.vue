@@ -16,8 +16,8 @@
       </div>
       <div class="container">
         <div class="comments-section">
-          <div v-for="(comment, index) in commentDetails" :key="index" class="comment">
-            <p>{{ comment.text }}</p>
+          <div v-for="(comment, index) in formattedCommentDetails" :key="index" class="comment">
+            <p v-html="comment.text"></p> <!-- Render the formatted comment with clickable mentions -->
             <p class="comment-meta">{{ comment.meta }}</p>
           </div>
           <div class="comment-input">
@@ -32,7 +32,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, onMounted } from 'vue';
+import { defineComponent, ref, computed, onMounted } from 'vue';
 import { supabase } from '../supabase';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 
@@ -126,45 +126,28 @@ export default defineComponent({
       }
     };
 
+    // Modified createNotification function without duplicate check
     const createNotification = async (message: string, mentionedUserId: string | null = null) => {
       if (blogOwnerId.value && blogOwnerId.value !== userId.value) {
         const userIdToNotify = mentionedUserId || blogOwnerId.value;
 
-        // Check for existing notification to avoid duplicates
-        const { data: existingNotification, error: existingNotificationError } = await supabase
+        const { error } = await supabase
           .from('notifications')
-          .select('id')
-          .eq('user_id', userIdToNotify)
-          .eq('message', message)
-          .eq('blog_title', blogTitle.value)
-          .single();
+          .insert([
+            {
+              user_id: userIdToNotify,
+              message: message,
+              blog_title: blogTitle.value,
+              read: false,
+              created_at: new Date().toISOString(),
+              displayed: false,
+            },
+          ]);
 
-        if (existingNotificationError && existingNotificationError.code !== 'PGRST116') { // PGRST116 is "No rows returned"
-          console.error('Error checking existing notification:', existingNotificationError.message);
-          return;
-        }
-
-        if (!existingNotification) {
-          const { error } = await supabase
-            .from('notifications')
-            .insert([
-              {
-                user_id: userIdToNotify,
-                message: message,
-                blog_title: blogTitle.value,
-                read: false,
-                created_at: new Date().toISOString(),
-                displayed: false,
-              },
-            ]);
-
-          if (error) {
-            console.error('Error creating notification:', error.message);
-          } else {
-            console.log('Notification created successfully.');
-          }
+        if (error) {
+          console.error('Error creating notification:', error.message);
         } else {
-          console.log('Duplicate notification detected. Notification not created.');
+          console.log('Notification created successfully.');
         }
       }
     };
@@ -364,6 +347,19 @@ export default defineComponent({
       return new Date(dateString).toLocaleTimeString(undefined, options);
     };
 
+    // Function to format the comments and make mentions clickable
+    const formattedCommentDetails = computed(() => {
+      return commentDetails.value.map((comment) => {
+        const formattedText = comment.text.replace(/@(\w+)/g, (match, username) => {
+          return `<router-link to="/profile/${username}" style="color: orange;">${match}</router-link>`;
+        });
+        return {
+          ...comment,
+          text: formattedText,
+        };
+      });
+    });
+
     onMounted(async () => {
       blogId.value = localStorage.getItem('blog_id');
       await fetchUserDetails();
@@ -376,6 +372,7 @@ export default defineComponent({
       isBookmarked,
       comments,
       commentDetails,
+      formattedCommentDetails,
       newComment,
       commentWarning,
       updateLikes,

@@ -35,8 +35,9 @@
             <button
               type="submit"
               :class="['btn', isInvalidLogin ? 'btn-invalid' : 'btn-login']"
+              :disabled="isLoading"
             >
-              {{ isInvalidLogin ? 'Wrong Details' : 'Login' }}
+              {{ isLoading ? 'Logging in...' : isInvalidLogin ? 'Wrong Details' : 'Login' }}
             </button>
           </form>
           <p>
@@ -53,6 +54,7 @@
 import { defineComponent, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { supabase } from './supabase';
+import bcrypt from 'bcryptjs';
 
 export default defineComponent({
   name: 'LoginPage',
@@ -63,16 +65,20 @@ export default defineComponent({
     const passwordFieldType = ref('password');
     const passwordFieldIcon = ref('fas fa-eye');
     const isInvalidLogin = ref(false);
+    const isLoading = ref(false);
 
     const onSubmit = async () => {
+      isLoading.value = true;
+      isInvalidLogin.value = false;
+
       try {
         const { data: user, error } = await supabase
           .from('users')
-          .select('*')
+          .select('id, email, password')
           .or(`email.eq.${username.value},chatter_name.eq.${username.value}`)
           .single();
 
-        if (error || !user || user.password !== password.value) {
+        if (error || !user) {
           isInvalidLogin.value = true;
           setTimeout(() => {
             isInvalidLogin.value = false;
@@ -80,10 +86,26 @@ export default defineComponent({
           return;
         }
 
+        // First, try bcrypt password comparison
+        const passwordMatches = await bcrypt.compare(password.value, user.password);
+
+        if (!passwordMatches) {
+          // If bcrypt comparison fails, check if the password matches as plain text
+          if (password.value !== user.password) {
+            isInvalidLogin.value = true;
+            setTimeout(() => {
+              isInvalidLogin.value = false;
+            }, 2000);
+            return;
+          }
+        }
+
         localStorage.setItem('currentUser', JSON.stringify({ id: user.id, email: user.email }));
         router.push({ path: '/home' });
       } catch (err: any) {
         alert(`Unexpected error: ${err.message}`);
+      } finally {
+        isLoading.value = false;
       }
     };
 
@@ -105,6 +127,7 @@ export default defineComponent({
       onSubmit,
       togglePasswordVisibility,
       isInvalidLogin,
+      isLoading,
     };
   },
 });
@@ -261,8 +284,6 @@ p {
   margin-top: 120px;
   color: #d7c9b7;
 }
-
-
 
 @media (max-width: 430px) {
   .columns-container {

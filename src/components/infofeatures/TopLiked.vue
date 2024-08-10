@@ -10,7 +10,7 @@
         </li>
         <li v-else v-for="(blog, index) in topLikedBlogs" :key="index">
           <span class="title">{{ truncateTitle(blog.title) }}</span>
-          <button @click="readBlog(blog.title)">Read</button>
+          <button @click="readBlog(blog)">Read</button>
         </li>
       </ul>
     </div>
@@ -51,29 +51,13 @@ export default defineComponent({
         return;
       }
 
-      const allBlogs: Blog[] = await Promise.all(
-        data.map(async (post) => {
-          const filePath = `${post.user_id}/${post.blog_id}.html`;
-          const { data: fileData, error: fileError } = await supabase.storage
-            .from('blog-post')
-            .download(filePath);
+      const blogs = data.map((post) => ({
+        title: post.title,
+        likes: post.likes,
+        filePath: `${post.user_id}/${post.blog_id}.html`,
+      }));
 
-          if (fileError) {
-            console.error('Error fetching blog content:', fileError.message);
-            return null;
-          }
-
-          const content = fileData ? await fileData.text() : '';
-          const parser = new DOMParser();
-          const doc = parser.parseFromString(content, 'text/html');
-          const title = doc.querySelector('h1')?.textContent || 'Untitled';
-
-          return { title, likes: post.likes, filePath };
-        })
-      );
-
-      topLikedBlogs.value = allBlogs.filter((blog): blog is Blog => blog !== null);
-
+      topLikedBlogs.value = blogs;
       isLoading.value = false; // End loading animation
     };
 
@@ -81,8 +65,28 @@ export default defineComponent({
       return title.length > 35 ? title.substring(0, 35) + '...' : title;
     };
 
-    const readBlog = (title: string) => {
-      router.push({ name: 'BlugPage', query: { search: title } });
+    const readBlog = async (blog: Blog) => {
+      try {
+        console.log('Attempting to fetch file at path:', blog.filePath);
+        const { data: fileData, error: fileError } = await supabase.storage
+          .from('blog-post')
+          .download(blog.filePath);
+
+        if (fileError) {
+          console.error('Error fetching blog content:', fileError.message);
+          return;
+        }
+
+        const content = fileData ? await fileData.text() : '';
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(content, 'text/html');
+        const title = doc.querySelector('h1')?.textContent || 'Untitled';
+
+        // Assuming you want to display the content in a different page
+        router.push({ name: 'BlugPage', query: { title, content } });
+      } catch (error) {
+        console.error('Exception caught during file fetch:', error.message);
+      }
     };
 
     onMounted(() => {

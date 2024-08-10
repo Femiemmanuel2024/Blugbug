@@ -213,30 +213,62 @@ export default defineComponent({
     const confirmDeactivation = async () => {
       if (!user.value) return;
 
+      // Delete notifications associated with the user
       const { error: deleteNotificationsError } = await supabase
         .from('notifications')
         .delete()
         .eq('user_id', user.value.id);
 
       if (deleteNotificationsError) {
+        console.error('Error deleting notifications:', deleteNotificationsError.message);
         return;
       }
 
+      // Delete blog posts associated with the user
       const { error: deleteBlogPostsError } = await supabase
         .from('blog_post')
         .delete()
         .eq('user_id', user.value.id);
 
       if (deleteBlogPostsError) {
+        console.error('Error deleting blog posts:', deleteBlogPostsError.message);
         return;
       }
 
+      // Remove the user ID from followers_id arrays in the users table
+      const { data: usersWithFollower, error: followersError } = await supabase
+        .from('users')
+        .select('id, followers_id');
+
+      if (followersError) {
+        console.error('Error fetching followers:', followersError.message);
+        return;
+      }
+
+      if (usersWithFollower) {
+        for (const otherUser of usersWithFollower) {
+          const updatedFollowers = otherUser.followers_id?.filter((followerId: string) => followerId !== user.value!.id);
+          
+          const { error: updateError } = await supabase
+            .from('users')
+            .update({ followers_id: updatedFollowers })
+            .eq('id', otherUser.id);
+
+          if (updateError) {
+            console.error('Error updating followers:', updateError.message);
+            return;
+          }
+        }
+      }
+
+      // Delete the user from the users table
       const { error } = await supabase
         .from('users')
         .delete()
         .eq('id', user.value.id);
 
       if (error) {
+        console.error('Error deleting user:', error.message);
         return;
       }
 

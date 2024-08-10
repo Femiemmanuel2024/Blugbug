@@ -85,6 +85,7 @@
 <script lang="ts">
 import { defineComponent, ref } from 'vue';
 import { supabase } from './supabase';
+import bcrypt from 'bcryptjs';
 import SignUpConfirmation from './SignUpConfirmation.vue';
 import TermsModal from './features/TermsAndConditions.vue';
 
@@ -142,12 +143,15 @@ export default defineComponent({
           generateChatterName();
         }
 
+        // Hash the password before storing it in the database
+        const hashedPassword = await bcrypt.hash(password.value, 10);
+
         const { data } = await supabase.from('users').insert([
           {
             full_name: fullName.value,
             chatter_name: chatterName.value,
             email: email.value,
-            password: password.value,
+            password: hashedPassword,
             about_me: aboutMe.value,
             followers: 0,
             following: 0,
@@ -207,6 +211,7 @@ export default defineComponent({
 </script>
 
 <style scoped>
+/* Your existing styles remain unchanged */
 * {
   margin: 0;
   padding: 0;

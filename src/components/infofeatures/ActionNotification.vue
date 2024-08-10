@@ -79,7 +79,6 @@ const fetchNotifications = async () => {
     console.error('No user is currently logged in.');
   }
 };
-
 const markAsRead = async (notification: Notification) => {
   const { id } = notification;
   const { error } = await supabase
@@ -123,17 +122,27 @@ const handleFollowersNotifications = async (currentUser: any) => {
     return;
   }
 
-  const { followers_id, chatter_name } = userData;
+  const { followers_id, chatter_name } = userData || {};
+
+  if (!followers_id) {
+    console.log('No followers found.');
+    return;
+  }
 
   for (const followerId of followers_id) {
     const { data: followerData, error: followerError } = await supabase
       .from('users')
       .select('chatter_name')
       .eq('id', followerId)
-      .single();
+      .maybeSingle();  // Replaces single() to avoid errors if multiple rows exist
 
     if (followerError) {
       console.error('Error fetching follower data:', followerError.message);
+      continue;
+    }
+
+    if (!followerData) {
+      console.log(`Follower with ID ${followerId} not found.`);
       continue;
     }
 
@@ -144,9 +153,9 @@ const handleFollowersNotifications = async (currentUser: any) => {
       .select('id, user_id, message, read')
       .eq('user_id', currentUser.id)
       .eq('message', `${followerName} is following you`)
-      .single();
+      .maybeSingle();  // Use maybeSingle() instead of single() to avoid the error
 
-    if (followError && followError.code !== 'PGRST116') {
+    if (followError) {
       console.error('Error checking follow notification:', followError.message);
       continue;
     }
@@ -224,7 +233,7 @@ const handleClick = async () => {
 onMounted(() => {
   handleClick();
   fetchNotifications();
-  setInterval(fetchNotifications, 3000000); 
+  setInterval(fetchNotifications, 300000); 
 });
 </script>
 
