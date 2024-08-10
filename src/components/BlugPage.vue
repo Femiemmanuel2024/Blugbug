@@ -12,13 +12,16 @@
           </div>
           <div class="top-container">
             <ul class="blog-list">
-              <li class="list-container" v-for="(post, index) in displayedPosts" :key="index" @click="viewPost(post)">
+              <li class="list-container" v-for="(post, index) in displayedPosts" :key="index">
                 <div class="title-row post-title-container">
                   <span class="post-title">{{ post.title }}</span>
                 </div>
-                <div class="read-button-row post-actions">
-                  <button class="read-button">
+                <div class="button-row">
+                  <button class="read-button" @click="viewPost(post)">
                     Read
+                  </button>
+                  <button class="share-button" @click="sharePost(post)">
+                    Share
                   </button>
                 </div>
               </li>
@@ -142,9 +145,32 @@ export default defineComponent({
       selectedPost.value = { ...post, title, bodyContent };
       currentComponentKey.value += 1;
 
+      // Update the URL without reloading the page
+      window.history.pushState({}, '', `/blugpage?postId=${post.id}`);
+
       localStorage.setItem('user_id', user_id);
       localStorage.setItem('blog_id', blog_id);
       localStorage.setItem('id', id);
+    };
+
+    const sharePost = (post: Post) => {
+      const postUrl = `${window.location.origin}/blugpage?postId=${post.id}`;
+
+      if (navigator.share) {
+        navigator.share({
+          title: post.title,
+          url: postUrl
+        }).then(() => {
+          console.log('Thanks for sharing!');
+        }).catch(console.error);
+      } else {
+        // Fallback for browsers that don't support Web Share API
+        navigator.clipboard.writeText(postUrl).then(() => {
+          alert('Link copied to clipboard!');
+        }).catch(err => {
+          console.error('Could not copy text: ', err);
+        });
+      }
     };
 
     const extractPostElements = (htmlContent: string) => {
@@ -188,14 +214,11 @@ export default defineComponent({
 
     onMounted(() => {
       loadPosts().then(() => {
-        const searchParam = route.query.search as string;
-        if (searchParam) {
-          searchQuery.value = searchParam;
-          const postIndex = posts.value.findIndex(
-            (post) => post.title?.toLowerCase() === searchParam.toLowerCase()
-          );
-          if (postIndex !== -1) {
-            viewPost(posts.value[postIndex]);
+        const postId = route.query.postId as string;
+        if (postId) {
+          const post = posts.value.find(post => post.id === parseInt(postId));
+          if (post) {
+            viewPost(post);
           }
         }
       });
@@ -219,6 +242,7 @@ export default defineComponent({
       displayedPosts,
       selectedPost,
       viewPost,
+      sharePost,
       currentComponentKey,
       searchQuery,
       prevPage,
@@ -369,29 +393,37 @@ li:hover {
   line-clamp: 3;
 }
 
-.read-button-row {
+.button-row {
   display: flex;
-  justify-content: center;
-  align-items: center;
   width: 100%;
-  background-color: #fd662f;
-  flex-shrink: 0;
-  cursor: pointer;
-  height: 25%;
 }
 
 .read-button {
-  width: 100%;
+  width: 65%;
   background-color: #fd662f;
   color: white;
   border: none;
-  border-radius: 4px;
+  border-radius: 4px 0 0 4px;
   padding: 10px;
   text-align: center;
 }
 
 .read-button:hover {
   background-color: #e04a2e;
+}
+
+.share-button {
+  width: 35%;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 0 4px 4px 0;
+  padding: 10px;
+  text-align: center;
+}
+
+.share-button:hover {
+  background-color: #0056b3;
 }
 
 .navigation-buttons {
