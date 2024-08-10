@@ -1,8 +1,18 @@
 // cypress/e2e/navbar.spec.js
 
 describe('NavBar Navigation', () => {
+  const email = 'test@gmail.com';
+  const password = 'test';
+
   beforeEach(() => {
-    cy.visit('/home');
+    // Visit the login page and perform login
+    cy.visit('/login');
+    cy.get('input[type="text"]').type(email);
+    cy.get('input[type="password"]').type(password);
+    cy.get('form').submit();
+
+    // Ensure the user is redirected to the home page
+    cy.url().should('include', '/home');
     cy.wait(1000); // Wait for 1 second
   });
 

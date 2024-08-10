@@ -9,7 +9,7 @@ describe('Sign Up Page', () => {
     cy.contains('Create Account').should('be.visible');
   });
 
-  it('should fill out the form and display confirmation modal on submit', () => {
+  it('should fill out the form, check the terms and conditions, and display confirmation modal on submit', () => {
     const timestamp = Date.now();
 
     cy.get('input[placeholder="Full Name"]').type('Test User');
@@ -18,8 +18,13 @@ describe('Sign Up Page', () => {
     cy.get('input[placeholder="Password"]').type('password123');
     cy.get('textarea[placeholder="About Me"]').type('This is a test user.');
 
+    // Check the terms and conditions checkbox
+    cy.get('input[type="checkbox"][id="terms"]').check();
+
+    // Submit the form
     cy.get('form').submit();
 
+    // Ensure the confirmation modal is visible
     cy.get('.confirmation-overlay').should('be.visible');
   });
 
