@@ -57,4 +57,24 @@ This document provides a simple guide on how to set up and run the web applicati
 
 ### Additional Information
 
-For further details on each component's functionality and usage, refer to the component's implementation and the associated Vue.js documentation.
+
+---
+
+**Blugbug** is a web application designed for bloggers who want to share their thoughts, interests, and valuable information while enjoying the interactive feel of social media. With Blugbug, not only can you write and share your blogs (blugs), but you can also engage directly with your readers. Commenting and replying is easy, and you can use the `@` symbol to mention users directly, notifying them that they've been mentioned in a blug.
+
+Blugbug also offers a feature that allows you to follow other bluggers whose content you find interesting. The Blug tab on the homepage keeps you updated with posts from the people you follow. But that’s just the beginning! In your profile settings, you can select up to 5 interests. Once you do, the Blugspot tab on the homepage will start displaying blugs that match your selected interests.
+
+The homepage offers even more features: 
+- A search bar to find users.
+- A "Top Liked" tab to see the most popular blugs on the platform.
+- A "Bookmark" section to save blugs you want to read later.
+- A "Latest Blug" section to keep you updated with the newest posts.
+
+Beyond the homepage:
+- The **MyBlug** tab lets you view, review, or delete your own blugs.
+- The **BlugPage** allows you to browse all blugs on the platform, with an easy-to-use search bar.
+- The **Profile Settings** page is where you can edit your name or bluggername, choose your interests, and much more.
+
+Blugbug is your go-to platform for blogging with a social twist!
+
+---

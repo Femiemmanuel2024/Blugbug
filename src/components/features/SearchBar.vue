@@ -1,7 +1,7 @@
 <template>
   <div class="search-bar-container">
     <div class="input-wrapper">
-      <input class="inputbar" v-model="searchQuery" placeholder="Find a Chatter" @input="searchUsers" />
+      <input class="inputbar" v-model="searchQuery" placeholder="Find a Blugger" @input="searchUsers" />
       <i class="fas fa-search search-icon"></i>
     </div>
     <ul class="results-list" v-if="searchResults.length">

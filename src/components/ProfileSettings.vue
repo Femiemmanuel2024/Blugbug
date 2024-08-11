@@ -15,7 +15,7 @@
           </td>
         </tr>
         <tr>
-          <th>Chatter Name</th>
+          <th>Blugger Name</th>
           <td>
             <input v-if="editing.chatter_name" v-model="user.chatter_name" />
             <span v-else>{{ user.chatter_name }}</span>

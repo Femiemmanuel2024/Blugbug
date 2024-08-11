@@ -21,8 +21,20 @@
             <p class="comment-meta">{{ comment.meta }}</p>
           </div>
           <div class="comment-input">
-            <input v-model="newComment" placeholder="Add a comment" @input="checkCommentLength" />
+            <input
+              v-model="newComment"
+              placeholder="Add a comment"
+              @input="checkCommentLength"
+              @keydown="handleMention"
+              @blur="hideMentionsList"
+            />
             <button @click="postComment" :disabled="newComment.length > 250">Post</button>
+            <!-- Mentions dropdown -->
+            <ul v-if="showMentionsList" class="mentions-list">
+              <li v-for="user in mentionedUsers" :key="user.id" @click="addMention(user.chatter_name)">
+                {{ user.chatter_name }}
+              </li>
+            </ul>
           </div>
           <p v-if="commentWarning" class="warning">{{ commentWarning }}</p>
         </div>
@@ -77,6 +89,9 @@ export default defineComponent({
     const chatterName = ref<string | null>(null);
     const blogOwnerId = ref<string | null>(null);
     const blogTitle = ref<string | null>(null);
+
+    const mentionedUsers = ref<User[]>([]);
+    const showMentionsList = ref(false);
 
     const fetchUserDetails = async () => {
       const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
@@ -329,6 +344,46 @@ export default defineComponent({
       }
     };
 
+    const handleMention = async (event: KeyboardEvent) => {
+      const inputValue = newComment.value;
+      const cursorPosition = (event.target as HTMLInputElement).selectionStart || 0;
+
+      const lastAtPosition = inputValue.lastIndexOf('@', cursorPosition - 1);
+
+      if (lastAtPosition !== -1) {
+        const searchQuery = inputValue.slice(lastAtPosition + 1, cursorPosition).trim();
+        if (searchQuery) {
+          const { data, error } = await supabase
+            .from<User>('users')
+            .select('id, chatter_name')
+            .ilike('chatter_name', `${searchQuery}%`);
+
+          if (error) {
+            console.error('Error fetching mentioned users:', error.message);
+            return;
+          }
+
+          mentionedUsers.value = data || [];
+          showMentionsList.value = mentionedUsers.value.length > 0;
+        }
+      } else {
+        showMentionsList.value = false;
+      }
+    };
+
+    const addMention = (chatterName: string) => {
+      const cursorPosition = (document.querySelector('.comment-input input') as HTMLInputElement).selectionStart || 0;
+      const newValue = newComment.value.slice(0, cursorPosition).replace(/@\w*$/, `@${chatterName}`) + newComment.value.slice(cursorPosition);
+      newComment.value = newValue + ' ';
+      showMentionsList.value = false;
+    };
+
+    const hideMentionsList = () => {
+      setTimeout(() => {
+        showMentionsList.value = false;
+      }, 100);
+    };
+
     const formatDate = (dateString: string) => {
       const options: Intl.DateTimeFormatOptions = {
         year: 'numeric',
@@ -379,6 +434,11 @@ export default defineComponent({
       updateBookmark,
       postComment,
       checkCommentLength,
+      handleMention,
+      mentionedUsers,
+      showMentionsList,
+      addMention,
+      hideMentionsList,
       formatDate,
       formatTime,
     };
@@ -424,6 +484,7 @@ export default defineComponent({
   align-items: center;
   gap: 10px;
   margin-top: 20px;
+  position: relative;
 }
 
 input {
@@ -493,6 +554,29 @@ button.post:disabled {
 .likescounter{
   font-weight: bold;
   color: #cebfad;
+}
+
+.mentions-list {
+  position: absolute;
+  bottom: 100%;
+  left: 0;
+  right: 0;
+  background: #333;
+  border-radius: 5px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  max-height: 150px;
+  overflow-y: auto;
+  z-index: 9000;
+}
+
+.mentions-list li {
+  padding: 8px 12px;
+  cursor: pointer;
+  color: #cebfad;
+}
+
+.mentions-list li:hover {
+  background: #fd662f;
 }
 
 @media (max-width: 430px) {
