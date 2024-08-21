@@ -21,8 +21,13 @@ jobs:
         with:
           node-version: '20.10.0'
 
+      - name: Set environment variables
+        run: |
+          echo "SUPABASE_URL=${{ secrets.SUPABASE_URL }}" >> $GITHUB_ENV
+          echo "SUPABASE_KEY=${{ secrets.SUPABASE_KEY }}" >> $GITHUB_ENV
+
       - name: Install dependencies
         run: npm install
 
       - name: Run unit tests
-        run: npm run test:unit 
+        run: npm run test:unit
