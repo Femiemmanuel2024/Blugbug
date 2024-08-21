@@ -19,18 +19,23 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v2
         with:
-          node-version: '20.10.0'  # Specify your Node.js version
+          node-version: '20.10.0'  # Your Node.js version
 
       - name: Install dependencies
         run: npm install
 
+      - name: Set up environment variables
+        run: echo "VITE_SUPABASE_URL=$SUPABASE_URL" >> $GITHUB_ENV
+        run: echo "VITE_SUPABASE_KEY=$SUPABASE_KEY" >> $GITHUB_ENV
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+
       - name: Start server
         run: npm run dev &
         env:
-          CYPRESS_BASE_URL: http://localhost:5173
-
-      - name: Wait for server to start
-        run: sleep 15  # Adjust the time based on how long your server typically takes to start
+          VITE_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          VITE_SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
 
       - name: Run Cypress tests
         run: npx cypress run
