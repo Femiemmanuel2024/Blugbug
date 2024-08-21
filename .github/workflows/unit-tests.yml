@@ -19,10 +19,10 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v2
         with:
-          node-version: '14' # Specify your Node.js version here
+          node-version: '20.10.0'
 
       - name: Install dependencies
         run: npm install
 
       - name: Run unit tests
-        run: npm run test:unit # Adjust this if your unit test command is different
+        run: npm run test:unit 
