@@ -41,6 +41,13 @@
         <button @click="triggerImageUpload">
           <i class="fas fa-image"></i>
         </button>
+
+        <!-- Image Resize Buttons (Initially Hidden) -->
+        <div v-if="selectedImage" class="image-resize-buttons">
+          <button @click="resizeImage('small')">Small</button>
+          <button @click="resizeImage('medium')">Medium</button>
+          <button @click="resizeImage('large')">Large</button>
+        </div>
       </div>
     </div>
   </div>
@@ -352,6 +359,46 @@ export default defineComponent({
       });
     };
 
+    const resizeImage = (size: 'small' | 'medium' | 'large') => {
+      if (!selectedImage.value) return;
+
+      const aspectRatio = selectedImage.value.naturalWidth / selectedImage.value.naturalHeight;
+
+      let newWidth;
+      switch (size) {
+        case 'small':
+          newWidth = 200;
+          break;
+        case 'medium':
+          newWidth = 500;
+          break;
+        case 'large':
+          newWidth = 1000;
+          break;
+        default:
+          newWidth = selectedImage.value.naturalWidth;
+      }
+
+      const newHeight = newWidth / aspectRatio;
+
+      selectedImage.value.style.width = `${newWidth}px`;
+      selectedImage.value.style.height = `${newHeight}px`;
+
+      // Update the image in the editor
+      const transaction = editor.value?.state.tr.setNodeMarkup(
+        editor.value.state.selection.anchor,
+        null,
+        {
+          src: selectedImage.value.src,
+          width: newWidth,
+        }
+      );
+
+      if (transaction) {
+        editor.value?.view.dispatch(transaction);
+      }
+    };
+
     return {
       editorContainer,
       toggleBold,
@@ -368,6 +415,8 @@ export default defineComponent({
       triggerImageUpload,
       uploadImage,
       handleEditorClick,
+      resizeImage,
+      selectedImage, // Export the selected image ref for reactivity
     };
   },
 });
@@ -384,8 +433,6 @@ export default defineComponent({
   border-radius: 4px;
   caret-color: red;
 }
-
-
 
 .toolbar-container {
   display: flex;
@@ -422,7 +469,22 @@ export default defineComponent({
   display: inline-block;
 }
 
+.image-resize-buttons {
+  display: flex;
+  gap: 5px;
+}
 
+.image-resize-buttons button {
+  background: none;
+  border: none;
+  padding: 5px 10px;
+  cursor: pointer;
+  color: white;
+}
+
+.image-resize-buttons button:hover {
+  color: orange;
+}
 
 ::v-deep .tiptap {
   background-color: rgb(255, 255, 255);
@@ -431,7 +493,6 @@ export default defineComponent({
   border: none;
   text-align: left;
   overflow: scroll;
-  
 }
 
 @media (max-width: 400px) {

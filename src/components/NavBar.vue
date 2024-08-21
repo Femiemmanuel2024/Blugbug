@@ -32,7 +32,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, onMounted } from 'vue';
+import { defineComponent } from 'vue';
 import { useRouter } from 'vue-router';
 import ActionNotification from './infofeatures/ActionNotification.vue';
 
@@ -44,23 +44,9 @@ export default defineComponent({
   setup(_, { emit }) {
     const router = useRouter();
 
-    const isUserLoggedIn = (): boolean => {
-      const currentUser = localStorage.getItem('currentUser');
-      return currentUser !== null;
-    };
-
     const navigate = async (path: string, event: MouseEvent) => {
       event.preventDefault();
-
-      const publicPaths = ['/BlugPage'];
-
-      if (publicPaths.includes(path) || isUserLoggedIn()) {
-        router.push(path);
-      } else if (['/home', '/MyBlug', '/settings'].includes(path)) {
-        router.push('/login');
-      } else {
-        router.push('/404');
-      }
+      router.push(path);
     };
 
     const logout = () => {
@@ -76,12 +62,6 @@ export default defineComponent({
         icon.classList.remove('animate');
       }, 300);
     };
-
-    onMounted(() => {
-      if (!isUserLoggedIn() && !['/BlugPage'].includes(router.currentRoute.value.path)) {
-        router.push('/login');
-      }
-    });
 
     return {
       logout,
