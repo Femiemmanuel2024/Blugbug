@@ -336,6 +336,7 @@ h3 {
 
   .right-column {
     margin-top: 19px;
+    height: 100%;
   }
 }
 

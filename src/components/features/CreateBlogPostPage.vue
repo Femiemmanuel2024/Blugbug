@@ -1,5 +1,6 @@
 <template>
   <div class="create-blog-post-page">
+  <NavBar/>
     <div class="content-container">
       <input v-model="title" placeholder="Enter the title" class="title-input" />
       <TiptapEditor ref="tiptapEditor" @updateContent="updateContent" />
@@ -27,11 +28,13 @@ import { defineComponent, ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import TiptapEditor from '../TiptapEditor.vue';
 import { supabase } from '../supabase';
+import NavBar from '../NavBar.vue';
 import { v4 as uuidv4 } from 'uuid';
 
 export default defineComponent({
   name: 'CreateBlogPostPage',
   components: {
+    NavBar,
     TiptapEditor,
   },
   setup() {
@@ -209,8 +212,9 @@ export default defineComponent({
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 100vh;
+  height: 100%;
   background-color: #1e1e1e;
+  margin-top: 70px;
 }
 
 .content-container {
@@ -218,8 +222,9 @@ export default defineComponent({
   color: white;
   padding: 20px;
   border-radius: 10px;
-  width: 800px;
+  width: 100%;
   text-align: center;
+  height: fit-content;
 }
 
 .title-input {
@@ -277,4 +282,49 @@ button {
 button:hover {
   background-color: #e04a2e;
 }
+
+/* CSS for iPad screen size */
+@media screen and (min-width: 768px) and (max-width: 1024px) {
+  /* Add styles for iPad screen size here */
+}
+
+/* CSS for phone screen size */
+@media screen and (max-width: 767px) {
+  .create-blog-post-page {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  background-color: #1e1e1e;
+  margin-top: 160px;
+}
+
+.content-container {
+  background-color: #333;
+  color: white;
+  padding: 20px;
+  border-radius: 10px;
+  width: 100%;
+  text-align: center;
+  height: fit-content;
+}
+.category-selection select {
+  width: 100%;
+  padding: 10px;
+  font-size: 16px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+}
+
+.category-selection option {
+  padding: 10px;
+  font-size: 12px;
+  background-color: #333;
+  color: white;
+  width: 100%;
+  height: fit-content;
+}
+  /* Add styles for phone screen size here */
+}
+
 </style>

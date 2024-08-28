@@ -287,4 +287,20 @@ button {
 button:hover {
   background-color: darkred;
 }
+
+
+/* CSS for iPad screen size */
+@media screen and (min-width: 768px) and (max-width: 1024px) {
+  /* Add styles for iPad screen size here */
+}
+
+/* CSS for phone screen size */
+@media screen and (max-width: 767px) {
+  .admin-manager-page {
+  padding: 20px;
+  margin-top: 170px;
+  width: 100%;
+}
+  /* Add styles for phone screen size here */
+}
 </style>

@@ -280,7 +280,7 @@ export default defineComponent({
     };
 
     const formatReplyText = (text: string) => {
-      return text.replace(/@(\w+)/g, '<span style="color: lightgreen;">@$1</span>');
+      return text.replace(/@(\w+)/g, '<span style="color: black;">@$1</span>');
     };
 
     const goBack = () => {
@@ -381,32 +381,34 @@ export default defineComponent({
 .reply {
   background-color: #f0f0f0;
   padding: 1px 10px 1px 10px;
-  border-radius: 5px;
   margin-bottom: 10px;
   width: 100%;
   color: white;
   font-size: 18px;
-  font-weight: bold;
+  
 }
 
 .user-reply {
   text-align: left;
-  width: 90%;
-  background-color: #DCF8C6;
-  color: black;
+  width: 80%;
+  background-color: #1DA1F2;
+  color: rgb(0, 0, 0);
+  border-radius: 5px 5px 5px 0px;
+  margin-left: auto;
 }
 
 .other-reply {
+  margin-right: auto;
   text-align: right;
-  width: 90%;
-  margin-left: auto;
-  background-color: #e04a2e;
-  color: black;
+  width: 80%;
+  background-color: #FD662F;
+  color: rgb(255, 255, 255);
+  border-radius: 5px 5px 0px 5px;
 }
 
 .reply-meta {
   font-size: 12px;
-  color: rgb(0, 0, 0);
+  color: rgb(255, 255, 255);
   margin-top: 2px;
 }
 

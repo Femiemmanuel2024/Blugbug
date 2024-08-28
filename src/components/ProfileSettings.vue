@@ -662,4 +662,65 @@ button:hover {
   cursor: pointer;
   color: white;
 }
+
+
+/* CSS for iPad screen size */
+@media screen and (min-width: 768px) and (max-width: 1024px) {
+  /* Add styles for iPad screen size here */
+}
+
+/* CSS for phone screen size */
+@media screen and (max-width: 767px) {
+  .profile-settings {
+  height: 100vh;
+  padding-right: 2px;
+  padding-left: 2px;
+  padding-top: 160px;
+}
+
+.content {
+  background-color: #1e2127;
+  padding: 20px 0px 20px 0px;
+  width: 100%;
+  max-width: 100%;
+  min-height: 100vh;
+}
+
+.category-buttons button {
+  background-color: #2b3138;
+  color: #cebfad;
+  border: none;
+  border-radius: 4px;
+  padding: 5px 10px;
+  cursor: pointer;
+  width: 100%;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  position: relative;
+}
+
+.deactivate-button{
+  width: 100%;
+}
+
+.accept-button {
+  margin-top: 10px;
+  width: 100%;
+  margin-bottom: 10px;
+}
+
+.selected-categories input {
+  background-color: #2b3138;
+  color: #cebfad;
+  border: none;
+  border-radius: 4px;
+  padding: 5px;
+  margin-right: 5px;
+  width: 100%;
+  margin-bottom: 10px;
+  border-bottom: 1px solid #cebfad;
+}
+  /* Add styles for phone screen size here */
+}
 </style>

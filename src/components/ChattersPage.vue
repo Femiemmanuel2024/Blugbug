@@ -427,7 +427,12 @@ h2 {
     order: 2;
     width: 90%;
     padding-right: 20px;
+    padding-left: 20px;
   }
+
+  .right-column.expanded {
+  width: 90%;
+}
 
   ul {
     display: block;

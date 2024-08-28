@@ -80,8 +80,8 @@ export default defineComponent({
 }
 
 .top-liked-row {
-  height: 200px;
-  max-height: 200px;
+  
+  height: 100%;
 }
 
 /* Custom scrollbar for WebKit browsers (Chrome, Safari) */
