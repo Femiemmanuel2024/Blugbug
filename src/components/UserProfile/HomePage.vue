@@ -214,7 +214,9 @@ h3 {
   padding: 10px;
 }
 
-@media (max-width: 480px) {
+
+
+@media (max-width: 380px) {
   .new-user-page {
     padding-right: 1px;
     padding-left: 1px;
@@ -248,6 +250,64 @@ h3 {
     right: -100%;
     margin-top: 100px;
     margin-right: 1px;
+    height: 480px;
+  }
+
+  .right-column-visible {
+    right: 0;
+  }
+
+  .toggle-button {
+    display: flex;
+    position: fixed;
+    top: 49px;
+    right: 35px;
+    font-size: 30px;
+    cursor: pointer;
+    z-index: 10000;
+    align-items: center;
+    justify-content: center;
+    background-color: transparent;
+    border: none;
+    color: #f53;
+  }
+}
+
+@media (min-width: 380px) and (max-width: 480px) {
+  .new-user-page {
+    padding-right: 1px;
+    padding-left: 1px;
+    margin-top: 100px;
+  }
+
+  .content {
+    flex-direction: column;
+  }
+
+  .left-column,
+  .right-column {
+    width: 100%;
+    overflow-y: auto;
+    height: auto;
+  }
+
+  .navbar {
+    max-width: 100%;
+  }
+
+  .feed-container {
+    padding: 0px;
+    border: solid 5px #0c1118;
+    padding-right: 10px;
+    padding-left: 10px;
+  }
+
+  .right-column {
+    width: 100%;
+    right: -100%;
+    margin-top: 100px;
+    margin-right: 1px;
+    height: 680px;
   }
 
   .right-column-visible {
