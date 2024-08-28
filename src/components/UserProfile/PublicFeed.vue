@@ -11,7 +11,7 @@
                 <div class="post-meta">by {{ post.userFullName }} on {{ formatDateTime(post.date) }}</div>
                 <div class="post-actions">
                   <span class="action-item">Likes: {{ post.likes }}</span>
-                  <button @click="readPost(post.title ?? '')" class="action-item">Read</button>
+                  <button @click="readPost(post.blogId)" class="action-item">Read</button>
                 </div>
                 <div v-if="selectedPost && selectedPost.id === post.id" class="post-content" v-html="selectedPost.bodyContent"></div>
               </li>
@@ -44,6 +44,7 @@ interface Post {
   date: string;
   likes: number;
   bookmarked_by: string[];
+  blogId: string;  // Added blogId for navigation
 }
 
 export default defineComponent({
@@ -58,7 +59,7 @@ export default defineComponent({
     const fetchBlogPosts = async (userId: string) => {
       const { data, error } = await supabase
         .from('blog_post')
-        .select('id, title, likes, user_id, created_at')
+        .select('id, title, likes, user_id, created_at, blog_id')
         .eq('user_id', userId);
 
       if (error) {
@@ -69,55 +70,21 @@ export default defineComponent({
       return data || [];
     };
 
-    const fetchPostContent = async (filePath: string) => {
-      const { data, error } = await supabase.storage
-        .from('blog-post')
-        .download(filePath);
-
-      if (error) {
-        console.error('Error fetching post content:', error.message);
-        return '';
-      }
-
-      return data ? await data.text() : '';
-    };
-
-    const extractPostElements = (htmlContent: string) => {
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(htmlContent, 'text/html');
-      const h1Element = doc.querySelector('h1');
-      const bodyContent = Array.from(doc.body.children)
-        .filter((child) => child.tagName !== 'H1')
-        .map((child) => child.outerHTML)
-        .join('');
-      return {
-        title: h1Element ? h1Element.textContent : 'Untitled',
-        content: htmlContent,
-        bodyContent,
-      };
-    };
-
     const loadPosts = async () => {
       const blogPosts = await fetchBlogPosts(userId.value);
 
-      const loadedPosts = await Promise.all(
-        blogPosts.map(async (post) => {
-          const filePath = `${userId.value}/${post.id}.html`;
-          const htmlContent = await fetchPostContent(filePath);
-          const { title, content, bodyContent } = extractPostElements(htmlContent);
-          return {
-            id: post.id,
-            title: post.title ?? 'Untitled',
-            content,
-            bodyContent,
-            userId: userId.value,
-            userFullName: 'Unknown',
-            date: post.created_at,
-            likes: post.likes,
-            bookmarked_by: [],
-          };
-        })
-      );
+      const loadedPosts = blogPosts.map((post) => ({
+        id: post.id,
+        title: post.title ?? 'Untitled',
+        content: '',
+        bodyContent: '',  // No need to fetch or display content here
+        userId: userId.value,
+        userFullName: 'Unknown',
+        date: post.created_at,
+        likes: post.likes,
+        bookmarked_by: [],
+        blogId: post.blog_id,  // Added blogId for navigation
+      }));
 
       posts.value = loadedPosts;
     };
@@ -126,8 +93,8 @@ export default defineComponent({
       selectedPost.value = posts.value[index];
     };
 
-    const readPost = (title: string) => {
-      router.push({ name: 'BlugPage', query: { search: title } });
+    const readPost = (blogId: string) => {
+      router.push({ name: 'BlugReader', query: { blogId } });
     };
 
     const formatDateTime = (dateTime: string) => {

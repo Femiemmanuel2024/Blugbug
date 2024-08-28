@@ -1,5 +1,5 @@
 <template>
-  <div class="notification-container">
+  <div class="notification-container" v-if="isLoggedIn">
     <button @click="toggleNotifications" class="notification-icon">
       <div class="icon-wrapper">
         <i class="fas fa-bell"></i>
@@ -8,12 +8,13 @@
       <span class="notification-label">Alerts</span>
     </button>
     <div v-if="showNotifications" class="notification-list">
+      <div class="notification-controls">
+        <button @click="checkForNotifications">Check for Notifications</button>
+        <button @click="deleteAllNotifications">Delete All Notifications</button>
+      </div>
       <ul>
         <li v-for="notification in notifications" :key="notification.id">
-          <span
-            @click="markAsRead(notification)"
-            class="notification-message link"
-          >
+          <span @click="markAsRead(notification)" class="notification-message link">
             {{ notification.message }}
           </span>
         </li>
@@ -35,7 +36,11 @@ interface Notification {
   read: boolean;
   created_at: string;
   user_id: string;
+  blog_id?: string;  // Ensure blog_id is included in the notification interface
   blog_title?: string;
+  not_identifier?: string;
+  comment_main?: string;  // Added comment_main
+  commented_by?: string;  // Added commented_by
 }
 
 const notifications = ref<Notification[]>([]);
@@ -43,6 +48,7 @@ const showNotifications = ref(false);
 const unreadCount = ref(0);
 const router = useRouter();
 const notificationAudio = ref<HTMLAudioElement | null>(null);
+const isLoggedIn = ref(false); // State to check if user is logged in
 
 const playNotificationSound = () => {
   if (notificationAudio.value) {
@@ -55,7 +61,7 @@ const fetchNotifications = async () => {
   if (currentUser.id) {
     const { data, error } = await supabase
       .from('notifications')
-      .select('id, user_id, message, read, blog_title')
+      .select('id, user_id, message, read, blog_id, blog_title, not_identifier, comment_main, commented_by')  // Fetch blog_id
       .eq('user_id', currentUser.id)
       .eq('read', false)
       .order('created_at', { ascending: false });
@@ -72,13 +78,11 @@ const fetchNotifications = async () => {
     if (unreadCount.value > 0) {
       playNotificationSound();
     }
-
-    // Log the fetched data
-    console.log('Fetched Notifications:', notifications.value);
   } else {
     console.error('No user is currently logged in.');
   }
 };
+
 const markAsRead = async (notification: Notification) => {
   const { id } = notification;
   const { error } = await supabase
@@ -94,97 +98,71 @@ const markAsRead = async (notification: Notification) => {
   notifications.value = notifications.value.filter((n) => n.id !== id);
   unreadCount.value = notifications.value.length;
 
-  // Navigate to BlugPage with the search query
-  if (notification.message === 'Welcome to Blugbug') {
-    router.push({ name: 'BlugPage', query: { search: 'Welcome to Blugbug' } });
+  // Check the not_identifier and navigate accordingly
+  if (notification.not_identifier === 'MENTION') {
+    handleMentionNotification(notification);  // Call new function for MENTION notifications
+  } else if (notification.not_identifier === 'REPLY') {
+    // Navigate to ReplyPage with required details
+    router.push({
+      name: 'ReplyPage',
+      query: {
+        commentMain: notification.comment_main,
+        commentedBy: notification.commented_by,
+        loggedInUser: notification.user_id,
+      },
+    });
   } else if (notification.blog_title) {
     router.push({ name: 'BlugPage', query: { search: notification.blog_title } });
+  }
+};
+
+const handleMentionNotification = (notification: Notification) => {
+  if (notification.blog_id) {
+    // Save blog_id to local storage
+    localStorage.setItem('blog_id', notification.blog_id);
+    // Route to BlugReader.vue with blog_id as a query parameter
+    router.push({ name: 'BlugReader', query: { blogId: notification.blog_id } });
   }
 };
 
 const toggleNotifications = () => {
   showNotifications.value = !showNotifications.value;
   if (showNotifications.value) {
-    fetchNotifications();
-    playNotificationSound(); // Play sound when the icon is clicked and notifications are shown
+    fetchNotifications(); // Fetch only when notifications are toggled on
+    playNotificationSound();
   }
 };
 
-const handleFollowersNotifications = async (currentUser: any) => {
-  const { data: userData, error: userError } = await supabase
-    .from('users')
-    .select('followers_id, chatter_name')
-    .eq('id', currentUser.id)
-    .single();
-
-  if (userError) {
-    console.error('Error fetching user data:', userError.message);
+const deleteAllNotifications = async () => {
+  const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+  if (!currentUser.id) {
+    console.error('No user is currently logged in.');
     return;
   }
 
-  const { followers_id, chatter_name } = userData || {};
+  const { error } = await supabase
+    .from('notifications')
+    .delete()
+    .eq('user_id', currentUser.id);
 
-  if (!followers_id) {
-    console.log('No followers found.');
+  if (error) {
+    console.error('Error deleting all notifications:', error.message);
     return;
   }
 
-  for (const followerId of followers_id) {
-    const { data: followerData, error: followerError } = await supabase
-      .from('users')
-      .select('chatter_name')
-      .eq('id', followerId)
-      .maybeSingle();  // Replaces single() to avoid errors if multiple rows exist
+  notifications.value = [];
+  unreadCount.value = 0;
+  console.log('All notifications deleted successfully.');
+};
 
-    if (followerError) {
-      console.error('Error fetching follower data:', followerError.message);
-      continue;
-    }
-
-    if (!followerData) {
-      console.log(`Follower with ID ${followerId} not found.`);
-      continue;
-    }
-
-    const followerName = followerData.chatter_name;
-
-    const { data: followNotification, error: followError } = await supabase
-      .from('notifications')
-      .select('id, user_id, message, read')
-      .eq('user_id', currentUser.id)
-      .eq('message', `${followerName} is following you`)
-      .maybeSingle();  // Use maybeSingle() instead of single() to avoid the error
-
-    if (followError) {
-      console.error('Error checking follow notification:', followError.message);
-      continue;
-    }
-
-    if (!followNotification) {
-      const { error: insertFollowError } = await supabase
-        .from('notifications')
-        .insert([
-          {
-            user_id: currentUser.id,
-            message: `${followerName} is following you`,
-            read: false,
-            created_at: new Date().toISOString(),
-          },
-        ]);
-
-      if (insertFollowError) {
-        console.error('Error creating follow notification:', insertFollowError.message);
-      } else {
-        console.log(`Follow notification for ${followerName} created successfully.`);
-      }
-    }
-  }
+const checkForNotifications = () => {
+  fetchNotifications();
 };
 
 const handleClick = async () => {
   const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
   if (currentUser.id) {
-    // Check for the welcome notification
+    isLoggedIn.value = true; // User is logged in
     const { data: welcomeData, error: welcomeError } = await supabase
       .from('notifications')
       .select('id, user_id, message, read')
@@ -216,24 +194,17 @@ const handleClick = async () => {
           console.log('Welcome notification created successfully.');
         }
       }
-    } else {
-      console.log('Welcome notification already sent and read.');
     }
 
-    // Handle followers notifications
-    await handleFollowersNotifications(currentUser);
-
-    // Fetch notifications to display
-    fetchNotifications();
+    fetchNotifications(); // Fetch notifications on login
   } else {
     console.error('No user is currently logged in.');
+    isLoggedIn.value = false; // User is not logged in
   }
 };
 
 onMounted(() => {
-  handleClick();
-  fetchNotifications();
-  setInterval(fetchNotifications, 300000); 
+  handleClick(); // Fetch notifications on login
 });
 </script>
 
@@ -304,6 +275,14 @@ onMounted(() => {
   opacity: 0.9;
 }
 
+.notification-controls {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px;
+  background-color: #333;
+  border-bottom: 1px solid #444;
+}
+
 .notification-list ul {
   list-style-type: none;
   padding: 0;
@@ -339,32 +318,17 @@ onMounted(() => {
   .notification-icon {
     font-size: 30px;
   }
-
-  /* .unread-count {
-    top: -5px;
-    right: 0;
-  } */
 }
 
-@media (max-width:1024px){
+@media (max-width: 1024px) {
   .notification-label {
     display: none;
   }
-
-  /* .unread-count {
-    top: -5px;
-    right: 2px;
-  } */
 }
 
 @media (max-width: 430px) {
   .notification-list {
     left: -139px;
   }
-
-  /* .unread-count {
-    top: -5px;
-    right: 20px;
-  } */
 }
 </style>

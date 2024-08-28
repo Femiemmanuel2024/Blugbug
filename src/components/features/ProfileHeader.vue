@@ -13,7 +13,8 @@
           <i class="fas fa-camera"></i>
         </label>
       </div>
-      <button class="create-post-button" @click="showCreatePostModal">Create Blug</button>
+      <!-- Update the button to navigate to CreateBlogPostPage -->
+      <button class="create-post-button" @click="navigateToCreateBlogPostPage">Create Blug</button>
     </div>
     <div class="name-container">
       <div class="name-wrapper">
@@ -29,20 +30,19 @@
       <p>
         <strong>{{ formatCount(totalLikes) }}</strong> Likes
         <strong>{{ formatCount(totalBookmarks) }}</strong> Bookmarks
-        <strong>{{ user.following }}</strong> Following
-        <strong>{{ user.followers }}</strong> Followers
+        <button class="followers-button" @click="navigateToFollowing">{{ user.following }} Following</button>
+        <button class="followers-button" @click="navigateToFollowers">{{ user.followers }} Followers</button>
       </p>
     </div>
     <FileUpload v-if="showFileUpload" :type="uploadType" @uploadComplete="fetchUserData" @close="closeFileUploadModal" />
-    <CreateBlogPost v-if="showCreatePost" :isModalVisible="showCreatePost" @closeModal="hideCreatePostModal" />
   </div>
 </template>
 
 <script lang="ts">
 import { defineComponent, ref, watch } from 'vue';
+import { useRouter } from 'vue-router';
 import { supabase } from '../supabase';
 import FileUpload from '../features/FileUpload.vue';
-import CreateBlogPost from './CreateBlogPost.vue';
 
 interface User {
   fullName: string;
@@ -60,7 +60,6 @@ export default defineComponent({
   name: 'ProfileHeader',
   components: {
     FileUpload,
-    CreateBlogPost,
   },
   props: {
     userId: {
@@ -73,6 +72,8 @@ export default defineComponent({
     },
   },
   setup(props) {
+    const router = useRouter(); // Initialize router instance
+
     const user = ref<User>({
       fullName: 'Default Name',
       chatterName: '',
@@ -87,7 +88,6 @@ export default defineComponent({
     const totalLikes = ref(0);
     const totalBookmarks = ref(0);
     const showFileUpload = ref(false);
-    const showCreatePost = ref(false);
     const uploadType = ref<'profile' | 'header' | 'checkmark'>('profile');
     const profilePicture = ref<string>('/Default_pfp.svg');
     const headerImage = ref<string>('/Default_Header.svg');
@@ -163,12 +163,9 @@ export default defineComponent({
       showFileUpload.value = false;
     };
 
-    const showCreatePostModal = () => {
-      showCreatePost.value = true;
-    };
-
-    const hideCreatePostModal = () => {
-      showCreatePost.value = false;
+    // Function to navigate to CreateBlogPostPage
+    const navigateToCreateBlogPostPage = () => {
+      router.push({ name: 'CreateBlogPostPage' });
     };
 
     const formatCount = (count: number) => {
@@ -181,69 +178,12 @@ export default defineComponent({
       }
     };
 
-    const uploadImage = async (event: Event) => {
-      const target = event.target as HTMLInputElement;
-      const file = target.files?.[0];
-      if (file) {
-        try {
-          const resizedImageBlob = await resizeImageFile(file, window.innerWidth * 0.75, 'image/webp');
-          const path = `public/${props.userId}/${uploadType.value}.webp`;
-
-          const { data, error } = await supabase.storage
-            .from('your-bucket')
-            .upload(path, resizedImageBlob, {
-              cacheControl: '3600',
-              upsert: true,
-              contentType: 'image/webp',
-            });
-
-          if (error) {
-            console.error('Error uploading image:', error.message);
-            return;
-          }
-
-          const publicUrl = supabase.storage.from('your-bucket').getPublicUrl(path).publicURL;
-
-          if (uploadType.value === 'profile') {
-            profilePicture.value = publicUrl;
-            await supabase.from('users').update({ profile_image_url: publicUrl }).eq('id', props.userId);
-          } else if (uploadType.value === 'header') {
-            headerImage.value = publicUrl;
-            await supabase.from('users').update({ header_image_url: publicUrl }).eq('id', props.userId);
-          }
-
-          fetchUserData();
-        } catch (error) {
-          console.error('Image processing failed:', error);
-        }
-      }
+    const navigateToFollowers = () => {
+      router.push({ path: '/connections', query: { tab: 'followers' } });
     };
 
-    const resizeImageFile = (file: File, maxWidth: number, outputFormat: string): Promise<Blob> => {
-      return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          const img = document.createElement('img');
-          img.src = e.target?.result as string;
-          img.onload = () => {
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d')!;
-            const ratio = img.width / img.height;
-            canvas.width = Math.min(maxWidth, img.width);
-            canvas.height = canvas.width / ratio;
-            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-            canvas.toBlob((blob) => {
-              if (blob) {
-                resolve(blob);
-              } else {
-                reject(new Error('Blob creation failed'));
-              }
-            }, outputFormat);
-          };
-        };
-        reader.onerror = () => reject(new Error('File reading failed'));
-        reader.readAsDataURL(file);
-      });
+    const navigateToFollowing = () => {
+      router.push({ path: '/connections', query: { tab: 'following' } });
     };
 
     watch(() => props.userId, fetchUserData, { immediate: true });
@@ -252,10 +192,8 @@ export default defineComponent({
       user,
       showFileUploadModal,
       closeFileUploadModal,
-      showCreatePostModal,
-      hideCreatePostModal,
+      navigateToCreateBlogPostPage, // Return the function for button click
       showFileUpload,
-      showCreatePost,
       uploadType,
       fetchUserData,
       profilePicture,
@@ -264,7 +202,8 @@ export default defineComponent({
       totalLikes,
       totalBookmarks,
       formatCount,
-      uploadImage,
+      navigateToFollowers,
+      navigateToFollowing,
     };
   },
 });
@@ -406,6 +345,20 @@ export default defineComponent({
   font-size: 14px;
 }
 
+.followers-button {
+  background-color: transparent;
+  border: none;
+  color: #cebfad;
+  font-size: 14px;
+  cursor: pointer;
+  padding: 0;
+  margin-left: 5px;
+}
+
+.followers-button:hover {
+  text-decoration: underline;
+}
+
 .checkmark-icon-circle {
   width: 20px;
   height: 20px;
@@ -432,7 +385,7 @@ export default defineComponent({
   .profile-info-container {
     flex-direction: row;
     align-items: center;
-    margin-top:-80px ;
+    margin-top: -80px;
   }
 
   .create-post-button {

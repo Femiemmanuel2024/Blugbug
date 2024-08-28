@@ -10,7 +10,7 @@
         </li>
         <li v-else v-for="(blog, index) in topLikedBlogs" :key="index">
           <span class="title">{{ truncateTitle(blog.title) }}</span>
-          <button @click="readBlog(blog)">Read</button>
+          <button @click="readBlog(blog.blogId)">Read</button>
         </li>
       </ul>
     </div>
@@ -25,7 +25,7 @@ import { useRouter } from 'vue-router';
 interface Blog {
   title: string;
   likes: number;
-  filePath: string;
+  blogId: string; // Updated to use blogId for navigation
 }
 
 export default defineComponent({
@@ -54,7 +54,7 @@ export default defineComponent({
       const blogs = data.map((post) => ({
         title: post.title,
         likes: post.likes,
-        filePath: `${post.user_id}/${post.blog_id}.html`,
+        blogId: post.blog_id, // Updated to include blogId
       }));
 
       topLikedBlogs.value = blogs;
@@ -65,28 +65,9 @@ export default defineComponent({
       return title.length > 35 ? title.substring(0, 35) + '...' : title;
     };
 
-    const readBlog = async (blog: Blog) => {
-      try {
-        console.log('Attempting to fetch file at path:', blog.filePath);
-        const { data: fileData, error: fileError } = await supabase.storage
-          .from('blog-post')
-          .download(blog.filePath);
-
-        if (fileError) {
-          console.error('Error fetching blog content:', fileError.message);
-          return;
-        }
-
-        const content = fileData ? await fileData.text() : '';
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(content, 'text/html');
-        const title = doc.querySelector('h1')?.textContent || 'Untitled';
-
-        // Assuming you want to display the content in a different page
-        router.push({ name: 'BlugPage', query: { title, content } });
-      } catch (error) {
-        console.error('Exception caught during file fetch:', error.message);
-      }
+    const readBlog = (blogId: string) => {
+      // Navigate to BlugReader page with the blogId
+      router.push({ name: 'BlugReader', query: { blogId } });
     };
 
     onMounted(() => {

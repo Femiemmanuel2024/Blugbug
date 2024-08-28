@@ -36,21 +36,14 @@
             </button>
           </div>
         </div>
-        <div class="bottom-column">
-          <div v-if="selectedPost" :key="currentComponentKey" class="blogcontainer">
-            <h2>{{ selectedPost.title }}</h2>
-            <div v-html="selectedPost.bodyContent" class="postbody"></div>
-            <InteractivePage />
-          </div>
-        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, computed, onMounted, watch } from 'vue';
-import { useRoute } from 'vue-router';
+import { defineComponent, ref, computed, onMounted, watch, toRaw } from 'vue';
+import { useRouter } from 'vue-router';
 import NavBar from './NavBar.vue';
 import { supabase } from './supabase';
 import InteractivePage from './features/InteractionPage.vue';
@@ -77,41 +70,22 @@ export default defineComponent({
     const posts = ref<Post[]>([]);
     const displayedPosts = ref<Post[]>([]);
     const selectedPost = ref<Post | null>(null);
-    const currentComponentKey = ref<number>(0);
     const searchQuery = ref<string>('');
-    const route = useRoute();
+    const router = useRouter();
     const postsPerPage = ref<number>(10);
     const currentPage = ref<number>(0);
 
-    // Fetch metadata of posts without their content
-    const fetchPostsFromDatabase = async () => {
-      const { data, error } = await supabase.from('blog_post').select('*');
-      if (error) return [];
-      return data || [];
-    };
-
-    // Fetch the actual content of the post on demand
-    const fetchPostContent = async (filePath: string) => {
-      console.log('Fetching file from path:', filePath); // Debugging: Log the file path
-      try {
-        const { data, error } = await supabase.storage.from('blog-post').download(filePath);
-        if (error) throw error;
-        if (data) {
-          return await data.text();
-        }
-      } catch (error) {
-        console.error('Error fetching post content:', error.message); // Log any errors encountered
-        return '';
-      }
-    };
-
     const loadPosts = async () => {
-      const postFiles = await fetchPostsFromDatabase();
-      const loadedPosts = postFiles.map((post) => ({
+      const { data, error } = await supabase.from('blog_post').select('*');
+      if (error) {
+        console.error('Error fetching posts:', error.message);
+        return;
+      }
+      const loadedPosts = (data || []).map((post) => ({
         id: post.id,
         title: post.title,
-        content: '', // Leave content empty initially
-        bodyContent: '', // Leave bodyContent empty initially
+        content: '',
+        bodyContent: '',
         userId: post.user_id,
         userFullName: post.user_full_name || 'Unknown',
         date: post.created_at,
@@ -121,20 +95,18 @@ export default defineComponent({
       updateDisplayedPosts();
     };
 
-    const updateDisplayedPosts = () => {
-      const start = currentPage.value * postsPerPage.value;
-      const end = start + postsPerPage.value;
-      if (searchQuery.value) {
-        displayedPosts.value = filteredPosts.value;
-      } else {
-        displayedPosts.value = filteredPosts.value.slice(start, end);
+    const fetchPostContent = async (filePath: string) => {
+      try {
+        const { data, error } = await supabase.storage.from('blog-post').download(filePath);
+        if (error) throw error;
+        return await data.text();
+      } catch (error) {
+        console.error('Error fetching post content:', error.message);
+        return '';
       }
     };
 
-    // Fetch and display the content of the post when the user clicks "Read"
     const viewPost = async (post: Post) => {
-      console.log('Post ID:', post.id);
-      
       const { data, error } = await supabase
         .from('blog_post')
         .select('id, user_id, blog_id')
@@ -146,45 +118,32 @@ export default defineComponent({
         return;
       }
 
-      const { id, user_id, blog_id } = data;
-      console.log('User ID:', user_id);
-      console.log('Blog ID:', blog_id);
-
+      const { user_id, blog_id } = data;
       const filePath = `${user_id}/${blog_id}.html`;
-      console.log('Fetching file from path:', filePath);
-      
       const htmlContent = await fetchPostContent(filePath);
       const { title, bodyContent } = extractPostElements(htmlContent);
 
       selectedPost.value = { ...post, title, bodyContent };
-      currentComponentKey.value += 1;
-
-      // Update the URL without reloading the page
-      window.history.pushState({}, '', `/blugpage?postId=${post.id}`);
-
+      
       localStorage.setItem('user_id', user_id);
       localStorage.setItem('blog_id', blog_id);
-      localStorage.setItem('id', id);
+
+      router.push({ name: 'BlugReader', query: { blogId: blog_id.toString() } });
     };
 
     const sharePost = (post: Post) => {
-      const postUrl = `${window.location.origin}/BlugPage?postId=${post.id}`;
+      const rawPost = toRaw(post); // Unwrap the proxy to get the raw object
 
-      if (navigator.share) {
-        navigator.share({
-          title: post.title,
-          url: postUrl
-        }).then(() => {
-          console.log('Thanks for sharing!');
-        }).catch(console.error);
-      } else {
-        // Fallback for browsers that don't support Web Share API
-        navigator.clipboard.writeText(postUrl).then(() => {
-          alert('Link copied to clipboard!');
-        }).catch(err => {
-          console.error('Could not copy text: ', err);
-        });
-      }
+      // Generate a shareable URL (assuming you have a route to view individual posts)
+      const shareableURL = `${window.location.origin}/post/${rawPost.id}`;
+
+      // Copy the URL to the clipboard
+      navigator.clipboard.writeText(shareableURL).then(() => {
+        console.log('URL copied to clipboard:', shareableURL);
+        alert('Link copied to clipboard!');
+      }).catch(err => {
+        console.error('Failed to copy text: ', err);
+      });
     };
 
     const extractPostElements = (htmlContent: string) => {
@@ -202,11 +161,15 @@ export default defineComponent({
       };
     };
 
+    const updateDisplayedPosts = () => {
+      const start = currentPage.value * postsPerPage.value;
+      const end = start + postsPerPage.value;
+      displayedPosts.value = filteredPosts.value.slice(start, end);
+    };
+
     const filteredPosts = computed(() => {
       const query = searchQuery.value.toLowerCase();
-      return posts.value.filter((post) =>
-        post.title?.toLowerCase().includes(query)
-      );
+      return posts.value.filter((post) => post.title?.toLowerCase().includes(query));
     });
 
     const prevPage = () => {
@@ -227,18 +190,9 @@ export default defineComponent({
     const hasNextPage = computed(() => (currentPage.value + 1) * postsPerPage.value < filteredPosts.value.length);
 
     onMounted(() => {
-      loadPosts().then(() => {
-        const postId = route.query.postId as string;
-        if (postId) {
-          const post = posts.value.find(post => post.id === parseInt(postId));
-          if (post) {
-            viewPost(post);
-          }
-        }
-      });
-
+      loadPosts();
       const updatePostsPerPage = () => {
-        postsPerPage.value = window.innerWidth <= 430 ? 5 : 10;
+        postsPerPage.value = 10; // Always display 10 posts per page
         updateDisplayedPosts();
       };
 
@@ -256,13 +210,12 @@ export default defineComponent({
       displayedPosts,
       selectedPost,
       viewPost,
-      sharePost,
-      currentComponentKey,
       searchQuery,
       prevPage,
       nextPage,
       hasPrevPage,
       hasNextPage,
+      sharePost,
     };
   },
 });
@@ -278,14 +231,9 @@ export default defineComponent({
   padding-top: 63px;
 }
 
-.navbar {
-  flex-shrink: 0;
-}
-
 .content {
   display: flex;
   flex-direction: column;
-  flex-grow: 0;
   width: 100%;
   background-color: #1e2127;
 }
@@ -299,13 +247,10 @@ export default defineComponent({
 .search-bar input {
   width: 50%;
   padding: 10px;
-  font-size: 12px;
+  font-size: 14px;
   border: none;
-  box-sizing: border-box;
   background-color: #2b3138;
   color: #d7c9b7;
-  padding-right: 30px;
-  font-size: 14px;
   border-radius: 10px;
 }
 
@@ -318,7 +263,6 @@ export default defineComponent({
 
 .top-column {
   width: 100%;
-  background-color: none;
   overflow-y: hidden;
 }
 
@@ -332,34 +276,9 @@ export default defineComponent({
 
 .blog-list {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  grid-template-columns: repeat(4, 1fr); /* Display in 4 columns */
   gap: 10px;
   justify-content: center;
-}
-
-.left-title {
-  background-color: #1e2127;
-  width: 100%;
-  padding: 2px;
-}
-
-.left-title h1 {
-  text-align: center;
-  width: 100%;
-  font-size: 14px;
-  justify-content: center;
-  color: #cebfad;
-}
-
-.bottom-column {
-  width: 100%;
-  background-color: #1e2127;
-  overflow-y: auto;
-  color: #cebfad;
-}
-
-.blogcontainer {
-  padding: 20px;
 }
 
 ul {
@@ -372,10 +291,9 @@ li {
   flex-direction: column;
   align-items: center;
   background-color: #444;
-  padding: 0px;
+  padding: 0;
   border-radius: 10px;
-  width: 200px;
-  height: 100px;
+  width: 100%;
   overflow: hidden;
   justify-content: space-between;
   transition: transform 0.2s;
@@ -388,7 +306,6 @@ li:hover {
 .title-row {
   width: 100%;
   text-align: center;
-  flex-grow: 1;
   padding: 10px;
 }
 
@@ -404,7 +321,6 @@ li:hover {
   white-space: normal;
   padding-left: 10px;
   padding-right: 10px;
-  line-clamp: 3;
 }
 
 .button-row {
@@ -419,7 +335,6 @@ li:hover {
   border: none;
   border-radius: 4px 0 0 4px;
   padding: 10px;
-  text-align: center;
 }
 
 .read-button:hover {
@@ -433,7 +348,6 @@ li:hover {
   border: none;
   border-radius: 0 4px 4px 0;
   padding: 10px;
-  text-align: center;
 }
 
 .share-button:hover {
@@ -456,22 +370,12 @@ li:hover {
   cursor: pointer;
   display: flex;
   align-items: center;
-  margin: 10px 10px;
+  margin: 10px;
 }
 
 .navigation-buttons button:disabled {
   background-color: #ccc;
   cursor: not-allowed;
-}
-
-h2 {
-  color: #cebfad;
-  font-size: 2rem;
-}
-
-.postbody {
-  color: #cebfad;
-  font-size: 1rem;
 }
 
 .blog-header {
@@ -482,26 +386,9 @@ h2 {
 
 @media (max-width: 430px) {
   .blug-page {
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
     padding-right: 1px;
     padding-left: 1px;
     padding-top: 140px;
-  }
-
-  .container {
-    flex-direction: column;
-  }
-
-  .top-column {
-    order: 1;
-    width: 100%;
-  }
-
-  .bottom-column {
-    order: 2;
-    width: 100%;
   }
 
   .blog-list {
@@ -510,37 +397,10 @@ h2 {
     align-items: center;
   }
 
-  ul {
-    display: block;
-  }
-
-  li {
-    display: block;
-    margin-bottom: 5px;
-    height: 100px;
-    width: 100%;
-  }
-
-  .post-title {
-    text-align: left;
-  }
-
   .search-bar input {
     width: 100%;
     padding: 10px;
     font-size: 12px;
-    border: none;
-    box-sizing: border-box;
-    background-color: #2b3138;
-    color: #d7c9b7;
-    padding-right: 30px;
-    font-size: 14px;
-    border-radius: 10px;
   }
-}
-
-.list-container {
-  display: flex;
-  flex-direction: column;
 }
 </style>

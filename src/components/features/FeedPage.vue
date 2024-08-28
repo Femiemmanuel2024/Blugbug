@@ -17,7 +17,7 @@
             :class="{ 'bookmarked': isBookmarked(post) }"
             @click.stop="bookmarkPost(post)"
           ></i>
-          <button @click="readPost(post.title)" class="action-item">Read</button>
+          <button @click="readPost(post)" class="action-item">Read</button>
         </div>
         <div v-if="expandedPost === post.id" class="post-content" v-html="post.content"></div>
       </li>
@@ -38,8 +38,8 @@ interface Post {
   user: string;
   userFullName: string;
   date: string;
-  filePath: string;
   bookmarked_by: string[];
+  blog_id: string;
 }
 
 export default defineComponent({
@@ -74,7 +74,7 @@ export default defineComponent({
       for (const userId of followingIds) {
         const { data: postData, error: postError } = await supabase
           .from('blog_post')
-          .select('*')
+          .select('id, title, likes, user_id, created_at, bookmarked_by, blog_id') // Specify needed columns
           .eq('user_id', userId);
 
         if (postError) {
@@ -83,38 +83,16 @@ export default defineComponent({
         }
 
         for (const post of postData) {
-          const filePath = `${userId}/${post.blog_id}.html`;
-
-          const { data: postContent, error: contentError } = await supabase.storage
-            .from('blog-post')
-            .download(filePath);
-
-          if (contentError) {
-            console.error('Error fetching post content:', contentError.message);
-            continue;
-          }
-
-          const contentText = await postContent.text();
-          const parser = new DOMParser();
-          const doc = parser.parseFromString(contentText, 'text/html');
-          const h1Element = doc.querySelector('h1');
-          const createdByElement = doc.querySelector('p:nth-of-type(1)');
-          const dateElement = doc.querySelector('p:nth-of-type(2)');
-          const bodyContent = Array.from(doc.body.children)
-            .filter((child) => !['H1', 'P'].includes(child.tagName))
-            .map((child) => child.outerHTML)
-            .join('');
-
           allPosts.push({
             id: post.id,
-            title: h1Element ? h1Element.textContent || 'Untitled' : 'Untitled',
-            content: bodyContent,
+            title: post.title || 'Untitled',
+            content: '', // Set content as empty since we're not fetching it
             likes: post.likes || 0,
-            user: userId,
-            userFullName: createdByElement?.textContent?.replace('Created by: ', '') || 'Unknown',
-            date: dateElement?.textContent?.replace('Date: ', '') || new Date().toISOString(),
-            filePath: filePath,
-            bookmarked_by: post.bookmarked_by || []
+            user: post.user_id,
+            userFullName: 'Unknown', // Placeholder or fetch this from users table separately
+            date: post.created_at,
+            bookmarked_by: post.bookmarked_by || [],
+            blog_id: post.blog_id,
           });
         }
       }
@@ -129,8 +107,12 @@ export default defineComponent({
       return `${formattedTime} on ${formattedDate}`;
     };
 
-    const readPost = (title: string) => {
-      router.push({ name: 'BlugPage', query: { search: title } });
+    const readPost = (post: Post) => {
+      // Navigate to BlugReader with blog_id and title as query parameters
+      router.push({ 
+        name: 'BlugReader', 
+        query: { postId: post.id.toString(), blogId: post.blog_id, postTitle: post.title }
+      });
     };
 
     const bookmarkPost = async (post: Post) => {
@@ -262,6 +244,4 @@ li {
   padding-right: 0px;
 }
 }
-
-
 </style>

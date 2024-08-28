@@ -4,8 +4,9 @@
       <input class="inputbar" v-model="searchQuery" placeholder="Find a Blugger" @input="searchUsers" />
       <i class="fas fa-search search-icon"></i>
     </div>
-    <ul class="results-list" v-if="searchResults.length">
-      <li v-for="user in searchResults" :key="user.email">
+    <!-- Limit the display of search results to 5 -->
+    <ul class="results-list" v-if="limitedResults.length">
+      <li v-for="user in limitedResults" :key="user.email">
         <router-link :to="{ name: 'PublicProfile', params: { userId: user.id, chatterName: user.chatterName } }" @click.native="storeUserId(user.id)">
           {{ user.fullName }} (@{{ user.chatterName }})
         </router-link>
@@ -15,7 +16,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref } from 'vue';
+import { defineComponent, ref, computed } from 'vue';
 import { supabase } from '../supabase'; // Adjust the path as needed
 
 interface User {
@@ -66,11 +67,17 @@ export default defineComponent({
       console.log('Stored User ID:', userId);
     };
 
+    // Computed property to limit displayed results to 5
+    const limitedResults = computed(() => {
+      return searchResults.value.slice(0, 5);
+    });
+
     return {
       searchQuery,
       searchResults,
       searchUsers,
       storeUserId,
+      limitedResults,
     };
   },
 });
@@ -80,7 +87,6 @@ export default defineComponent({
 .search-bar-container {
   position: relative;
   width: 100%;
-  
 }
 
 .input-wrapper {
@@ -102,7 +108,6 @@ export default defineComponent({
 
 .inputbar:hover {
   border: 1px solid #ed6834;
-  
 }
 
 .search-icon {
@@ -120,6 +125,8 @@ export default defineComponent({
   list-style: none;
   padding: 0;
   margin: 0;
+  max-height: 200px; /* Add max-height to limit visible space */
+  overflow-y: auto; /* Allow scrolling for overflow */
 }
 
 .results-list li {
@@ -137,5 +144,3 @@ export default defineComponent({
   color: #ed6834;
 }
 </style>
-
-

@@ -32,6 +32,8 @@
               />
               <i :class="passwordFieldIcon" @click="togglePasswordVisibility"></i>
             </div>
+            <!-- Forgot Password Link -->
+            <p class="forgot-password" @click="showForgotPasswordModal">Forgot Password?</p>
             <button
               type="submit"
               :class="['btn', isInvalidLogin ? 'btn-invalid' : 'btn-login']"
@@ -47,6 +49,8 @@
         </div>
       </div>
     </div>
+    <!-- Password Recovery Modal -->
+    <PasswordRecovery :showModal="showPasswordRecovery" @close="showPasswordRecovery = false" />
   </div>
 </template>
 
@@ -55,9 +59,13 @@ import { defineComponent, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { supabase } from './supabase';
 import bcrypt from 'bcryptjs';
+import PasswordRecovery from '../components/v2.0/PasswordRecovery.vue'; // Import the PasswordRecovery component
 
 export default defineComponent({
   name: 'LoginPage',
+  components: {
+    PasswordRecovery, // Register the PasswordRecovery component
+  },
   setup() {
     const router = useRouter();
     const username = ref('');
@@ -66,6 +74,7 @@ export default defineComponent({
     const passwordFieldIcon = ref('fas fa-eye');
     const isInvalidLogin = ref(false);
     const isLoading = ref(false);
+    const showPasswordRecovery = ref(false); // State to control the visibility of the password recovery modal
 
     const onSubmit = async () => {
       isLoading.value = true;
@@ -119,6 +128,10 @@ export default defineComponent({
       }
     };
 
+    const showForgotPasswordModal = () => {
+      showPasswordRecovery.value = true; // Show the password recovery modal when "Forgot Password?" is clicked
+    };
+
     return {
       username,
       password,
@@ -128,6 +141,8 @@ export default defineComponent({
       togglePasswordVisibility,
       isInvalidLogin,
       isLoading,
+      showPasswordRecovery,
+      showForgotPasswordModal,
     };
   },
 });
@@ -278,6 +293,17 @@ html, body {
 a {
   color: #ed6834;
   text-decoration: none;
+}
+
+.forgot-password {
+  color: #ed6834;
+  cursor: pointer;
+  margin-top: 10px;
+  text-align: left;
+}
+
+.forgot-password:hover {
+  text-decoration: underline;
 }
 
 p {

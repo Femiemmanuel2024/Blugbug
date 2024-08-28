@@ -17,7 +17,8 @@
             :class="{ 'bookmarked': isBookmarked(post.bookmarked_by) }"
             @click.stop="toggleBookmark(post.id, post.bookmarked_by)"
           ></i>
-          <button @click="readPost(post.title)" class="action-item">Read</button>
+          <!-- Updated Read button to navigate to BlugReader -->
+          <button @click="readPost(post.id)" class="action-item">Read</button>
         </div>
         <div v-if="expandedPost === post.id" class="post-content" v-html="post.content"></div>
       </li>
@@ -126,8 +127,10 @@ export default defineComponent({
       return `${formattedTime} on ${formattedDate}`;
     };
 
-    const readPost = (title: string) => {
-      router.push({ name: 'BlugPage', query: { search: title } });
+    // Updated readPost function to store blog_id and navigate to BlugReader
+    const readPost = (postId: number) => {
+      localStorage.setItem('blog_id', postId.toString()); // Store the blog_id in local storage
+      router.push({ name: 'BlugReader', query: { blogId: postId.toString() } }); // Navigate to BlugReader page
     };
 
     const isBookmarked = (bookmarkedBy: string[]) => {
@@ -253,6 +256,4 @@ li {
   padding-right: 0px;
 }
 }
-
-
 </style>

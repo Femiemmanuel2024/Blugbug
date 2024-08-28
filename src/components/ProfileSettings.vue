@@ -4,6 +4,7 @@
     <div class="content">
       <h1>Profile Settings</h1>
       <table v-if="user">
+        <!-- Full Name -->
         <tr>
           <th>Full Name</th>
           <td>
@@ -14,6 +15,7 @@
             <button @click="toggleEdit('full_name')">{{ editing.full_name ? 'Save' : 'Edit' }}</button>
           </td>
         </tr>
+        <!-- Blugger Name -->
         <tr>
           <th>Blugger Name</th>
           <td>
@@ -24,6 +26,7 @@
             <button @click="toggleEdit('chatter_name')">{{ editing.chatter_name ? 'Save' : 'Edit' }}</button>
           </td>
         </tr>
+        <!-- Email -->
         <tr>
           <th>Email</th>
           <td>
@@ -34,6 +37,7 @@
             <button @click="toggleEdit('email')">{{ editing.email ? 'Save' : 'Edit' }}</button>
           </td>
         </tr>
+        <!-- Password -->
         <tr>
           <th>Password</th>
           <td>
@@ -44,6 +48,7 @@
             <button @click="toggleEdit('password')">{{ editing.password ? 'Save' : 'Edit' }}</button>
           </td>
         </tr>
+        <!-- About Me -->
         <tr>
           <th>About Me</th>
           <td>
@@ -52,6 +57,33 @@
           </td>
           <td>
             <button @click="toggleEdit('about_me')">{{ editing.about_me ? 'Save' : 'Edit' }}</button>
+          </td>
+        </tr>
+        <!-- Secret Question -->
+        <tr>
+          <th>Secret Question</th>
+          <td>
+            <select v-if="editing.secret_question" v-model="user.secret_question">
+              <option disabled value="">Select a Secret Question</option>
+              <option v-for="question in secretQuestions" :key="question" :value="question">
+                {{ question }}
+              </option>
+            </select>
+            <span v-else>{{ user.secret_question }}</span>
+          </td>
+          <td>
+            <button @click="toggleEdit('secret_question')">{{ editing.secret_question ? 'Save' : 'Edit' }}</button>
+          </td>
+        </tr>
+        <!-- Secret Answer -->
+        <tr>
+          <th>Secret Answer</th>
+          <td>
+            <input v-if="editing.secret_answer" v-model="user.secret_answer" />
+            <span v-else>{{ user.secret_answer ? '******' : '' }}</span>
+          </td>
+          <td>
+            <button @click="toggleEdit('secret_answer')">{{ editing.secret_answer ? 'Save' : 'Edit' }}</button>
           </td>
         </tr>
       </table>
@@ -88,6 +120,17 @@
       </p>
       <button class="deactivate-button" @click="showDeactivateModal">Deactivate Account</button>
     </div>
+
+    <!-- Security Warning Modal -->
+    <div v-if="showWarningModal" class="warning-modal">
+      <div class="warning-modal-content">
+        <font-awesome-icon :icon="['fas', 'circle-xmark']" class="close-icon" @click="closeWarningModal" />
+        <h2>SECURITY WARNING</h2>
+        <p>Add a secret question and answer for enhanced security.</p>
+      </div>
+    </div>
+    
+    <!-- Deactivation Modal -->
     <div v-if="showModal" class="modal">
       <div class="modal-content">
         <h2>Are you sure you want to deactivate your account?</h2>
@@ -105,6 +148,7 @@ import { defineComponent, ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { supabase } from './supabase';
 import NavBar from '../components/NavBar.vue';
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 
 interface User {
   id: string;
@@ -114,12 +158,15 @@ interface User {
   password: string;
   about_me: string;
   interest_id: string;
+  secret_question: string;
+  secret_answer: string;
 }
 
 export default defineComponent({
   name: 'ProfileSettings',
   components: {
     NavBar,
+    FontAwesomeIcon
   },
   setup() {
     const router = useRouter();
@@ -130,8 +177,20 @@ export default defineComponent({
       email: false,
       password: false,
       about_me: false,
+      secret_question: false,
+      secret_answer: false,
     });
     const showModal = ref(false);
+    const showWarningModal = ref(false);
+
+    const secretQuestions = [
+      'What was the name of your first pet?',
+      'What is your mother’s maiden name?',
+      'What was the make and model of your first car?',
+      'What is the name of your favorite childhood friend?',
+      'In what city were you born?',
+      'What is your favorite book?'
+    ];
 
     const categories = [
       'Health and Wellness', 'Fitness and Exercise', 'Nutrition and Diet', 'Mental Health and Well-being',
@@ -174,6 +233,7 @@ export default defineComponent({
       if (data) {
         user.value = data;
         selectedCategories.value = data.interest_id ? data.interest_id.split(',') : [];
+        checkSecuritySettings(); // Check for missing secret question or answer
       }
     };
 
@@ -194,6 +254,12 @@ export default defineComponent({
       editing.value[field] = !editing.value[field];
     };
 
+    const checkSecuritySettings = () => {
+      if (!user.value?.secret_question || !user.value?.secret_answer) {
+        showWarningModal.value = true;
+      }
+    };
+
     const toggleCategorySelection = (category: string) => {
       if (selectedCategories.value.includes(category)) {
         selectedCategories.value = selectedCategories.value.filter(item => item !== category);
@@ -208,6 +274,10 @@ export default defineComponent({
 
     const hideDeactivateModal = () => {
       showModal.value = false;
+    };
+
+    const closeWarningModal = () => {
+      showWarningModal.value = false;
     };
 
     const confirmDeactivation = async () => {
@@ -310,8 +380,11 @@ export default defineComponent({
       toggleEdit,
       showDeactivateModal,
       hideDeactivateModal,
+      closeWarningModal,
       confirmDeactivation,
       showModal,
+      showWarningModal,
+      secretQuestions,
       categories,
       selectedCategories,
       toggleCategorySelection,
@@ -374,7 +447,8 @@ th {
 }
 
 td input,
-td textarea {
+td textarea,
+td select {
   width: 100%;
   padding: 8px;
   background-color: #2b3138;
@@ -558,58 +632,34 @@ button:hover {
   background-color: #c82333;
 }
 
-@media (max-width: 380px) {
-  .profile-settings {
-    height: 100vh;
-    padding-right: 1px;
-    padding-left: 1px;
-    padding-top: 130px;
-  }
-
-  .content {
-    background-color: #1e2127;
-    padding: 20px 5px 20px 5px;
-    width: 100%;
-    max-width: 100%;
-    min-height: 100vh;
-  }
-
-  .deactivate-button {
-    width: 50%;
-    margin-top: 10px;
-    background-color: red;
-    align-self: center;
-  }
-
-  .category-buttons button {
-    width: 107px;
-  }
+.warning-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-@media (min-width:381px) and (max-width: 430px) {
-  .profile-settings {
-    height: 100vh;
-    padding-right: 1px;
-    padding-left: 1px;
-  }
+.warning-modal-content {
+  background: red;
+  padding: 20px;
+  border-radius: 10px;
+  text-align: center;
+  color: white;
+  width: 400px;
+  position: relative;
+}
 
-  .content {
-    background-color: #1e2127;
-    padding: 20px 5px 20px 5px;
-    width: 100%;
-    max-width: 100%;
-    min-height: 100vh;
-  }
-
-  .deactivate-button {
-    width: 50%;
-    margin-top: 10px;
-    background-color: red;
-    align-self: center;
-  }
-
-  .category-buttons button {
-    width: 120px;
-  }
+.close-icon {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  font-size: 18px;
+  cursor: pointer;
+  color: white;
 }
 </style>

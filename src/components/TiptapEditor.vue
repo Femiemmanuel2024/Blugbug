@@ -1,7 +1,6 @@
 <template>
   <div class="blug-editor" @click="handleEditorClick">
-    <div ref="editorContainer" class="tiptap-container"></div>
-
+    <!-- Toolbar moved to the top -->
     <div class="toolbar-container">
       <div class="toolbar">
         <button @click="toggleBold">
@@ -41,7 +40,6 @@
         <button @click="triggerImageUpload">
           <i class="fas fa-image"></i>
         </button>
-
         <!-- Image Resize Buttons (Initially Hidden) -->
         <div v-if="selectedImage" class="image-resize-buttons">
           <button @click="resizeImage('small')">Small</button>
@@ -50,6 +48,8 @@
         </div>
       </div>
     </div>
+    <!-- Tiptap Editor Container -->
+    <div ref="editorContainer" class="tiptap-container"></div>
   </div>
 </template>
 
@@ -65,10 +65,27 @@ import BulletList from '@tiptap/extension-bullet-list';
 import OrderedList from '@tiptap/extension-ordered-list';
 import ListItem from '@tiptap/extension-list-item';
 
+// Utility function to debounce the updates
+const debounce = (func: Function, delay: number) => {
+  let timeoutId: number | undefined;
+  return (...args: any[]) => {
+    if (timeoutId) clearTimeout(timeoutId);
+    timeoutId = window.setTimeout(() => {
+      func.apply(null, args);
+    }, delay);
+  };
+};
+
 export default defineComponent({
   name: 'TiptapEditor',
+  props: {
+    initialContent: {
+      type: String,
+      required: true,
+    },
+  },
   emits: ['updateContent'],
-  setup(_, { emit }) {
+  setup(props, { emit }) {
     const editorContainer = ref<HTMLDivElement | null>(null);
     const editor = ref<Editor | null>(null);
     const selectedImage = ref<HTMLImageElement | null>(null);
@@ -239,10 +256,10 @@ export default defineComponent({
           OrderedList,
           ListItem,
         ],
-        content: '',
-        onUpdate({ editor }) {
+        content: props.initialContent, // Initialize editor with content from props
+        onUpdate: debounce(({ editor }) => {
           emit('updateContent', editor.getHTML());
-        },
+        }, 300), // Debounce the updateContent emit to prevent excessive calls
       });
 
       document.addEventListener('click', handleOutsideClick);
@@ -424,7 +441,7 @@ export default defineComponent({
 
 <style scoped>
 .tiptap-container {
-  height: 400px;
+  height: 900px;
   background-color: white;
   color: black;
   border: none;
@@ -439,6 +456,7 @@ export default defineComponent({
   flex-wrap: wrap;
   gap: 5px;
   padding: 10px;
+  background-color: #333; /* Optional styling for the toolbar */
 }
 
 .toolbar {
@@ -489,7 +507,8 @@ export default defineComponent({
 ::v-deep .tiptap {
   background-color: rgb(255, 255, 255);
   width: 100%;
-  height: 400px;
+  height: 100%;
+  /* height: 900px; */
   border: none;
   text-align: left;
   overflow: scroll;

@@ -23,6 +23,13 @@
         <font-awesome-icon :icon="['fas', 'gear']" class="icon" />
         <span class="icon-label">Settings</span>
       </router-link>
+
+      <!-- Conditionally display the Admin Manager link -->
+      <router-link v-if="isAdmin" to="/admin-manager" class="nav-icon" @click="navigate('/admin-manager', $event)">
+        <font-awesome-icon :icon="['fas', 'toolbox']" class="icon" />
+        <span class="icon-label">Admin Manager</span>
+      </router-link>
+
       <router-link to="/login" class="nav-icon" @click="logout">
         <font-awesome-icon :icon="['fas', 'sign-out-alt']" class="icon" />
         <span class="icon-label">Logout</span>
@@ -32,17 +39,28 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue';
+import { defineComponent, ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import ActionNotification from './infofeatures/ActionNotification.vue';
 
 export default defineComponent({
   name: 'NavBar',
   components: {
+    FontAwesomeIcon,
     ActionNotification,
   },
   setup(_, { emit }) {
     const router = useRouter();
+    const isAdmin = ref(false);
+    const adminId = '3d77bcc4-40bb-42ed-87d8-98a1a82285c6'; // Admin user ID
+
+    onMounted(() => {
+      const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+      if (currentUser.id === adminId) {
+        isAdmin.value = true;
+      }
+    });
 
     const navigate = async (path: string, event: MouseEvent) => {
       event.preventDefault();
@@ -64,6 +82,7 @@ export default defineComponent({
     };
 
     return {
+      isAdmin,
       logout,
       navigate,
       animateIcon,

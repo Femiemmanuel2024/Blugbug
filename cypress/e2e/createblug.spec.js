@@ -21,8 +21,8 @@ describe('Profile Header', () => {
     cy.get('.header-image-container img').should('have.attr', 'src', '/Default_Header.svg');
   });
 
-  it('should open the Create Blug modal when Create Blug button is clicked', () => {
+  it('should navigate to Create Blog Post page when Create Blug button is clicked', () => {
     cy.get('.create-post-button').click();
-    cy.get('.modal-container').should('be.visible');
+    cy.url().should('include', '/create-blog'); // Check that the URL includes the path for the create blog post page
   });
 });

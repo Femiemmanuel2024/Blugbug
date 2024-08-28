@@ -10,7 +10,7 @@
         </li>
         <li v-else v-for="(blog, index) in latestBlogs" :key="index">
           <span class="title">{{ truncateTitle(blog.title) }}</span>
-          <button @click="readBlog(blog.title)">Read</button>
+          <button @click="readBlog(blog.blogId)">Read</button>
         </li>
       </ul>
     </div>
@@ -18,14 +18,14 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, onMounted, watch } from 'vue';
+import { defineComponent, ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { supabase } from '../supabase'; // Adjust the path as needed
 
 interface Blog {
   title: string;
   date: string;
-  filePath: string;
+  blogId: string; // Added blogId to be used for navigation
 }
 
 export default defineComponent({
@@ -35,84 +35,40 @@ export default defineComponent({
     const isLoading = ref<boolean>(true);
     const router = useRouter();
 
-    const fetchUserIds = async () => {
-      // Clear previous user IDs from local storage
-      localStorage.removeItem('userIds');
+    const fetchLatestBlogs = async () => {
+      isLoading.value = true;
+      latestBlogs.value = [];
 
+      // Fetch top 5 latest blogs sorted by date and time without downloading content
       const { data, error } = await supabase
-        .from('users')
-        .select('id');
+        .from('blog_post')
+        .select('title, date, blog_id')
+        .order('date', { ascending: false })
+        .order('time', { ascending: false })
+        .limit(5);
 
       if (error) {
-        console.error('Error fetching user IDs:', error.message);
-        return [];
+        console.error('Error fetching latest blog posts:', error.message);
+        isLoading.value = false;
+        return;
       }
 
-      const userIds = data.map((user: { id: string }) => user.id);
-      // Save new user IDs to local storage
-      localStorage.setItem('userIds', JSON.stringify(userIds));
+      // Map the fetched data to the latestBlogs array
+      latestBlogs.value = data.map((post) => ({
+        title: post.title,
+        date: post.date,
+        blogId: post.blog_id,
+      }));
 
-      return userIds;
-    };
-
-    const fetchLatestBlogs = async () => {
-      isLoading.value = true; // Start loading animation
-      latestBlogs.value = []; // Clear previous data
-
-      const userIds = await fetchUserIds();
-      const allBlogs: Blog[] = [];
-
-      for (const userId of userIds) {
-        const { data, error } = await supabase.storage
-          .from('blog-post')
-          .list(userId, {
-            limit: 100,
-            offset: 0,
-            sortBy: { column: 'created_at', order: 'desc' },
-          });
-
-        if (error) {
-          console.error(`Error fetching blog posts for user ${userId}:`, error.message);
-          continue;
-        }
-
-        const userBlogs = await Promise.all(
-          data.map(async (file) => {
-            const filePath = `${userId}/${file.name}`;
-            const { data, error } = await supabase.storage
-              .from('blog-post')
-              .download(filePath);
-
-            if (error) {
-              console.error('Error fetching blog content:', error.message);
-              return null;
-            }
-
-            const content = data ? await data.text() : '';
-            const parser = new DOMParser();
-            const doc = parser.parseFromString(content, 'text/html');
-            const title = doc.querySelector('h1')?.textContent || 'Untitled';
-            const date = file.metadata?.created_at || new Date().toISOString();
-
-            return { title, date, filePath };
-          })
-        );
-
-        allBlogs.push(...userBlogs.filter((blog): blog is Blog => blog !== null));
-      }
-
-      allBlogs.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-      latestBlogs.value = allBlogs.slice(0, 5);
-
-      isLoading.value = false; // End loading animation
+      isLoading.value = false;
     };
 
     const truncateTitle = (title: string) => {
       return title.length > 35 ? title.substring(0, 35) + '...' : title;
     };
 
-    const readBlog = (title: string) => {
-      router.push({ name: 'BlugPage', query: { search: title } });
+    const readBlog = (blogId: string) => {
+      router.push({ name: 'BlugReader', query: { blogId } });
     };
 
     const handleLoginEvent = () => {

@@ -16,9 +16,16 @@
       </div>
       <div class="container">
         <div class="comments-section">
+          <!-- Display each comment with a reply button -->
           <div v-for="(comment, index) in formattedCommentDetails" :key="index" class="comment">
             <p v-html="comment.text"></p> <!-- Render the formatted comment with clickable mentions -->
             <p class="comment-meta">{{ comment.meta }}</p>
+            <!-- Conditionally show delete button for comments if the user is the blog owner -->
+            <button v-if="isBlogOwner" class="delete-comment" @click.stop="deleteComment(index)">
+              <font-awesome-icon icon="fa-solid fa-trash" />
+            </button>
+            <!-- Add Reply button -->
+            <button class="reply-button" @click="replyToComment(comment.text, comment.meta)">Reply</button>
           </div>
           <div class="comment-input">
             <input
@@ -45,6 +52,7 @@
 
 <script lang="ts">
 import { defineComponent, ref, computed, onMounted } from 'vue';
+import { useRouter } from 'vue-router'; // Import useRouter for navigation
 import { supabase } from '../supabase';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 
@@ -77,6 +85,7 @@ export default defineComponent({
     FontAwesomeIcon,
   },
   setup() {
+    const router = useRouter(); // Initialize router instance
     const likes = ref(0);
     const isLiked = ref(false);
     const isBookmarked = ref(false);
@@ -92,6 +101,8 @@ export default defineComponent({
 
     const mentionedUsers = ref<User[]>([]);
     const showMentionsList = ref(false);
+
+    const isBlogOwner = computed(() => userId.value === blogOwnerId.value);
 
     const fetchUserDetails = async () => {
       const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
@@ -141,29 +152,69 @@ export default defineComponent({
       }
     };
 
-    // Modified createNotification function without duplicate check
-    const createNotification = async (message: string, mentionedUserId: string | null = null) => {
-      if (blogOwnerId.value && blogOwnerId.value !== userId.value) {
-        const userIdToNotify = mentionedUserId || blogOwnerId.value;
+    const replyToComment = (commentText: string, commentMeta: string) => {
+      const commentedBy = commentMeta.match(/was commented by (.*) on/)[1]; // Extract the commenter from meta
+      localStorage.setItem('comment_main', commentText); // Store comment text in local storage as comment_main
+      localStorage.setItem('commented_by', commentedBy); // Store commented_by in local storage
+      router.push({ name: 'ReplyPage' }); // Navigate to ReplyPage without parameters
+    };
 
-        const { error } = await supabase
-          .from('notifications')
-          .insert([
-            {
-              user_id: userIdToNotify,
-              message: message,
-              blog_title: blogTitle.value,
-              read: false,
-              created_at: new Date().toISOString(),
-              displayed: false,
-            },
-          ]);
+    const deleteComment = async (index: number) => {
+      if (!isBlogOwner.value) return;
 
-        if (error) {
-          console.error('Error creating notification:', error.message);
-        } else {
-          console.log('Notification created successfully.');
-        }
+      const commentToDelete = commentDetails.value[index];
+      if (!commentToDelete) return;
+
+      const commentMain = commentToDelete.text; // Extract the main comment text
+
+      // Delete replies that have the same comment_main
+      const { error: deleteRepliesError } = await supabase
+        .from('reply_table')
+        .delete()
+        .eq('comment_main', commentMain);
+
+      if (deleteRepliesError) {
+        console.error('Error deleting replies associated with the comment:', deleteRepliesError.message);
+        return;
+      }
+
+      // Update comment arrays
+      const updatedComments = comments.value.filter((_, i) => i !== index);
+      const updatedCommentDetails = commentDetails.value.filter((_, i) => i !== index);
+
+      // Update Supabase
+      const { error } = await supabase
+        .from('blog_post')
+        .update({
+          comments: updatedComments,
+          comment_details: updatedCommentDetails,
+        })
+        .eq('blog_id', blogId.value);
+
+      if (error) {
+        console.error('Error deleting comment:', error.message);
+        return;
+      }
+
+      comments.value = updatedComments;
+      commentDetails.value = updatedCommentDetails;
+    };
+
+    const createNotification = async (message: string, recipientId: string, blogId: string) => {
+      const { error } = await supabase
+        .from('notifications')
+        .insert([
+          {
+            message: message,
+            user_id: recipientId,
+            blog_id: blogId,
+            not_identifier: 'MENTION',
+            created_at: new Date().toISOString(),
+          },
+        ]);
+
+      if (error) {
+        console.error('Error creating notification:', error.message);
       }
     };
 
@@ -211,8 +262,7 @@ export default defineComponent({
 
         likes.value += 1;
         isLiked.value = true;
-
-        createNotification(`Your blug was liked by ${chatterName.value}`);
+        createNotification(`Your blug was liked by ${chatterName.value}`, blogOwnerId.value!, blogId.value!);
       }
     };
 
@@ -306,7 +356,7 @@ export default defineComponent({
         commentDetails.value = updatedCommentDetails;
         newComment.value = '';
 
-        createNotification(`${chatterName.value} commented on your blug`);
+        createNotification(`${chatterName.value} commented on your blug`, blogOwnerId.value!, blogId.value!);
 
         // Handle mentions
         const mentionedUsernames = newCommentText.match(/@(\w+)/g);
@@ -329,7 +379,7 @@ export default defineComponent({
               const mentionedUserId = mentionedUser.id;
               localStorage.setItem('mentionedUserId', mentionedUserId);
               console.log(`Found mentioned user with id: ${mentionedUserId}`);
-              createNotification(`${chatterName.value} mentioned you in a blug`, mentionedUserId);
+              createNotification(`${chatterName.value} mentioned you in a blug`, mentionedUserId, blogId.value!);
             }
           }
         }
@@ -416,6 +466,7 @@ export default defineComponent({
     });
 
     onMounted(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 1000)); // Add a 1-second delay
       blogId.value = localStorage.getItem('blog_id');
       await fetchUserDetails();
       fetchLikesBookmarksComments();
@@ -441,27 +492,42 @@ export default defineComponent({
       hideMentionsList,
       formatDate,
       formatTime,
+      isBlogOwner,
+      deleteComment,
+      replyToComment, // Include replyToComment function
     };
   },
 });
 </script>
 
 <style scoped>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
 .interactive-page {
   height: 5px;
-  margin-bottom: 500px;
 }
 
 .container {
   text-align: center;
+  width: 100%;
 }
 
-.like-section, .bookmark-section {
+.like-section,
+.bookmark-section {
   margin-top: 10px;
+  background-color: #444;
+  width: 100%;
+}
+
+.bookmark-section{
+  background-color: #e04a2e;
 }
 
 .comments-section {
-  margin-top: 20px;
+  margin-top: 0px;
   background: #333;
   padding: 20px;
   border-radius: 0px 0px 10px 10px;
@@ -472,11 +538,31 @@ export default defineComponent({
   padding: 10px;
   background: #444;
   border-radius: 5px;
+  position: relative;
 }
 
 .comment-meta {
   font-size: 0.8rem;
   color: #aaa;
+}
+
+.reply-button {
+  margin-top: 10px;
+  padding: 5px 10px;
+  background: #fd662f;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  width: 100%;
+  text-align: center;
+  display: flex; /* Use flexbox to center the text */
+  align-items: center; /* Center text vertically */
+  justify-content: center; /* Center text horizontally */
+}
+
+.reply-button:hover {
+  background: #e04a2e;
 }
 
 .comment-input {
@@ -505,7 +591,8 @@ button {
   cursor: pointer;
 }
 
-button .fa-heart, button .fa-bookmark {
+button .fa-heart,
+button .fa-bookmark {
   color: #cebfad;
   font-size: 25px;
   margin-right: 8px;
@@ -519,7 +606,8 @@ button.bookmarked .fa-bookmark {
   color: #fd662f;
 }
 
-button:hover .fa-heart, button:hover .fa-bookmark {
+button:hover .fa-heart,
+button:hover .fa-bookmark {
   color: #fd662f;
 }
 
@@ -541,17 +629,31 @@ button.post:disabled {
   cursor: not-allowed;
 }
 
+button.delete-comment {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  background: none;
+  border: none;
+  color: #cebfad;
+  cursor: pointer;
+}
+
+button.delete-comment:hover {
+  color: #fd662f;
+}
+
 .warning {
   color: red;
   margin-top: 10px;
 }
 
-.interaction-container{
+.interaction-container {
   display: flex;
   flex-direction: row;
 }
 
-.likescounter{
+.likescounter {
   font-weight: bold;
   color: #cebfad;
 }
@@ -580,7 +682,8 @@ button.post:disabled {
 }
 
 @media (max-width: 430px) {
-  button .fa-heart, button .fa-bookmark {
+  button .fa-heart,
+  button .fa-bookmark {
     color: #cebfad;
     font-size: 25px;
   }

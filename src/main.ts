@@ -33,7 +33,9 @@ import {
   faToggleOff,
   faCircleRight, 
   faCircleLeft,
-  faBars // Import faBars
+  faTrash,
+  faBars, // Import faBars
+  faToolbox
 } from '@fortawesome/free-solid-svg-icons';
 
 library.add(
@@ -63,6 +65,9 @@ library.add(
   faToggleOff,
   faCircleRight, 
   faCircleLeft,
+  faTrash,
+  faToolbox,
+  faCircleXmark,
   faBars // Add faBars to library
 );
 

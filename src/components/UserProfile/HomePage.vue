@@ -128,7 +128,7 @@ export default defineComponent({
 .new-user-page {
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  height: 100%;
   background-color: #000000;
   padding-right: 50px;
   padding-left: 50px;
@@ -186,7 +186,7 @@ export default defineComponent({
 .right-column {
   width: 35%;
   background-color: #1e2127;
-  height: 100%;
+  max-height: calc(100vh - 63px);
   overflow-y: auto;
   display: flex;
   flex-direction: column;

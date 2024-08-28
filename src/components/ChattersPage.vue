@@ -13,6 +13,7 @@
                 <span class="post-title" @click="viewPost(index)">{{ post.title }}</span>
                 <div class="post-actions">
                   <i class="fas fa-eye" @click="viewPost(index)" title="Read"></i>
+                  <i class="fas fa-edit" @click="editPost(index)" title="Edit"></i> <!-- Edit Button -->
                   <i class="fas fa-trash" @click="deletePost(index)" title="Delete"></i>
                 </div>
               </li>
@@ -36,15 +37,16 @@
 
 <script lang="ts">
 import { defineComponent, ref, onMounted } from 'vue';
+import { useRouter } from 'vue-router';
 import NavBar from './NavBar.vue';
 import { supabase } from './supabase'; // Make sure the correct path is used
 import InteractivePage from './features/InteractionPage.vue'; // Import the InteractivePage component
 
 interface Post {
   id: number;
-  title: string | null; // Allow title to be string or null
+  title: string | null;
   content: string;
-  bodyContent: string; // Added field for body content
+  bodyContent: string;
   userId: string;
   userFullName: string;
   date: string;
@@ -61,6 +63,7 @@ export default defineComponent({
     const selectedPost = ref<Post | null>(null);
     const currentComponentKey = ref<number>(0); // Key to force component re-render
     const isLeftColumnHidden = ref<boolean>(false); // State to control the visibility of the left column
+    const router = useRouter(); // Add useRouter to use routing functionality
 
     const fetchPostsFromBucket = async (userId: string) => {
       const { data, error } = await supabase.storage
@@ -154,11 +157,6 @@ export default defineComponent({
       localStorage.setItem('user_id', user_id);
       localStorage.setItem('blog_id', blog_id);
 
-      // Log to verify
-      console.log(`User ID: ${user_id}, Blog Post ID: ${blog_id}`);
-      console.log('Stored User ID:', localStorage.getItem('user_id'));
-      console.log('Stored Blog ID:', localStorage.getItem('blog_id'));
-
       const filePath = `${user_id}/${blog_id}.html`;
       const htmlContent = await fetchPostContent(filePath);
       const { title, bodyContent } = extractPostElements(htmlContent);
@@ -168,6 +166,26 @@ export default defineComponent({
 
       // Hide the left column when a post is viewed
       isLeftColumnHidden.value = true;
+    };
+
+    const editPost = async (index: number) => {
+      const post = posts.value[index];
+
+      const { data, error } = await supabase
+        .from('blog_post')
+        .select('user_id, blog_id')
+        .eq('title', post.title)
+        .single();
+
+      if (error) {
+        console.error('Error fetching post details:', error.message);
+        return;
+      }
+
+      const { user_id, blog_id } = data;
+
+      // Navigate to the EditPostPage with the blogId
+      router.push({ name: 'EditPostPage', params: { blogId: blog_id } });
     };
 
     const showLeftColumn = () => {
@@ -231,6 +249,7 @@ export default defineComponent({
       posts,
       selectedPost,
       viewPost,
+      editPost, // Include the editPost method in the returned object
       deletePost,
       currentComponentKey,
       formatDate,
