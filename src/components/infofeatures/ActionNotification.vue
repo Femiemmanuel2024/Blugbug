@@ -9,8 +9,16 @@
     </button>
     <div v-if="showNotifications" class="notification-list">
       <div class="notification-controls">
-        <button @click="checkForNotifications">Check for Notifications</button>
-        <button @click="deleteAllNotifications">Delete All Notifications</button>
+        <div class="control-column">
+          <button @click="checkForNotifications" class="control-button">
+            <font-awesome-icon :icon="['fas', 'arrows-rotate']" />
+          </button>
+        </div>
+        <div class="control-column">
+          <button @click="deleteAllNotifications" class="control-button">
+            <font-awesome-icon :icon="['fas', 'circle-xmark']" />
+          </button>
+        </div>
       </div>
       <ul>
         <li v-for="notification in notifications" :key="notification.id">
@@ -29,6 +37,12 @@
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { supabase } from '../supabase';
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
+import { faArrowsRotate, faCircleXmark } from '@fortawesome/free-solid-svg-icons';
+import { library } from '@fortawesome/fontawesome-svg-core';
+
+// Add icons to the library
+library.add(faArrowsRotate, faCircleXmark);
 
 interface Notification {
   id: string;
@@ -113,6 +127,10 @@ const markAsRead = async (notification: Notification) => {
     });
   } else if (notification.blog_title) {
     router.push({ name: 'BlugPage', query: { search: notification.blog_title } });
+  } else if (notification.message === 'Welcome to Blugbug') {
+    // Navigate to BlugReader.vue with a fixed blogId
+    localStorage.setItem('blog_id', '97248198-8eb3-4ace-928d-2b47266ddefa');
+    router.push({ name: 'BlugReader', query: { blogId: '97248198-8eb3-4ace-928d-2b47266ddefa' } });
   }
 };
 
@@ -272,7 +290,7 @@ onMounted(() => {
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   z-index: 10000;
   font-size: 12px;
-  opacity: 0.9;
+
 }
 
 .notification-controls {
@@ -281,6 +299,28 @@ onMounted(() => {
   padding: 10px;
   background-color: #333;
   border-bottom: 1px solid #444;
+}
+
+.control-column {
+  display: flex;
+  justify-content: center;
+  width: 50%;
+}
+
+.control-button {
+  width: 100%;
+  background-color: #333;
+  color: white;
+  border: none;
+  padding: 5px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 18px;
+  text-align: center;
+}
+
+.control-button:hover {
+  background-color: #e04a2e;
 }
 
 .notification-list ul {

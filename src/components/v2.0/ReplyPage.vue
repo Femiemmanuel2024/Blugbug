@@ -4,7 +4,7 @@
     <div class="reply-content">
       <button @click="goBack" class="back-button">Back</button>
       <!-- Display the original comment and the user who commented -->
-      <h2 class="comment-header">{{ originalComment }}</h2>
+      <h2 class="comment-header" v-html="parsedComment"></h2>
       <p class="commented-by">Commented by: {{ commentedBy }}</p>
       
       <div v-if="loading" class="loading-modal">
@@ -50,7 +50,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, onMounted } from 'vue';
+import { defineComponent, ref, onMounted, computed } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { supabase } from '../supabase'; // Adjust the path as needed
 import NavBar from '../NavBar.vue';
@@ -283,6 +283,15 @@ export default defineComponent({
       return text.replace(/@(\w+)/g, '<span style="color: black;">@$1</span>');
     };
 
+    const parsedComment = computed(() => {
+      if (!originalComment.value) return '';
+      // Parse <router-link> and replace with anchor tags
+      return originalComment.value.replace(
+        /<router-link\s+to="([^"]+)"[^>]*>(.*?)<\/router-link>/g,
+        (_, to, text) => `<a href="${router.resolve(to).href}" style="color: orange;">${text}</a>`
+      );
+    });
+
     const goBack = () => {
       router.back();
     };
@@ -303,6 +312,7 @@ export default defineComponent({
 
     return {
       originalComment,
+      parsedComment,
       commentedBy,
       newReply,
       allReplies,
@@ -499,6 +509,4 @@ export default defineComponent({
 
   /* Add styles for phone screen size here */
 }
-
-
 </style>

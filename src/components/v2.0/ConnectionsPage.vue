@@ -73,4 +73,23 @@ export default defineComponent({
 .tab-content {
   margin-top: 20px;
 }
+
+
+/* CSS for iPad screen size */
+@media screen and (min-width: 768px) and (max-width: 1024px) {
+  /* Add styles for iPad screen size here */
+}
+
+/* CSS for phone screen size */
+@media screen and (max-width: 767px) {
+  .connections-page {
+  padding: 20px;
+  background-color: #2b3138;
+  color: #cebfad;
+  border: solid 5px #0c1118;
+  margin-top: 140px;
+}
+  /* Add styles for phone screen size here */
+}
+
 </style>
