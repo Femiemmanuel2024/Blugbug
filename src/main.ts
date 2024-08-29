@@ -38,7 +38,8 @@ import {
   faToolbox,
   faArrowsRotate,
   faPlus,
-  faUserMinus
+  faUserMinus,
+  faHeadset
 } from '@fortawesome/free-solid-svg-icons';
 
 library.add(
@@ -74,6 +75,7 @@ library.add(
   faArrowsRotate,
   faPlus,
   faUserMinus,
+  faHeadset,
   faBars // Add faBars to library
 );
 

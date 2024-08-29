@@ -30,11 +30,24 @@
         <span class="icon-label">Admin Manager</span>
       </router-link>
 
+      <!-- Trigger for LogComplaint modal -->
+      <div class="nav-icon" @click="toggleLogComplainModal">
+        <font-awesome-icon :icon="['fas', 'headset']" class="icon" />
+        <span class="icon-label">Help</span>
+      </div>
+
       <router-link to="/login" class="nav-icon" @click="logout">
         <font-awesome-icon :icon="['fas', 'sign-out-alt']" class="icon" />
         <span class="icon-label">Logout</span>
       </router-link>
     </div>
+
+    <!-- Include LogComplaint modal component and pass showModal prop -->
+    <LogComplaint 
+      v-if="showLogComplainModal" 
+      :showModal="showLogComplainModal" 
+      @close="toggleLogComplainModal" 
+    />
   </nav>
 </template>
 
@@ -43,17 +56,20 @@ import { defineComponent, ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import ActionNotification from './infofeatures/ActionNotification.vue';
+import LogComplaint from './v2.0/LogComplaint.vue'; // Ensure this path is correct
 
 export default defineComponent({
   name: 'NavBar',
   components: {
     FontAwesomeIcon,
     ActionNotification,
+    LogComplaint,
   },
   setup(_, { emit }) {
     const router = useRouter();
     const isAdmin = ref(false);
-    const adminId = '3d77bcc4-40bb-42ed-87d8-98a1a82285c6'; // Admin user ID
+    const adminId = '3d77bcc4-40bb-42ed-87d8-98a1a82285c6';
+    const showLogComplainModal = ref(false); // Make sure this is reactive
 
     onMounted(() => {
       const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
@@ -81,15 +97,24 @@ export default defineComponent({
       }, 300);
     };
 
+    const toggleLogComplainModal = () => {
+      console.log("Toggle LogComplaint Modal", showLogComplainModal.value);
+      showLogComplainModal.value = !showLogComplainModal.value;
+    };
+
     return {
       isAdmin,
       logout,
       navigate,
       animateIcon,
+      showLogComplainModal,
+      toggleLogComplainModal,
     };
   },
 });
 </script>
+
+
 
 <style scoped>
 @import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css');
@@ -150,10 +175,6 @@ export default defineComponent({
   animation: click-animation 0.3s ease;
 }
 
-.animate-flip .icon {
-  animation: flip-animation 0.3s ease;
-}
-
 .brandlogo {
   height: 70px;
   width: auto;
@@ -174,30 +195,6 @@ export default defineComponent({
   }
   100% {
     transform: scale(1);
-  }
-}
-
-@keyframes flip-animation {
-  0% {
-    transform: rotateY(0);
-  }
-  50% {
-    transform: rotateY(180deg);
-  }
-  100% {
-    transform: rotateY(360deg);
-  }
-}
-
-@keyframes hover-animation {
-  0% {
-    transform: rotateY(0);
-  }
-  50% {
-    transform: rotateY(180deg);
-  }
-  100% {
-    transform: rotateY(360deg);
   }
 }
 
@@ -239,7 +236,8 @@ export default defineComponent({
   }
 }
 
-@media (min-width:481px) and (max-width:768px){
+@media (min-width:481px) and (max-width:768px) {
+  /* Add your specific styles here */
 }
 
 @media (min-width: 768px) and (max-width: 1024px) {

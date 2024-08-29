@@ -32,8 +32,11 @@
               />
               <i :class="passwordFieldIcon" @click="togglePasswordVisibility"></i>
             </div>
-            <!-- Forgot Password Link -->
-            <p class="forgot-password" @click="showForgotPasswordModal">Forgot Password?</p>
+            <!-- Forgot Password and Help Links Container -->
+            <div class="links-container">
+              <p class="forgot-password" @click="showForgotPasswordModal">Forgot Password?</p>
+              <p class="help-text" @click="toggleLoginLogComplainModal">Help</p>
+            </div>
             <button
               type="submit"
               :class="['btn', isInvalidLogin ? 'btn-invalid' : 'btn-login']"
@@ -51,6 +54,12 @@
     </div>
     <!-- Password Recovery Modal -->
     <PasswordRecovery :showModal="showPasswordRecovery" @close="showPasswordRecovery = false" />
+    <!-- LogComplaint Modal -->
+    <LogComplaint 
+      v-if="showLoginLogComplainModal" 
+      :showModal="showLoginLogComplainModal" 
+      @close="toggleLoginLogComplainModal" 
+    />
   </div>
 </template>
 
@@ -59,12 +68,14 @@ import { defineComponent, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { supabase } from './supabase';
 import bcrypt from 'bcryptjs';
-import PasswordRecovery from '../components/v2.0/PasswordRecovery.vue'; // Import the PasswordRecovery component
+import PasswordRecovery from '../components/v2.0/PasswordRecovery.vue';
+import LogComplaint from '../components/v2.0/LogComplaint.vue'; // Import the LogComplaint component
 
 export default defineComponent({
   name: 'LoginPage',
   components: {
-    PasswordRecovery, // Register the PasswordRecovery component
+    PasswordRecovery,
+    LogComplaint, // Register the LogComplaint component
   },
   setup() {
     const router = useRouter();
@@ -74,7 +85,8 @@ export default defineComponent({
     const passwordFieldIcon = ref('fas fa-eye');
     const isInvalidLogin = ref(false);
     const isLoading = ref(false);
-    const showPasswordRecovery = ref(false); // State to control the visibility of the password recovery modal
+    const showPasswordRecovery = ref(false);
+    const showLoginLogComplainModal = ref(false); // New reactive property for controlling LogComplaint modal in LoginPage
 
     const onSubmit = async () => {
       isLoading.value = true;
@@ -129,7 +141,11 @@ export default defineComponent({
     };
 
     const showForgotPasswordModal = () => {
-      showPasswordRecovery.value = true; // Show the password recovery modal when "Forgot Password?" is clicked
+      showPasswordRecovery.value = true;
+    };
+
+    const toggleLoginLogComplainModal = () => {
+      showLoginLogComplainModal.value = !showLoginLogComplainModal.value;
     };
 
     return {
@@ -143,6 +159,8 @@ export default defineComponent({
       isLoading,
       showPasswordRecovery,
       showForgotPasswordModal,
+      showLoginLogComplainModal,
+      toggleLoginLogComplainModal,
     };
   },
 });
@@ -295,10 +313,15 @@ a {
   text-decoration: none;
 }
 
+.links-container {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 10px;
+}
+
 .forgot-password {
   color: #ed6834;
   cursor: pointer;
-  margin-top: 10px;
   text-align: left;
 }
 
@@ -306,8 +329,18 @@ a {
   text-decoration: underline;
 }
 
+.help-text {
+  color: #ed6834;
+  cursor: pointer;
+  text-align: right;
+}
+
+.help-text:hover {
+  text-decoration: underline;
+}
+
 p {
-  margin-top: 120px;
+  margin-top: 10px;
   color: #d7c9b7;
 }
 

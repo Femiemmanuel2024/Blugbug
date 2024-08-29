@@ -144,7 +144,7 @@ export default defineComponent({
           <body>
             <h1>${title.value}</h1>
             <p>Created by: ${user.value.full_name}</p>
-            <p>Date: ${new Date(timestamp.value).toLocaleString()}</p>
+            <p class="date-meta">Date: ${new Date(timestamp.value).toLocaleString()}</p>
             <div class="blog-body">${content.value}</div> <!-- Wrap content in a specific div -->
           </body>
         </html>
@@ -281,6 +281,10 @@ button {
 
 button:hover {
   background-color: #e04a2e;
+}
+
+.date-meta {
+  color: #e04a2e;
 }
 
 /* CSS for iPad screen size */

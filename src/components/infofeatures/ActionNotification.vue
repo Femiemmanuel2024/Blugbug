@@ -127,10 +127,6 @@ const markAsRead = async (notification: Notification) => {
     });
   } else if (notification.blog_title) {
     router.push({ name: 'BlugPage', query: { search: notification.blog_title } });
-  } else if (notification.message === 'Welcome to Blugbug') {
-    // Navigate to BlugReader.vue with a fixed blogId
-    localStorage.setItem('blog_id', '97248198-8eb3-4ace-928d-2b47266ddefa');
-    router.push({ name: 'BlugReader', query: { blogId: '97248198-8eb3-4ace-928d-2b47266ddefa' } });
   }
 };
 
@@ -181,39 +177,6 @@ const handleClick = async () => {
   const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
   if (currentUser.id) {
     isLoggedIn.value = true; // User is logged in
-    const { data: welcomeData, error: welcomeError } = await supabase
-      .from('notifications')
-      .select('id, user_id, message, read')
-      .eq('user_id', currentUser.id)
-      .eq('message', 'Welcome to Blugbug')
-      .single();
-
-    if (welcomeError && welcomeError.code !== 'PGRST116') {
-      console.error('Error checking welcome notification:', welcomeError.message);
-      return;
-    }
-
-    if (!welcomeData || (welcomeData && welcomeData.read === false)) {
-      if (!welcomeData) {
-        const { error: insertError } = await supabase
-          .from('notifications')
-          .insert([
-            {
-              user_id: currentUser.id,
-              message: 'Welcome to Blugbug',
-              read: false,
-              created_at: new Date().toISOString(),
-            },
-          ]);
-
-        if (insertError) {
-          console.error('Error creating welcome notification:', insertError.message);
-        } else {
-          console.log('Welcome notification created successfully.');
-        }
-      }
-    }
-
     fetchNotifications(); // Fetch notifications on login
   } else {
     console.error('No user is currently logged in.');
@@ -290,7 +253,6 @@ onMounted(() => {
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   z-index: 10000;
   font-size: 12px;
-
 }
 
 .notification-controls {
