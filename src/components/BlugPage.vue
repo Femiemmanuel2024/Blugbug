@@ -2,8 +2,18 @@
   <div class="blug-page">
     <NavBar />
     <div class="content">
+      <div class="centered-chatter-name">
+        <img :src="profileImageUrl || defaultProfileImageUrl" alt="Profile Image" class="profile-image" />
+        <h2>{{ chatterName ? 'Hi, ' + chatterName : '' }}</h2>
+      </div>
       <div class="search-bar">
-        <input type="text" v-model="searchQuery" placeholder="Search for blog post by title" />
+        <!-- Updated search bar design -->
+        <div class="search-input-container">
+          <input type="text" v-model="searchQuery" placeholder="Search..." />
+          <button class="search-icon">
+            <font-awesome-icon :icon="['fas', 'magnifying-glass']" />
+          </button>
+        </div>
       </div>
       <div class="container">
         <div class="top-column">
@@ -13,16 +23,15 @@
           <div class="top-container">
             <ul class="blog-list">
               <li class="list-container" v-for="(post, index) in displayedPosts" :key="index">
-                <div class="title-row post-title-container">
+                <div class="image-row">
+                  <img :src="post.imageUrl || placeholderImageUrl" alt="Blog Image" class="post-image" />
+                </div>
+                <div class="title-row">
                   <span class="post-title">{{ post.title }}</span>
                 </div>
-                <div class="button-row">
-                  <button class="read-button" @click="viewPost(post)">
-                    Read
-                  </button>
-                  <button class="share-button" @click="sharePost(post)">
-                    Share
-                  </button>
+                <div class="bottom-row">
+                  <button class="read-button" @click="viewPost(post)">Read</button>
+                  <span class="likes-count">{{ formattedLikes(post.likes) }}</span>
                 </div>
               </li>
             </ul>
@@ -42,38 +51,55 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, computed, onMounted, watch, toRaw } from 'vue';
+import { defineComponent, ref, computed, onMounted, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import NavBar from './NavBar.vue';
 import { supabase } from './supabase';
-import InteractivePage from './features/InteractionPage.vue';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 
 interface Post {
   id: number;
   title: string | null;
-  content: string;
-  bodyContent: string;
   userId: string;
   userFullName: string;
   date: string;
+  imageUrl: string;
+  likes: number;
 }
 
 export default defineComponent({
   name: 'BlugPage',
   components: {
     NavBar,
-    InteractivePage,
     FontAwesomeIcon,
   },
   setup() {
     const posts = ref<Post[]>([]);
     const displayedPosts = ref<Post[]>([]);
-    const selectedPost = ref<Post | null>(null);
     const searchQuery = ref<string>('');
+    const chatterName = ref<string | null>(null);
+    const profileImageUrl = ref<string | null>(null);
+    const defaultProfileImageUrl = '/Default_pfp.svg'; // Default profile image path
     const router = useRouter();
-    const postsPerPage = ref<number>(10);
+    const postsPerPage = ref<number>(16);
     const currentPage = ref<number>(0);
+    const placeholderImageUrl = '/blug_default.png'; // Ensure this file exists in the public directory
+
+    const loadChatterNameAndProfileImage = async () => {
+      const currentUser = localStorage.getItem('currentUser');
+      const userId = currentUser ? JSON.parse(currentUser).id : null;
+      if (!userId) return;
+      const { data, error } = await supabase
+        .from('users')
+        .select('chatter_name, profile_image_url')
+        .eq('id', userId)
+        .single();
+
+      if (!error && data) {
+        chatterName.value = data.chatter_name;
+        profileImageUrl.value = data.profile_image_url || defaultProfileImageUrl;
+      }
+    };
 
     const loadPosts = async () => {
       const { data, error } = await supabase.from('blog_post').select('*');
@@ -81,15 +107,23 @@ export default defineComponent({
         console.error('Error fetching posts:', error.message);
         return;
       }
-      const loadedPosts = (data || []).map((post) => ({
-        id: post.id,
-        title: post.title,
-        content: '',
-        bodyContent: '',
-        userId: post.user_id,
-        userFullName: post.user_full_name || 'Unknown',
-        date: post.created_at,
-      }));
+      const loadedPosts = await Promise.all(
+        (data || []).map(async (post) => {
+          const filePath = `${post.user_id}/${post.blog_id}.html`;
+          const htmlContent = await fetchPostContent(filePath);
+          const imageUrl = extractImageUrlFromHtml(htmlContent);
+
+          return {
+            id: post.id,
+            title: post.title,
+            userId: post.user_id,
+            userFullName: post.user_full_name || 'Unknown',
+            date: post.created_at,
+            imageUrl: imageUrl,
+            likes: post.likes || 0,
+          };
+        })
+      );
       loadedPosts.sort(() => Math.random() - 0.5); // Shuffle posts
       posts.value = loadedPosts;
       updateDisplayedPosts();
@@ -106,6 +140,13 @@ export default defineComponent({
       }
     };
 
+    const extractImageUrlFromHtml = (htmlContent: string) => {
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(htmlContent, 'text/html');
+      const imgElement = doc.querySelector('.blug_banner img');
+      return imgElement ? imgElement.src : null;
+    };
+
     const viewPost = async (post: Post) => {
       const { data, error } = await supabase
         .from('blog_post')
@@ -119,46 +160,17 @@ export default defineComponent({
       }
 
       const { user_id, blog_id } = data;
-      const filePath = `${user_id}/${blog_id}.html`;
-      const htmlContent = await fetchPostContent(filePath);
-      const { title, bodyContent } = extractPostElements(htmlContent);
-
-      selectedPost.value = { ...post, title, bodyContent };
-      
       localStorage.setItem('user_id', user_id);
       localStorage.setItem('blog_id', blog_id);
 
       router.push({ name: 'BlugReader', query: { blogId: blog_id.toString() } });
     };
 
-    const sharePost = (post: Post) => {
-      const rawPost = toRaw(post); // Unwrap the proxy to get the raw object
-
-      // Generate a shareable URL (assuming you have a route to view individual posts)
-      const shareableURL = `${window.location.origin}/post/${rawPost.id}`;
-
-      // Copy the URL to the clipboard
-      navigator.clipboard.writeText(shareableURL).then(() => {
-        console.log('URL copied to clipboard:', shareableURL);
-        alert('Link copied to clipboard!');
-      }).catch(err => {
-        console.error('Failed to copy text: ', err);
-      });
-    };
-
-    const extractPostElements = (htmlContent: string) => {
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(htmlContent, 'text/html');
-      const h1Element = doc.querySelector('h1');
-      const bodyContent = Array.from(doc.body.children)
-        .filter((child) => child.tagName !== 'H1')
-        .map((child) => child.outerHTML)
-        .join('');
-      return {
-        title: h1Element ? h1Element.textContent : 'Untitled',
-        content: htmlContent,
-        bodyContent,
-      };
+    const formattedLikes = (likes: number) => {
+      if (likes >= 1000) {
+        return (likes / 1000).toFixed(1) + 'k';
+      }
+      return likes.toString();
     };
 
     const updateDisplayedPosts = () => {
@@ -190,6 +202,7 @@ export default defineComponent({
     const hasNextPage = computed(() => (currentPage.value + 1) * postsPerPage.value < filteredPosts.value.length);
 
     onMounted(() => {
+      loadChatterNameAndProfileImage();
       loadPosts();
       const updatePostsPerPage = () => {
         postsPerPage.value = 10; // Always display 10 posts per page
@@ -208,14 +221,17 @@ export default defineComponent({
 
     return {
       displayedPosts,
-      selectedPost,
       viewPost,
       searchQuery,
       prevPage,
       nextPage,
       hasPrevPage,
       hasNextPage,
-      sharePost,
+      formattedLikes,
+      chatterName,
+      profileImageUrl,
+      placeholderImageUrl, 
+      defaultProfileImageUrl, // Added default profile image URL
     };
   },
 });
@@ -241,17 +257,64 @@ export default defineComponent({
 .search-bar {
   display: flex;
   justify-content: center;
-  padding: 10px;
+  padding: 20px;
 }
 
-.search-bar input {
-  width: 50%;
-  padding: 10px;
-  font-size: 14px;
-  border: none;
+.search-input-container {
+  display: flex;
+  align-items: center;
   background-color: #2b3138;
+  border-radius: 25px;
+  padding: 5px 10px;
+  width: 50%;
+  height: 30px;
+  overflow: hidden;
+}
+
+.search-input-container input {
+  flex-grow: 1;
+  border: none;
+  background: none;
   color: #d7c9b7;
-  border-radius: 10px;
+  padding: 10px;
+  font-size: 16px;
+  border-radius: 25px 0 0 25px;
+  outline: none; /* Remove input outline */
+}
+
+.search-icon {
+  background: none;
+  border: none;
+  padding: 30px 70px 30px 70px;
+  margin-left: 10px;
+  cursor: pointer;
+  color: #d7c9b7;
+  background-color: #e04a2e;
+  left: 10px;
+  position: relative;
+}
+
+.search-icon:hover {
+  color: #ffffff;
+}
+
+.search-icon .fa-magnifying-glass {
+  font-size: 16px;
+}
+
+.centered-chatter-name {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  color: #d7c9b7;
+}
+
+.profile-image {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  margin-right: 10px;
 }
 
 .container {
@@ -276,8 +339,8 @@ export default defineComponent({
 
 .blog-list {
   display: grid;
-  grid-template-columns: repeat(4, 1fr); /* Display in 4 columns */
-  gap: 10px;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 30px;
   justify-content: center;
 }
 
@@ -293,7 +356,8 @@ li {
   background-color: #444;
   padding: 0;
   border-radius: 10px;
-  width: 100%;
+  width: 250px;
+  height: 300px;
   overflow: hidden;
   justify-content: space-between;
   transition: transform 0.2s;
@@ -303,29 +367,47 @@ li:hover {
   transform: scale(1.05);
 }
 
-.title-row {
+.image-row {
   width: 100%;
-  text-align: center;
-  padding: 10px;
-}
-
-.post-title {
-  font-size: 14px;
-  color: #fff;
-  text-align: left;
+  height: 80%;
   overflow: hidden;
-  text-overflow: ellipsis;
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  white-space: normal;
-  padding-left: 10px;
-  padding-right: 10px;
 }
 
-.button-row {
+.post-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.post-image:hover {
+  transform: scale(1.1);
+}
+
+.title-row {
+  padding: 10px;
+  text-align: center;
+  background-color: #333;
+  color: white;
+  width: 100%;
+  font-size: 16px;
+}
+
+.bottom-row {
   display: flex;
   width: 100%;
+  justify-content: space-between;
+  padding: 10px;
+  background-color: #333;
+  color: white;
+}
+
+.likes-count {
+  font-size: 14px;
+  padding-right: 10px;
+  padding-top: 10px;
+  padding-left: 50px;
+  padding-right: 50px;
 }
 
 .read-button {
@@ -333,8 +415,9 @@ li:hover {
   background-color: #fd662f;
   color: white;
   border: none;
-  border-radius: 4px 0 0 4px;
+  border-radius: 4px;
   padding: 10px;
+  cursor: pointer;
 }
 
 .read-button:hover {
@@ -346,7 +429,7 @@ li:hover {
   background-color: #007bff;
   color: white;
   border: none;
-  border-radius: 0 4px 4px 0;
+  border-radius: 4px;
   padding: 10px;
 }
 
@@ -397,10 +480,41 @@ li:hover {
     align-items: center;
   }
 
-  .search-bar input {
-    width: 100%;
-    padding: 10px;
-    font-size: 12px;
+  .search-input-container {
+    width: 90%;
   }
+
+  .search-input-container input {
+    font-size: 14px;
+  }
+
+  li {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: #444;
+  padding: 0;
+  border-radius: 10px;
+  width: 100%;
+  height: 200px;
+  overflow: hidden;
+  justify-content: space-between;
+  transition: transform 0.2s;
+}
+
+
+
+
+
+.search-icon {
+  background: none;
+  border: none;
+  padding: 30px 100px 30px 40px;
+  margin-left: 40px;
+  cursor: pointer;
+  color: #d7c9b7;
+  background-color: #e04a2e;
+}
+
 }
 </style>

@@ -1,10 +1,15 @@
 <template>
   <div class="edit-post-page">
     <NavBar />
-    <div v-if="isLoading" class="loading-message">Loading...</div> <!-- Displaying loading message -->
-    <div v-else class="content-container"> <!-- Display content container only when not loading -->
+    <div v-if="isLoading" class="loading-message">Loading...</div>
+    <div v-else class="content-container">
       <!-- View-only title display -->
       <div class="title-display">{{ title }}</div>
+
+      <!-- Image upload input for header image -->
+      <input type="file" @change="handleImageUpload" accept="image/*" class="image-input" />
+      <!-- Image preview with placeholder -->
+      <img :src="headerImageUrl || placeholderImageUrl" alt="Header Preview" class="header-preview" />
 
       <!-- TiptapEditor is initialized with the body content -->
       <TiptapEditor ref="tiptapEditor" :initialContent="content" @updateContent="updateContent" />
@@ -44,11 +49,14 @@ export default defineComponent({
     const title = ref<string>('');
     const content = ref<string>('');
     const editedOn = ref<string>(''); // New state for edited timestamp
+    const headerImageUrl = ref<string>(''); // New state for header image URL
+    const placeholderImageUrl = ref<string>('/blug_default.webp'); // Placeholder image URL
     const showTitleError = ref<boolean>(false);
     const showContentError = ref<boolean>(false);
     const showCategoryError = ref<boolean>(false);
     const isLoading = ref<boolean>(true);
     const tiptapEditorRef = ref(null);
+    const newHeaderImageBase64 = ref<string>(''); // New state for the base64 of the new header image
 
     const fetchBlogPost = async () => {
       isLoading.value = true;
@@ -74,24 +82,39 @@ export default defineComponent({
       title.value = doc.querySelector('h1')?.textContent || '';
 
       // Extract the body content from <div class="blog-body">
-      const bodyDiv = doc.querySelector('div.blog-body');
+      const bodyDiv = doc.querySelector('article.blog-body');
       content.value = bodyDiv ? bodyDiv.innerHTML : '';
+
+      // Extract the header image URL from <img> inside <div class="blug_banner">
+      const imgElement = doc.querySelector('.blug_banner img');
+      headerImageUrl.value = imgElement ? imgElement.src : '';
 
       // Generate a new "Edited on" timestamp
       const now = new Date();
       editedOn.value = now.toLocaleString();
 
-      // Use nextTick to ensure DOM is updated before accessing $refs
       nextTick(() => {
         if (tiptapEditorRef.value && tiptapEditorRef.value.editor) {
           tiptapEditorRef.value.editor.commands.setContent(content.value);
-          // Append timestamp to the editor content for visual reference
           const timestamp = `<p>This post was edited on ${editedOn.value}</p>`;
           tiptapEditorRef.value.editor.commands.insertContent(timestamp);
         }
       });
 
       isLoading.value = false;
+    };
+
+    const handleImageUpload = (event: Event) => {
+      const files = (event.target as HTMLInputElement).files;
+      if (files && files.length > 0) {
+        const file = files[0];
+        const reader = new FileReader();
+        reader.onload = () => {
+          newHeaderImageBase64.value = reader.result as string; // Store base64 data for the new image
+          headerImageUrl.value = reader.result as string; // Update the preview URL with the base64 data
+        };
+        reader.readAsDataURL(file);
+      }
     };
 
     const updateContent = (updatedContent: string) => {
@@ -111,16 +134,19 @@ export default defineComponent({
       const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
       const userId = currentUser.id;
 
-      // Include the "Edited on" timestamp in the HTML content
+      // Include the "Edited on" timestamp and new header image in the HTML content
       const htmlContent = `
         <html>
           <head>
-            <meta name="editedOn" content="${editedOn.value}" /> <!-- Store edited timestamp -->
+            <meta name="editedOn" content="${editedOn.value}" />
           </head>
           <body>
+            <div class="blug_banner">
+              <img src="${newHeaderImageBase64.value || headerImageUrl.value}" alt="Header Image" style="width: 100%; height: 200px;" />
+            </div>
             <h1>${title.value}</h1>
-            <div class="blog-body">${content.value}</div> <!-- Save content in the specific div -->
-            <p>This Blug was edited on ${editedOn.value}</p> <!-- Include the edited on timestamp in the content -->
+            <article class="blog-body">${content.value}</article>
+            <p>This Blug was edited on ${editedOn.value}</p>
           </body>
         </html>
       `;
@@ -159,6 +185,7 @@ export default defineComponent({
     return {
       title,
       content,
+      headerImageUrl, // Return the header image URL
       editedOn, // Return editedOn for binding
       updateContent,
       saveChanges,
@@ -168,6 +195,8 @@ export default defineComponent({
       cancelEdit,
       isLoading,
       tiptapEditorRef,
+      handleImageUpload, // Return the image upload function
+      placeholderImageUrl, // Return the placeholder image URL
     };
   },
 });
@@ -206,9 +235,20 @@ export default defineComponent({
   border: 1px solid #ccc;
   border-radius: 4px;
   box-sizing: border-box;
-  background-color: #eee; /* Gray background to indicate read-only */
-  color: #666; /* Gray text color */
-  cursor: not-allowed; /* Show not-allowed cursor */
+  background-color: #eee;
+  color: #666;
+  cursor: not-allowed;
+}
+
+.image-input {
+  margin-bottom: 10px;
+}
+
+.header-preview {
+  width: 100%;
+  height: 200px;
+  object-fit: cover; /* Ensure the image covers the specified dimensions */
+  margin-bottom: 10px; /* Space between image and editor */
 }
 
 .timestamp-display {
@@ -219,8 +259,8 @@ export default defineComponent({
   border: 1px solid #ccc;
   border-radius: 4px;
   box-sizing: border-box;
-  background-color: #eee; /* Gray background to indicate read-only */
-  color: #666; /* Gray text color */
+  background-color: #eee;
+  color: #666;
 }
 
 .error-message {
@@ -237,7 +277,7 @@ export default defineComponent({
 }
 
 button {
-  width: 50%; /* Make buttons occupy half width each */
+  width: 50%;
   padding: 10px 20px;
   background-color: #f53;
   color: white;
@@ -254,15 +294,13 @@ button:hover {
   font-size: 24px;
   color: white;
   text-align: center;
-  margin-top: 20px; /* Adjust margin as needed */
+  margin-top: 20px;
 }
 
-/* CSS for iPad screen size */
 @media screen and (min-width: 768px) and (max-width: 1024px) {
   /* Add styles for iPad screen size here */
 }
 
-/* CSS for phone screen size */
 @media screen and (max-width: 767px) {
   .edit-post-page {
     display: flex;
@@ -278,6 +316,5 @@ button:hover {
     margin-right: 2px;
     padding-top: 20px;
   }
-  /* Add styles for phone screen size here */
 }
 </style>

@@ -17,7 +17,8 @@ import CreateBlogPostPage from './components/features/CreateBlogPostPage.vue';
 import ConnectionsPage from './components/v2.0/ConnectionsPage.vue';
 import ReplyPage from './components/v2.0/ReplyPage.vue';
 import EditPostPage from './components/v2.0/EditPostPage.vue';
-import AdminManager from './components/v2.0/AdminManager.vue'; // Importing AdminManager.vue
+import AdminManager from './components/v2.0/AdminManager.vue';
+import OnBoarding from './components/v2.0/OnBoarding.vue'; // Import the OnBoarding component
 
 const routes = [
   { path: '/', redirect: '/login' },
@@ -39,7 +40,8 @@ const routes = [
   { path: '/connections', name: 'ConnectionsPage', component: ConnectionsPage },
   { path: '/reply', name: 'ReplyPage', component: ReplyPage },
   { path: '/edit/:blogId', name: 'EditPostPage', component: EditPostPage },
-  { path: '/admin-manager', name: 'AdminManager', component: AdminManager }, // New route for Admin Manager
+  { path: '/admin-manager', name: 'AdminManager', component: AdminManager },
+  { path: '/onboarding', name: 'OnBoarding', component: OnBoarding }, // Add route for OnBoarding
   { path: '/:catchAll(.*)', name: 'NotFound', component: NotFound }
 ];
 

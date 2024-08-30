@@ -76,6 +76,44 @@ export default defineComponent({
         const contentText = await postContent.text();
         const parser = new DOMParser();
         const doc = parser.parseFromString(contentText, 'text/html');
+
+        // Center-align all <address> elements
+const addresses = doc.querySelectorAll('address');
+addresses.forEach(address => {
+  address.style.textAlign = 'center'; // Center the address elements
+});
+
+// Center-align all <time> elements
+  const times = doc.querySelectorAll('time');
+times.forEach(time => {
+  time.style.display = 'block';  // Make the <time> element a block-level element
+  time.style.textAlign = 'center'; // Center the text
+});
+
+
+        // Center headers (h1) and paragraphs (p)
+        const headers = doc.querySelectorAll('h1');
+        headers.forEach(header => {
+          header.style.textAlign = 'center'; // Center the headers
+        });
+
+        const paragraphs = doc.querySelectorAll('p');
+        paragraphs.forEach(paragraph => {
+          paragraph.style.textAlign = 'left'; // Center the paragraphs
+        });
+
+        // Modify image elements
+        const images = doc.querySelectorAll('img');
+        images.forEach(img => {
+          img.classList.add('custom-img-class'); // Add a custom class
+          img.style.width = '60%'; // Set width to 60%
+          img.style.height = '300px'; // Set height to 300px
+          img.style.objectFit = 'cover'; // Maintain aspect ratio
+          img.style.display = 'block'; // Center the image horizontally
+          img.style.margin = '0 auto'; // Center the image
+          img.style.overflow = 'hidden'; // Hide overflow
+        });
+
         const bodyContent = Array.from(doc.body.children)
           .map((child) => child.outerHTML)
           .join('');
@@ -219,6 +257,16 @@ export default defineComponent({
   background-color: #e04a2e;
 }
 
+/* Custom image styling */
+.custom-img-class {
+  width: 60%;
+  height: 300px;
+  object-fit: cover;
+  display: block;
+  margin: 0 auto;
+  overflow: hidden;
+}
+
 /* CSS for iPad screen size */
 @media screen and (min-width: 768px) and (max-width: 1024px) {
   /* Add styles for iPad screen size here */
@@ -227,16 +275,15 @@ export default defineComponent({
 /* CSS for phone screen size */
 @media screen and (max-width: 767px) {
   .blug-reader {
-  padding: 0px;
-  background-color: #2b3138;
-  color: #cebfad;
-  border: solid 5px #0c1118;
-  margin-top: 160px;
-  height: 100%;
-  margin-right: 2px;
-  margin-left: 2px;
-}
+    padding: 0px;
+    background-color: #2b3138;
+    color: #cebfad;
+    border: solid 5px #0c1118;
+    margin-top: 160px;
+    height: 100%;
+    margin-right: 2px;
+    margin-left: 2px;
+  }
   /* Add styles for phone screen size here */
 }
-
 </style>

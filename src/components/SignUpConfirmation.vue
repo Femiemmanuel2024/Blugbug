@@ -3,7 +3,7 @@
     <div class="confirmation-modal">
       <h2>Sign Up Successful</h2>
       <p>Welcome, {{ chatterName }}!</p>
-      <button @click="goToLoginPage">Go to Login Page</button>
+      <button @click="goToOnboardingPage">Proceed to Onboarding</button>
     </div>
   </div>
 </template>
@@ -11,6 +11,7 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
 import { useRouter } from 'vue-router';
+import { supabase } from '@/components/supabase'; // Update the import path based on your project structure
 
 export default defineComponent({
   name: 'SignUpConfirmation',
@@ -20,15 +21,40 @@ export default defineComponent({
       required: true
     }
   },
-  setup() {
+  setup(props) {
     const router = useRouter();
 
-    const goToLoginPage = () => {
-      router.push('/login');
+    // Function to fetch user_id and navigate to the onboarding page
+    const goToOnboardingPage = async () => {
+      try {
+        // Fetch user_id and email using chatterName
+        const { data, error } = await supabase
+          .from('users')
+          .select('id, email')
+          .eq('chatter_name', props.chatterName)
+          .single();
+
+        if (error) {
+          console.error('Error fetching user data:', error.message);
+          return;
+        }
+
+        if (data && data.id) {
+          // Save the fetched user data in local storage under the same key as LoginPage.vue
+          localStorage.setItem('currentUser', JSON.stringify({ id: data.id, email: data.email }));
+          
+          // Navigate to the OnBoarding page
+          router.push('/onboarding');
+        } else {
+          console.error('User not found');
+        }
+      } catch (err) {
+        console.error('Error during onboarding navigation:', err);
+      }
     };
 
     return {
-      goToLoginPage
+      goToOnboardingPage
     };
   }
 });

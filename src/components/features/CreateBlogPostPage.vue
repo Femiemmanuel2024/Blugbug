@@ -1,8 +1,12 @@
 <template>
   <div class="create-blog-post-page">
-  <NavBar/>
+    <NavBar />
     <div class="content-container">
       <input v-model="title" placeholder="Enter the title" class="title-input" />
+      <!-- Banner image upload input -->
+      <input type="file" @change="handleImageUpload" accept="image/*" class="image-input" />
+      <!-- Image preview with placeholder -->
+      <img :src="bannerImageUrl || placeholderImageUrl" alt="Banner Preview" class="banner-preview" />
       <TiptapEditor ref="tiptapEditor" @updateContent="updateContent" />
       <div class="editor-actions">
         <div class="category-selection">
@@ -14,10 +18,12 @@
         <button @click="publishContent">Publish</button>
         <button @click="cancelCreation">Cancel</button>
       </div>
-      <div v-if="showTitleError || showContentError || showCategoryError" class="error-message">
+      <!-- Error messages -->
+      <div v-if="showTitleError || showContentError || showCategoryError || showImageError" class="error-message">
         <div v-if="showTitleError">Title is required</div>
         <div v-if="showContentError">Content is required</div>
         <div v-if="showCategoryError">Category is required</div>
+        <div v-if="showImageError">Banner image is required</div>
       </div>
     </div>
   </div>
@@ -43,11 +49,13 @@ export default defineComponent({
     const title = ref<string>('');
     const content = ref<string>('');
     const selectedCategory = ref<string>('');
+    const bannerImageUrl = ref<string>(''); // Reactive property for banner image URL
+    const placeholderImageUrl = ref<string>('/blug_default.png'); // Placeholder image URL
     const showTitleError = ref<boolean>(false);
     const showContentError = ref<boolean>(false);
     const showCategoryError = ref<boolean>(false);
+    const showImageError = ref<boolean>(false);
     const timestamp = ref<string>('');
-
     const categories = ref<string[]>([
       "Health and Wellness",
       "Fitness and Exercise",
@@ -127,28 +135,57 @@ export default defineComponent({
       timestamp.value = new Date().toISOString();
     };
 
+    const handleImageUpload = async (event: Event) => {
+      const files = (event.target as HTMLInputElement).files;
+      if (files && files.length > 0) {
+        const file = files[0];
+        bannerImageUrl.value = URL.createObjectURL(file); // Set the preview URL
+
+        const imageId = uuidv4();
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from('blog-post-banners')
+          .upload(`banners/${imageId}`, file);
+
+        if (uploadError) {
+          console.error('Error uploading image:', uploadError.message);
+        } else {
+          bannerImageUrl.value = supabase.storage
+            .from('blog-post-banners')
+            .getPublicUrl(`banners/${imageId}`).data.publicUrl; // Update with the uploaded URL
+        }
+      }
+    };
+
     const publishContent = async () => {
       showTitleError.value = !title.value.trim();
       showContentError.value = !content.value.trim();
       showCategoryError.value = !selectedCategory.value;
+      showImageError.value = !bannerImageUrl.value; // Ensure image is uploaded
 
-      if (showTitleError.value || showContentError.value || showCategoryError.value) {
+      if (showTitleError.value || showContentError.value || showCategoryError.value || showImageError.value) {
         return;
       }
 
       const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
       const userId = currentUser.id;
 
-      const htmlContent = `
-        <html>
-          <body>
-            <h1>${title.value}</h1>
-            <p>Created by: ${user.value.full_name}</p>
-            <p class="date-meta">Date: ${new Date(timestamp.value).toLocaleString()}</p>
-            <div class="blog-body">${content.value}</div> <!-- Wrap content in a specific div -->
-          </body>
-        </html>
-      `;
+      
+     const htmlContent = `
+ <html>
+  <body>
+    <div class="blug_banner">
+      <img src="${bannerImageUrl.value}" alt="Banner Image" style="width: 100%; height: 200px;" />
+    </div>
+    <h1>${title.value}</h1>
+    <address>Created by: ${user.value.full_name}</address>
+    <time datetime="${new Date(timestamp.value).toISOString()}">Date: ${new Date(timestamp.value).toLocaleString()}</time>
+    <hr>
+    <article class="blog-body">${content.value}</article>
+  </body>
+</html>
+
+`;
+
 
       const blogId = uuidv4();
       const fileName = `${blogId}.html`;
@@ -189,7 +226,7 @@ export default defineComponent({
     };
 
     const cancelCreation = () => {
-      router.push('/home'); // Navigate back to home or previous page
+      router.push('/home');
     };
 
     return {
@@ -201,7 +238,11 @@ export default defineComponent({
       showTitleError,
       showContentError,
       showCategoryError,
+      showImageError,
       cancelCreation,
+      handleImageUpload, // Return the image upload function
+      bannerImageUrl, // Return the banner image URL for preview
+      placeholderImageUrl, // Return the placeholder image URL
     };
   },
 });
@@ -235,6 +276,17 @@ export default defineComponent({
   border: 1px solid #ccc;
   border-radius: 4px;
   box-sizing: border-box;
+}
+
+.image-input {
+  margin-bottom: 10px;
+}
+
+.banner-preview {
+  width: 100%;
+  height: 200px;
+  object-fit: cover; /* Ensure the image covers the specified dimensions */
+  margin-bottom: 10px; /* Space between image and editor */
 }
 
 .category-selection select {
@@ -295,40 +347,39 @@ button:hover {
 /* CSS for phone screen size */
 @media screen and (max-width: 767px) {
   .create-blog-post-page {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100%;
-  background-color: #1e1e1e;
-  margin-top: 160px;
-}
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    background-color: #1e1e1e;
+    margin-top: 160px;
+  }
 
-.content-container {
-  background-color: #333;
-  color: white;
-  padding: 20px;
-  border-radius: 10px;
-  width: 100%;
-  text-align: center;
-  height: fit-content;
-}
-.category-selection select {
-  width: 100%;
-  padding: 10px;
-  font-size: 16px;
-  border-radius: 4px;
-  border: 1px solid #ccc;
-}
+  .content-container {
+    background-color: #333;
+    color: white;
+    padding: 20px;
+    border-radius: 10px;
+    width: 100%;
+    text-align: center;
+    height: fit-content;
+  }
 
-.category-selection option {
-  padding: 10px;
-  font-size: 12px;
-  background-color: #333;
-  color: white;
-  width: 100%;
-  height: fit-content;
-}
-  /* Add styles for phone screen size here */
-}
+  .category-selection select {
+    width: 100%;
+    padding: 10px;
+    font-size: 16px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+  }
 
+  .category-selection option {
+    padding: 10px;
+    font-size: 12px;
+    background-color: #333;
+    color: white;
+    width: 100%;
+    height: fit-content;
+  }
+}
 </style>
