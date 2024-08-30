@@ -7,8 +7,8 @@
       </button>
     </div>
 
+    <!-- Blog Posts Table -->
     <div v-if="currentTab === 0">
-      <!-- Blog Post Table -->
       <h2>Blog Posts</h2>
       <table>
         <thead>
@@ -32,8 +32,8 @@
       </table>
     </div>
 
+    <!-- Notifications Table -->
     <div v-if="currentTab === 1">
-      <!-- Notifications Table -->
       <h2>Notifications</h2>
       <table>
         <thead>
@@ -55,8 +55,8 @@
       </table>
     </div>
 
+    <!-- Replies Table -->
     <div v-if="currentTab === 2">
-      <!-- Reply Table -->
       <h2>Replies</h2>
       <table>
         <thead>
@@ -78,8 +78,8 @@
       </table>
     </div>
 
+    <!-- Users Table -->
     <div v-if="currentTab === 3">
-      <!-- Users Table -->
       <h2>Users</h2>
       <table>
         <thead>
@@ -101,8 +101,8 @@
       </table>
     </div>
 
+    <!-- Blog Post Bucket -->
     <div v-if="currentTab === 4">
-      <!-- Blog Post Bucket -->
       <h2>Blog Post Bucket</h2>
       <table>
         <thead>
@@ -123,27 +123,42 @@
         </tbody>
       </table>
     </div>
+
+    <!-- Storage Management -->
+    <div v-if="currentTab === 5">
+      <h2>Storage Management</h2>
+      <button @click="organizeFiles">Organize Blog Files</button>
+      <p v-if="statusMessage">{{ statusMessage }}</p>
+    </div>
+
+    <!-- Blugworld Manager -->
+    <div v-if="currentTab === 6">
+      <BlugworldManager />
+    </div>
   </div>
 </template>
 
 <script lang="ts">
 import { defineComponent, ref, onMounted } from 'vue';
 import NavBar from '../NavBar.vue';
+import BlugworldManager from '@/components/v2.0/BlugworldManager.vue'; // Import the BlugworldManager component
 import { supabase } from '../supabase';
 
 export default defineComponent({
   name: 'AdminManager',
   components: {
     NavBar,
+    BlugworldManager, // Register the BlugworldManager component
   },
   setup() {
-    const tabs = ['Blog Posts', 'Notifications', 'Replies', 'Users', 'Blog Post Bucket'];
+    const tabs = ['Blog Posts', 'Notifications', 'Replies', 'Users', 'Blog Post Bucket', 'Storage Management', 'Blugworld Manager']; // Add new tab
     const currentTab = ref(0);
     const blogPosts = ref([]);
     const notifications = ref([]);
     const replies = ref([]);
     const users = ref([]);
     const bucketItems = ref([]);
+    const statusMessage = ref<string>('');
 
     const fetchBlogPosts = async () => {
       const { data, error } = await supabase.from('blog_post').select('title, chatter_name, user_id, blog_id');
@@ -216,6 +231,57 @@ export default defineComponent({
       else fetchBucketItems();
     };
 
+    const organizeFiles = async () => {
+      statusMessage.value = 'Organizing files...';
+
+      const { data: blogPosts, error } = await supabase.from('blog_post').select('user_id, blog_id');
+      if (error) {
+        statusMessage.value = `Error fetching blog posts: ${error.message}`;
+        return;
+      }
+
+      if (blogPosts) {
+        for (const post of blogPosts) {
+          const { user_id, blog_id } = post;
+          const userFolderPath = `${user_id}`;
+          const blogFolderPath = `${user_id}/${blog_id}`;
+
+          const { data: folderExists, error: folderError } = await supabase.storage
+            .from('blog-post')
+            .list(blogFolderPath, { limit: 1 });
+
+          if (folderError) {
+            statusMessage.value = `Error checking folder for blog ${blog_id}: ${folderError.message}`;
+            continue;
+          }
+
+          if (!folderExists.length) {
+            const { error: createFolderError } = await supabase.storage
+              .from('blog-post')
+              .upload(`${blogFolderPath}/placeholder.txt`, new Blob([''], { type: 'text/plain' }));
+
+            if (createFolderError) {
+              statusMessage.value = `Error creating folder for blog ${blog_id}: ${createFolderError.message}`;
+              continue;
+            }
+
+            const htmlFilePath = `${userFolderPath}/${blog_id}.html`;
+            const newHtmlFilePath = `${blogFolderPath}/${blog_id}.html`;
+
+            const { error: moveFileError } = await supabase.storage
+              .from('blog-post')
+              .move(htmlFilePath, newHtmlFilePath);
+
+            if (moveFileError) {
+              statusMessage.value = `Error moving file for blog ${blog_id}: ${moveFileError.message}`;
+              continue;
+            }
+          }
+        }
+        statusMessage.value = 'File organization completed successfully.';
+      }
+    };
+
     onMounted(() => {
       fetchBlogPosts();
       fetchNotifications();
@@ -237,6 +303,8 @@ export default defineComponent({
       deleteReply,
       deleteUser,
       deleteBucketItem,
+      organizeFiles,
+      statusMessage,
     };
   },
 });
@@ -288,7 +356,6 @@ button:hover {
   background-color: darkred;
 }
 
-
 /* CSS for iPad screen size */
 @media screen and (min-width: 768px) and (max-width: 1024px) {
   /* Add styles for iPad screen size here */
@@ -297,10 +364,9 @@ button:hover {
 /* CSS for phone screen size */
 @media screen and (max-width: 767px) {
   .admin-manager-page {
-  padding: 20px;
-  margin-top: 170px;
-  width: 100%;
-}
-  /* Add styles for phone screen size here */
+    padding: 20px;
+    margin-top: 170px;
+    width: 100%;
+  }
 }
 </style>

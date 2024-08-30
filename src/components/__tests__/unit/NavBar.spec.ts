@@ -35,6 +35,6 @@ describe('NavBar.vue', () => {
   it('renders the correct number of nav items', () => {
     const wrapper = shallowMount(NavBar);
     const navItems = wrapper.findAll('.nav-icon');
-    expect(navItems.length).toBe(5); // Make sure this line ends with a semicolon
+    expect(navItems.length).toBe(6); // Make sure this line ends with a semicolon
   });
 });

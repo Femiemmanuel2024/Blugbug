@@ -24,10 +24,15 @@
             <ul class="blog-list">
               <li class="list-container" v-for="(post, index) in displayedPosts" :key="index">
                 <div class="image-row">
-                  <img :src="post.imageUrl || placeholderImageUrl" alt="Blog Image" class="post-image" />
+                  <!-- Use placeholder if imageUrl is not found -->
+                  <img :src="post.imageUrl" alt="Blog Image" class="post-image" />
                 </div>
                 <div class="title-row">
                   <span class="post-title">{{ post.title }}</span>
+                </div>
+                <!-- Display categories in a simple container -->
+                <div class="category-container">
+                  <span v-for="category in post.categories" :key="category" class="category-badge">{{ category }}</span>
                 </div>
                 <div class="bottom-row">
                   <button class="read-button" @click="viewPost(post)">Read</button>
@@ -50,6 +55,7 @@
   </div>
 </template>
 
+
 <script lang="ts">
 import { defineComponent, ref, computed, onMounted, watch } from 'vue';
 import { useRouter } from 'vue-router';
@@ -65,6 +71,7 @@ interface Post {
   date: string;
   imageUrl: string;
   likes: number;
+  categories: string[]; // Add categories field
 }
 
 export default defineComponent({
@@ -81,7 +88,7 @@ export default defineComponent({
     const profileImageUrl = ref<string | null>(null);
     const defaultProfileImageUrl = '/Default_pfp.svg'; // Default profile image path
     const router = useRouter();
-    const postsPerPage = ref<number>(16);
+    const postsPerPage = ref<number>(16); // Adjusted to display 16 cards per page
     const currentPage = ref<number>(0);
     const placeholderImageUrl = '/blug_default.png'; // Ensure this file exists in the public directory
 
@@ -109,9 +116,8 @@ export default defineComponent({
       }
       const loadedPosts = await Promise.all(
         (data || []).map(async (post) => {
-          const filePath = `${post.user_id}/${post.blog_id}.html`;
-          const htmlContent = await fetchPostContent(filePath);
-          const imageUrl = extractImageUrlFromHtml(htmlContent);
+          const filePath = `${post.user_id}/${post.blog_id}/header-image.webp`; // Update to fetch image from blog ID folder
+          const imageUrl = await fetchImage(filePath);
 
           return {
             id: post.id,
@@ -119,8 +125,9 @@ export default defineComponent({
             userId: post.user_id,
             userFullName: post.user_full_name || 'Unknown',
             date: post.created_at,
-            imageUrl: imageUrl,
+            imageUrl: imageUrl || placeholderImageUrl, // Use placeholder if image URL is not found
             likes: post.likes || 0,
+            categories: post.categories || [], // Add categories to post data
           };
         })
       );
@@ -129,22 +136,12 @@ export default defineComponent({
       updateDisplayedPosts();
     };
 
-    const fetchPostContent = async (filePath: string) => {
-      try {
-        const { data, error } = await supabase.storage.from('blog-post').download(filePath);
-        if (error) throw error;
-        return await data.text();
-      } catch (error) {
-        console.error('Error fetching post content:', error.message);
-        return '';
+    const fetchImage = async (filePath: string) => {
+      const { data } = supabase.storage.from('blog-post').getPublicUrl(filePath);
+      if (!data || !data.publicUrl) {
+        return placeholderImageUrl;  // Return placeholder if image URL is not found
       }
-    };
-
-    const extractImageUrlFromHtml = (htmlContent: string) => {
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(htmlContent, 'text/html');
-      const imgElement = doc.querySelector('.blug_banner img');
-      return imgElement ? imgElement.src : null;
+      return data.publicUrl;
     };
 
     const viewPost = async (post: Post) => {
@@ -205,7 +202,7 @@ export default defineComponent({
       loadChatterNameAndProfileImage();
       loadPosts();
       const updatePostsPerPage = () => {
-        postsPerPage.value = 10; // Always display 10 posts per page
+        postsPerPage.value = 16; // Display 16 posts per page
         updateDisplayedPosts();
       };
 
@@ -230,8 +227,8 @@ export default defineComponent({
       formattedLikes,
       chatterName,
       profileImageUrl,
-      placeholderImageUrl, 
-      defaultProfileImageUrl, // Added default profile image URL
+      placeholderImageUrl,
+      defaultProfileImageUrl,
     };
   },
 });
@@ -369,7 +366,7 @@ li:hover {
 
 .image-row {
   width: 100%;
-  height: 80%;
+  height: 70%; /* Set height to 70% */
   overflow: hidden;
 }
 
@@ -385,12 +382,29 @@ li:hover {
 }
 
 .title-row {
+  height: 10%; /* Set height to 10% */
   padding: 10px;
   text-align: center;
   background-color: #333;
   color: white;
   width: 100%;
   font-size: 16px;
+}
+
+.category-container {
+  height: 10%; /* Set height to 10% */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  
+  flex-wrap: nowrap;
+}
+
+.category-badge {
+  background: none;
+  color: #ffffff; /* Text color */
+  font-size: 10px;
+  margin: 2px;
 }
 
 .bottom-row {
@@ -400,14 +414,12 @@ li:hover {
   padding: 10px;
   background-color: #333;
   color: white;
+  height: 10%; /* Set height to 10% */
 }
 
 .likes-count {
   font-size: 14px;
   padding-right: 10px;
-  padding-top: 10px;
-  padding-left: 50px;
-  padding-right: 50px;
 }
 
 .read-button {
@@ -422,19 +434,6 @@ li:hover {
 
 .read-button:hover {
   background-color: #e04a2e;
-}
-
-.share-button {
-  width: 35%;
-  background-color: #007bff;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  padding: 10px;
-}
-
-.share-button:hover {
-  background-color: #0056b3;
 }
 
 .navigation-buttons {
@@ -489,32 +488,27 @@ li:hover {
   }
 
   li {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  background-color: #444;
-  padding: 0;
-  border-radius: 10px;
-  width: 100%;
-  height: 200px;
-  overflow: hidden;
-  justify-content: space-between;
-  transition: transform 0.2s;
-}
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: #444;
+    padding: 0;
+    border-radius: 10px;
+    width: 100%;
+    height: 200px;
+    overflow: hidden;
+    justify-content: space-between;
+    transition: transform 0.2s;
+  }
 
-
-
-
-
-.search-icon {
-  background: none;
-  border: none;
-  padding: 30px 100px 30px 40px;
-  margin-left: 40px;
-  cursor: pointer;
-  color: #d7c9b7;
-  background-color: #e04a2e;
-}
-
+  .search-icon {
+    background: none;
+    border: none;
+    padding: 30px 100px 30px 40px;
+    margin-left: 40px;
+    cursor: pointer;
+    color: #d7c9b7;
+    background-color: #e04a2e;
+  }
 }
 </style>

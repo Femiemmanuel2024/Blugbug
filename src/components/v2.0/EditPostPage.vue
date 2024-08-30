@@ -6,10 +6,8 @@
       <!-- View-only title display -->
       <div class="title-display">{{ title }}</div>
 
-      <!-- Image upload input for header image -->
-      <input type="file" @change="handleImageUpload" accept="image/*" class="image-input" />
-      <!-- Image preview with placeholder -->
-      <img :src="headerImageUrl || placeholderImageUrl" alt="Header Preview" class="header-preview" />
+      <!-- Header image display -->
+      <img v-if="headerImageUrl" :src="headerImageUrl" alt="Blog Header Image" class="header-image" />
 
       <!-- TiptapEditor is initialized with the body content -->
       <TiptapEditor ref="tiptapEditor" :initialContent="content" @updateContent="updateContent" />
@@ -48,15 +46,13 @@ export default defineComponent({
     const route = useRoute();
     const title = ref<string>('');
     const content = ref<string>('');
-    const editedOn = ref<string>(''); // New state for edited timestamp
-    const headerImageUrl = ref<string>(''); // New state for header image URL
-    const placeholderImageUrl = ref<string>('/blug_default.webp'); // Placeholder image URL
+    const editedOn = ref<string>('');
     const showTitleError = ref<boolean>(false);
     const showContentError = ref<boolean>(false);
     const showCategoryError = ref<boolean>(false);
     const isLoading = ref<boolean>(true);
     const tiptapEditorRef = ref(null);
-    const newHeaderImageBase64 = ref<string>(''); // New state for the base64 of the new header image
+    const headerImageUrl = ref<string | null>(null); // State for the header image URL
 
     const fetchBlogPost = async () => {
       isLoading.value = true;
@@ -64,56 +60,55 @@ export default defineComponent({
       const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
       const userId = currentUser.id;
 
-      const { data, error } = await supabase.storage
-        .from('blog-post')
-        .download(`${userId}/${blogId}.html`);
+      // Define the path for the HTML file and the header image
+      const htmlFilePath = `${userId}/${blogId}/${blogId}.html`;
+      const headerImagePath = `${userId}/${blogId}/header-image.webp`; // Correct image path
 
-      if (error) {
-        console.error('Error fetching blog post:', error.message);
-        isLoading.value = false;
-        return;
-      }
+      try {
+        // Fetch blog post HTML content
+        const { data: htmlData, error: htmlError } = await supabase.storage
+          .from('blog-post')
+          .download(htmlFilePath);
 
-      const fileText = await data.text();
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(fileText, 'text/html');
+        if (htmlError) throw new Error(`Error fetching blog post HTML: ${htmlError.message}`);
 
-      // Extract the title
-      title.value = doc.querySelector('h1')?.textContent || '';
+        const fileText = await htmlData.text();
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(fileText, 'text/html');
 
-      // Extract the body content from <div class="blog-body">
-      const bodyDiv = doc.querySelector('article.blog-body');
-      content.value = bodyDiv ? bodyDiv.innerHTML : '';
+        // Extract the title from the HTML
+        title.value = doc.querySelector('h1')?.textContent || 'Untitled';
 
-      // Extract the header image URL from <img> inside <div class="blug_banner">
-      const imgElement = doc.querySelector('.blug_banner img');
-      headerImageUrl.value = imgElement ? imgElement.src : '';
+        // Extract the body content from the article element
+        const bodyDiv = doc.querySelector('article.blog-body');
+        content.value = bodyDiv ? bodyDiv.innerHTML : '';
 
-      // Generate a new "Edited on" timestamp
-      const now = new Date();
-      editedOn.value = now.toLocaleString();
+        // Fetch the public URL of the header image
+        const { data: headerImageData, error: headerImageError } = await supabase.storage
+          .from('blog-post')
+          .getPublicUrl(headerImagePath);
 
-      nextTick(() => {
-        if (tiptapEditorRef.value && tiptapEditorRef.value.editor) {
-          tiptapEditorRef.value.editor.commands.setContent(content.value);
-          const timestamp = `<p>This post was edited on ${editedOn.value}</p>`;
-          tiptapEditorRef.value.editor.commands.insertContent(timestamp);
+        if (headerImageError) {
+          console.error(`Error fetching header image URL: ${headerImageError.message}`);
+        } else {
+          headerImageUrl.value = headerImageData.publicUrl; // Set the header image URL
         }
-      });
 
-      isLoading.value = false;
-    };
+        // Generate the "Edited on" timestamp
+        editedOn.value = new Date().toLocaleString();
 
-    const handleImageUpload = (event: Event) => {
-      const files = (event.target as HTMLInputElement).files;
-      if (files && files.length > 0) {
-        const file = files[0];
-        const reader = new FileReader();
-        reader.onload = () => {
-          newHeaderImageBase64.value = reader.result as string; // Store base64 data for the new image
-          headerImageUrl.value = reader.result as string; // Update the preview URL with the base64 data
-        };
-        reader.readAsDataURL(file);
+        nextTick(() => {
+          if (tiptapEditorRef.value?.editor) {
+            tiptapEditorRef.value.editor.commands.setContent(content.value);
+            const timestamp = `<p>This post was edited on ${editedOn.value}</p>`;
+            tiptapEditorRef.value.editor.commands.insertContent(timestamp);
+          }
+        });
+
+      } catch (error) {
+        console.error(error.message);
+      } finally {
+        isLoading.value = false;
       }
     };
 
@@ -134,16 +129,13 @@ export default defineComponent({
       const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
       const userId = currentUser.id;
 
-      // Include the "Edited on" timestamp and new header image in the HTML content
+      // Include the "Edited on" timestamp and save HTML content
       const htmlContent = `
         <html>
           <head>
             <meta name="editedOn" content="${editedOn.value}" />
           </head>
           <body>
-            <div class="blug_banner">
-              <img src="${newHeaderImageBase64.value || headerImageUrl.value}" alt="Header Image" style="width: 100%; height: 200px;" />
-            </div>
             <h1>${title.value}</h1>
             <article class="blog-body">${content.value}</article>
             <p>This Blug was edited on ${editedOn.value}</p>
@@ -153,7 +145,7 @@ export default defineComponent({
       const fileName = `${blogId}.html`;
       const { error: uploadError } = await supabase.storage
         .from('blog-post')
-        .update(`${userId}/${fileName}`, new Blob([htmlContent], { type: 'text/html' }));
+        .update(`${userId}/${blogId}/${fileName}`, new Blob([htmlContent], { type: 'text/html' }));
 
       if (uploadError) {
         console.error('Error saving blog post:', uploadError.message);
@@ -185,8 +177,8 @@ export default defineComponent({
     return {
       title,
       content,
-      headerImageUrl, // Return the header image URL
-      editedOn, // Return editedOn for binding
+      editedOn,
+      headerImageUrl, // Include header image URL in return
       updateContent,
       saveChanges,
       showTitleError,
@@ -195,8 +187,6 @@ export default defineComponent({
       cancelEdit,
       isLoading,
       tiptapEditorRef,
-      handleImageUpload, // Return the image upload function
-      placeholderImageUrl, // Return the placeholder image URL
     };
   },
 });
@@ -240,15 +230,12 @@ export default defineComponent({
   cursor: not-allowed;
 }
 
-.image-input {
-  margin-bottom: 10px;
-}
-
-.header-preview {
-  width: 100%;
-  height: 200px;
-  object-fit: cover; /* Ensure the image covers the specified dimensions */
-  margin-bottom: 10px; /* Space between image and editor */
+.header-image {
+  width: 900px; /* Set the width of the image */
+  height: 300px; /* Set the height of the image */
+  object-fit: cover; /* Ensures the image covers the specified dimensions */
+  display: block; /* Ensures the image is displayed as a block element */
+  margin: 0 auto; /* Centers the image horizontally */
 }
 
 .timestamp-display {
@@ -277,7 +264,6 @@ export default defineComponent({
 }
 
 button {
-  width: 50%;
   padding: 10px 20px;
   background-color: #f53;
   color: white;

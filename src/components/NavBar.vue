@@ -68,7 +68,7 @@ export default defineComponent({
   setup(_, { emit }) {
     const router = useRouter();
     const isAdmin = ref(false);
-    const adminId = '3d77bcc4-40bb-42ed-87d8-98a1a82285c6';
+    const adminId = '73170619-38c9-45d5-afe8-324709ef325a';
     const showLogComplainModal = ref(false); // Make sure this is reactive
 
     onMounted(() => {

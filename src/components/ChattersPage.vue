@@ -13,7 +13,7 @@
                 <span class="post-title" @click="viewPost(index)">{{ post.title }}</span>
                 <div class="post-actions">
                   <i class="fas fa-eye" @click="viewPost(index)" title="Read"></i>
-                  <i class="fas fa-edit" @click="editPost(index)" title="Edit"></i> <!-- Edit Button -->
+                  <i class="fas fa-edit" @click="editPost(index)" title="Edit"></i>
                   <i class="fas fa-trash" @click="deletePost(index)" title="Delete"></i>
                 </div>
               </li>
@@ -25,6 +25,7 @@
             <i class="fas fa-arrow-left" @click="showLeftColumn" title="Back"></i>
           </div>
           <div v-if="selectedPost" :key="currentComponentKey">
+            <img v-if="selectedPost.imageUrl" :src="selectedPost.imageUrl" alt="Header Image" class="header-image" />
             <h2>{{ selectedPost.title }}</h2>
             <div v-html="selectedPost.bodyContent" class="postbody"></div>
             <InteractivePage />
@@ -39,8 +40,8 @@
 import { defineComponent, ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import NavBar from './NavBar.vue';
-import { supabase } from './supabase'; // Make sure the correct path is used
-import InteractivePage from './features/InteractionPage.vue'; // Import the InteractivePage component
+import { supabase } from './supabase';
+import InteractivePage from './features/InteractionPage.vue';
 
 interface Post {
   id: number;
@@ -48,8 +49,10 @@ interface Post {
   content: string;
   bodyContent: string;
   userId: string;
+  blogId: string;  // Added blogId to store the actual blog ID
   userFullName: string;
   date: string;
+  imageUrl?: string; // Add imageUrl field
 }
 
 export default defineComponent({
@@ -63,26 +66,45 @@ export default defineComponent({
     const selectedPost = ref<Post | null>(null);
     const currentComponentKey = ref<number>(0); // Key to force component re-render
     const isLeftColumnHidden = ref<boolean>(false); // State to control the visibility of the left column
-    const router = useRouter(); // Add useRouter to use routing functionality
+    const router = useRouter(); // Use router for navigation
 
-    const fetchPostsFromBucket = async (userId: string) => {
-      const { data, error } = await supabase.storage
-        .from('blog-post')
-        .list(userId, {
-          limit: 100,
-          offset: 0,
-          sortBy: { column: 'name', order: 'asc' },
-        });
+    const loadPosts = async () => {
+      const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+      const userId = currentUser.id;
 
-      if (error) {
-        console.error('Error fetching posts:', error.message);
-        return [];
+      if (!userId) {
+        console.error('User ID not found.');
+        return;
       }
 
-      return data || [];
+      // Fetch all blog posts for the logged-in user
+      const { data: blogPosts, error } = await supabase
+        .from('blog_post')
+        .select('id, title, user_id, blog_id')
+        .eq('user_id', userId);
+
+      if (error) {
+        console.error('Error fetching blog posts:', error.message);
+        return;
+      }
+
+      // Map the fetched posts to the posts array
+      posts.value = blogPosts.map(post => ({
+        id: post.id,
+        title: post.title,
+        content: '', // Content will be fetched when the post is viewed
+        bodyContent: '',
+        userId: post.user_id,
+        blogId: post.blog_id,  // Store the blog ID
+        userFullName: currentUser.fullName || 'Unknown', // Adjust based on your user structure
+        date: new Date().toISOString(), // Example date
+      }));
+
+      console.log('Loaded posts:', posts.value);
     };
 
-    const fetchPostContent = async (filePath: string) => {
+    const fetchPostContent = async (userId: string, blogId: string) => {
+      const filePath = `${userId}/${blogId}/${blogId}.html`; // Path to the HTML file
       console.log(`Fetching content for file: ${filePath}`);
       const { data, error } = await supabase.storage
         .from('blog-post')
@@ -90,10 +112,25 @@ export default defineComponent({
 
       if (error) {
         console.error('Error fetching post content:', error.message);
-        return '';
+        return { content: '', imageUrl: '' };
       }
 
-      return data ? await data.text() : '';
+      console.log('Post content fetched successfully for file:', filePath);
+      const contentText = data ? await data.text() : '';
+
+      // Fetch the header image URL
+      const imageFilePath = `${userId}/${blogId}/header-image.webp`; // Path to the header image
+      const { data: headerImageData, error: imageError } = supabase.storage
+        .from('blog-post')
+        .getPublicUrl(imageFilePath);
+
+      if (imageError) {
+        console.error('Error fetching header image:', imageError.message);
+        return { content: contentText, imageUrl: '' };
+      }
+
+      console.log('Header image URL fetched:', headerImageData.publicUrl);
+      return { content: contentText, imageUrl: headerImageData.publicUrl || '' };
     };
 
     const extractPostElements = (htmlContent: string) => {
@@ -111,81 +148,36 @@ export default defineComponent({
       };
     };
 
-    const loadPosts = async () => {
-      const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
-      const userId = currentUser.id;
-      const postFiles = await fetchPostsFromBucket(userId);
-
-      const loadedPosts = await Promise.all(
-        postFiles.map(async (file) => {
-          const htmlContent = await fetchPostContent(`${userId}/${file.name}`);
-          const { title, content, bodyContent } = extractPostElements(htmlContent);
-          return {
-            id: Date.now(), // You might want to use a better ID
-            title,
-            content,
-            bodyContent,
-            userId,
-            userFullName: currentUser.fullName || 'Unknown', // Adjust according to your user structure
-            date: new Date().toISOString(),
-          };
-        })
-      );
-
-      posts.value = loadedPosts;
-    };
-
     const viewPost = async (index: number) => {
       const post = posts.value[index];
+      const userId = post.userId;
+      const blogId = post.blogId;  // Use the stored blogId to fetch content
 
-      const { data, error } = await supabase
-        .from('blog_post')
-        .select('user_id, blog_id')
-        .eq('title', post.title)
-        .single();
+      // Save blog_id to local storage
+      localStorage.setItem('blog_id', blogId);
 
-      if (error) {
-        console.error('Error fetching post details:', error.message);
+      // Fetch the post content and image URL
+      const { content: htmlContent, imageUrl } = await fetchPostContent(userId, blogId);
+      if (!htmlContent) {
+        console.warn('No content found for post:', post.title);
         return;
       }
 
-      const { user_id, blog_id } = data;
-
-      // Clear local storage and save new user.id and blog.id
-      localStorage.removeItem('user_id');
-      localStorage.removeItem('blog_id');
-      localStorage.setItem('user_id', user_id);
-      localStorage.setItem('blog_id', blog_id);
-
-      const filePath = `${user_id}/${blog_id}.html`;
-      const htmlContent = await fetchPostContent(filePath);
       const { title, bodyContent } = extractPostElements(htmlContent);
-
-      selectedPost.value = { ...post, title, bodyContent };
+      selectedPost.value = { ...post, title, bodyContent, imageUrl }; // Include image URL in selectedPost
       currentComponentKey.value += 1; // Update the key to force re-render
 
       // Hide the left column when a post is viewed
       isLeftColumnHidden.value = true;
     };
 
-    const editPost = async (index: number) => {
+    const editPost = (index: number) => {
       const post = posts.value[index];
+      
+      // Save blog_id to local storage
+      localStorage.setItem('blog_id', post.blogId);
 
-      const { data, error } = await supabase
-        .from('blog_post')
-        .select('user_id, blog_id')
-        .eq('title', post.title)
-        .single();
-
-      if (error) {
-        console.error('Error fetching post details:', error.message);
-        return;
-      }
-
-      const { user_id, blog_id } = data;
-
-      // Navigate to the EditPostPage with the blogId
-      router.push({ name: 'EditPostPage', params: { blogId: blog_id } });
+      router.push({ name: 'EditPostPage', params: { blogId: post.blogId } });
     };
 
     const showLeftColumn = () => {
@@ -194,20 +186,9 @@ export default defineComponent({
 
     const deletePost = async (index: number) => {
       const post = posts.value[index];
-
-      const { data, error } = await supabase
-        .from('blog_post')
-        .select('user_id, blog_id')
-        .eq('title', post.title)
-        .single();
-
-      if (error) {
-        console.error('Error fetching post details:', error.message);
-        return;
-      }
-
-      const { user_id, blog_id } = data;
-      const filePath = `${user_id}/${blog_id}.html`;
+      const userId = post.userId;
+      const blogId = post.blogId;  // Use the stored blogId
+      const filePath = `${userId}/${blogId}/${blogId}.html`;
 
       const { error: deleteError } = await supabase.storage
         .from('blog-post')
@@ -220,25 +201,7 @@ export default defineComponent({
 
       // Remove the post from the local state
       posts.value.splice(index, 1);
-      localStorage.setItem(`${user_id}_blogPosts`, JSON.stringify(posts.value));
-    };
-
-    const formatDate = (dateString: string) => {
-      const options: Intl.DateTimeFormatOptions = {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-      };
-      return new Date(dateString).toLocaleDateString(undefined, options);
-    };
-
-    const formatTime = (dateString: string) => {
-      const options: Intl.DateTimeFormatOptions = {
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-      };
-      return new Date(dateString).toLocaleTimeString(undefined, options);
+      localStorage.setItem(`${userId}_blogPosts`, JSON.stringify(posts.value));
     };
 
     onMounted(() => {
@@ -252,14 +215,14 @@ export default defineComponent({
       editPost, // Include the editPost method in the returned object
       deletePost,
       currentComponentKey,
-      formatDate,
-      formatTime,
       isLeftColumnHidden,
       showLeftColumn,
     };
   },
 });
 </script>
+
+
 
 <style scoped>
 .chatters-page {
@@ -274,6 +237,15 @@ export default defineComponent({
 .navbar {
   flex-shrink: 0;
 }
+
+.header-image {
+  width: 900px; /* Set the width of the image */
+  height: 300px; /* Set the height of the image */
+  object-fit: cover; /* Ensures the image covers the specified dimensions */
+  display: block; /* Ensures the image is displayed as a block element */
+  margin: 0 auto; /* Centers the image horizontally */
+}
+
 
 .content {
   display: flex;
@@ -431,8 +403,8 @@ h2 {
   }
 
   .right-column.expanded {
-  width: 90%;
-}
+    width: 90%;
+  }
 
   ul {
     display: block;

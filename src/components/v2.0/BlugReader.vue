@@ -6,6 +6,7 @@
   </div>
   <div v-else class="blug-reader">
     <NavBar />
+    <img v-if="headerImageUrl" :src="headerImageUrl" alt="Blog Header Image" class="header-image" />
     <div class="blug-content" v-html="post?.content"></div>
     <InteractivePage :blogId="post?.id" ref="interactivePage" />
   </div>
@@ -40,11 +41,12 @@ export default defineComponent({
     const router = useRouter();
     const post = ref<Post | null>(null);
     const isLoading = ref(true);
+    const headerImageUrl = ref<string | null>(null); // Reactive property for the header image URL
     const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
-    const interactivePageRef = ref<HTMLElement | null>(null); // Reference to the InteractivePage component
+    const interactivePageRef = ref<HTMLElement | null>(null);
 
     const clearAndSetBlogIdInLocalStorage = (blogId: string) => {
-      localStorage.removeItem('blog_id'); 
+      localStorage.removeItem('blog_id');
       localStorage.setItem('blog_id', blogId);
     };
 
@@ -57,19 +59,23 @@ export default defineComponent({
 
       if (error) {
         console.error('Error fetching post:', error.message);
-        isLoading.value = false; // Hide the loading page on error
+        isLoading.value = false;
         return;
       }
 
       if (data) {
-        const filePath = `${data.user_id}/${data.blog_id}.html`;
+        const folderPath = `${data.user_id}/${data.blog_id}`;
+        const htmlFilePath = `${folderPath}/${data.blog_id}.html`;
+        const imageFilePath = `${folderPath}/header-image.webp`; // Path to the header image
+
+        // Fetch the HTML content
         const { data: postContent, error: contentError } = await supabase.storage
           .from('blog-post')
-          .download(filePath);
+          .download(htmlFilePath);
 
         if (contentError) {
           console.error('Error fetching post content:', contentError.message);
-          isLoading.value = false; // Hide the loading page on error
+          isLoading.value = false;
           return;
         }
 
@@ -78,40 +84,39 @@ export default defineComponent({
         const doc = parser.parseFromString(contentText, 'text/html');
 
         // Center-align all <address> elements
-const addresses = doc.querySelectorAll('address');
-addresses.forEach(address => {
-  address.style.textAlign = 'center'; // Center the address elements
-});
+        const addresses = doc.querySelectorAll('address');
+        addresses.forEach(address => {
+          address.style.textAlign = 'center';
+        });
 
-// Center-align all <time> elements
-  const times = doc.querySelectorAll('time');
-times.forEach(time => {
-  time.style.display = 'block';  // Make the <time> element a block-level element
-  time.style.textAlign = 'center'; // Center the text
-});
-
+        // Center-align all <time> elements
+        const times = doc.querySelectorAll('time');
+        times.forEach(time => {
+          time.style.display = 'block';
+          time.style.textAlign = 'center';
+        });
 
         // Center headers (h1) and paragraphs (p)
         const headers = doc.querySelectorAll('h1');
         headers.forEach(header => {
-          header.style.textAlign = 'center'; // Center the headers
+          header.style.textAlign = 'center';
         });
 
         const paragraphs = doc.querySelectorAll('p');
         paragraphs.forEach(paragraph => {
-          paragraph.style.textAlign = 'left'; // Center the paragraphs
+          paragraph.style.textAlign = 'left';
         });
 
         // Modify image elements
         const images = doc.querySelectorAll('img');
         images.forEach(img => {
-          img.classList.add('custom-img-class'); // Add a custom class
-          img.style.width = '60%'; // Set width to 60%
-          img.style.height = '300px'; // Set height to 300px
-          img.style.objectFit = 'cover'; // Maintain aspect ratio
-          img.style.display = 'block'; // Center the image horizontally
-          img.style.margin = '0 auto'; // Center the image
-          img.style.overflow = 'hidden'; // Hide overflow
+          img.classList.add('custom-img-class');
+          img.style.width = '60%';
+          img.style.height = '300px';
+          img.style.objectFit = 'cover';
+          img.style.display = 'block';
+          img.style.margin = '0 auto';
+          img.style.overflow = 'hidden';
         });
 
         const bodyContent = Array.from(doc.body.children)
@@ -129,8 +134,19 @@ times.forEach(time => {
           bookmarked_by: data.bookmarked_by || [],
         };
 
+        // Fetch the header image
+        const { data: headerImageData, error: imageError } = await supabase.storage
+          .from('blog-post')
+          .getPublicUrl(imageFilePath);
+
+        if (imageError) {
+          console.error('Error fetching header image:', imageError.message);
+        } else {
+          headerImageUrl.value = headerImageData.publicUrl; // Set the header image URL
+        }
+
         clearAndSetBlogIdInLocalStorage(data.blog_id);
-        isLoading.value = false; // Hide the loading page when content is loaded
+        isLoading.value = false;
       }
     };
 
@@ -173,7 +189,6 @@ times.forEach(time => {
       loadPost(blogId);
     });
 
-    // Watch for changes in the route or any prop passed from ActionNotifications.vue
     watch(
       () => route.query.blogId,
       (newBlogId, oldBlogId) => {
@@ -191,8 +206,9 @@ times.forEach(time => {
     return {
       post,
       isLoading,
+      headerImageUrl, // Return the header image URL
       toggleBookmark,
-      interactivePageRef, // Return the reference for the InteractivePage component
+      interactivePageRef,
     };
   },
 });
@@ -208,6 +224,13 @@ times.forEach(time => {
   height: 100%;
   margin-right: 50px;
   margin-left: 50px;
+}
+
+.header-image {
+  width: 100%;
+  max-height: 300px;
+  object-fit: cover;
+  margin-bottom: 20px;
 }
 
 .blug-content {
@@ -257,7 +280,6 @@ times.forEach(time => {
   background-color: #e04a2e;
 }
 
-/* Custom image styling */
 .custom-img-class {
   width: 60%;
   height: 300px;

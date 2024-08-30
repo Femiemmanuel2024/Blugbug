@@ -4,7 +4,7 @@
     <div class="content-container">
       <input v-model="title" placeholder="Enter the title" class="title-input" />
       <!-- Banner image upload input -->
-      <input type="file" @change="handleImageUpload" accept="image/*" class="image-input" />
+      <input type="file" @change="handleImageUpload" accept="image/jpeg" class="image-input" />
       <!-- Image preview with placeholder -->
       <img :src="bannerImageUrl || placeholderImageUrl" alt="Banner Preview" class="banner-preview" />
       <TiptapEditor ref="tiptapEditor" @updateContent="updateContent" />
@@ -23,7 +23,7 @@
         <div v-if="showTitleError">Title is required</div>
         <div v-if="showContentError">Content is required</div>
         <div v-if="showCategoryError">Category is required</div>
-        <div v-if="showImageError">Banner image is required</div>
+        <div v-if="showImageError">{{ imageErrorMessage }}</div> <!-- Updated error message display -->
       </div>
     </div>
   </div>
@@ -55,58 +55,18 @@ export default defineComponent({
     const showContentError = ref<boolean>(false);
     const showCategoryError = ref<boolean>(false);
     const showImageError = ref<boolean>(false);
+    const imageErrorMessage = ref<string>(''); // Error message for image validation
     const timestamp = ref<string>('');
+    const imageFile = ref<File | null>(null); // Added to store the uploaded image file
+    const webpImageFile = ref<File | null>(null); // To store the converted WebP image
     const categories = ref<string[]>([
-      "Health and Wellness",
-      "Fitness and Exercise",
-      "Nutrition and Diet",
-      "Mental Health and Well-being",
-      "Yoga and Meditation",
-      "Beauty and Skincare",
-      "Fashion and Style",
-      "Travel and Adventure",
-      "Solo Travel Tips",
-      "Budget Travel",
-      "Luxury Travel Destinations",
-      "Digital Nomad Lifestyle",
-      "Home Decor and Interior Design",
-      "DIY Home Projects",
-      "Gardening and Landscaping",
-      "Parenting Tips and Advice",
-      "Pregnancy and Newborn Care",
-      "Toddler Activities",
-      "Education and Learning",
-      "Homeschooling Tips",
-      "Student Life and Study Hacks",
-      "Career Development",
-      "Resume Writing Tips",
-      "Job Interview Preparation",
-      "Personal Finance",
-      "Investing and Wealth Management",
-      "Budgeting and Saving Tips",
-      "Side Hustles and Freelancing",
-      "Entrepreneurship and Startups",
-      "Marketing and Branding Strategies",
-      "Social Media Tips and Trends",
-      "Tech Gadgets and Reviews",
-      "Software and App Development",
-      "Coding and Programming",
-      "Web Design and Development",
-      "Photography Tips and Techniques",
-      "Art and Creativity",
-      "Music and Concert Reviews",
-      "Film and TV Show Reviews",
-      "Book Recommendations and Reviews",
-      "Literary Analysis and Criticism",
-      "History and Historical Events",
-      "Philosophy and Ethics",
-      "Religion and Spirituality",
-      "Cultural Traditions and Festivals",
-      "Environmental Issues and Conservation",
-      "Climate Change Solutions",
-      "Wildlife and Nature Conservation",
-      "Adventure Sports and Extreme Activities",
-      "Sports News and Updates"
+      "Health", "Fitness", "Nutrition", "MentalHealth", "Meditation", "Skincare", "Fashion",
+      "Travel", "SoloTravel", "BudgetTravel", "LuxuryTravel", "Nomad", "HomeDecor", "DIY",
+      "Gardening", "Parenting", "Pregnancy", "Toddler", "Education", "Homeschooling", "Student",
+      "Career", "Resume", "Interview", "Finance", "Investing", "Budgeting", "SideHustles",
+      "Entrepreneurship", "Marketing", "SocialMedia", "Tech", "Software", "Coding", "WebDesign",
+      "Photography", "Art", "Music", "Film", "Books", "Literature", "History", "Philosophy",
+      "Religion", "Culture", "Environment", "Climate", "Wildlife", "Adventure", "Sports"
     ]);
 
     onMounted(() => {
@@ -139,21 +99,61 @@ export default defineComponent({
       const files = (event.target as HTMLInputElement).files;
       if (files && files.length > 0) {
         const file = files[0];
+
+        // Check the file type
+        if (file.type !== 'image/jpeg') {
+          showImageError.value = true;
+          imageErrorMessage.value = 'Only JPG images are allowed.';
+          return;
+        }
+
+        // Check the file size (limit: 2MB)
+        const maxSizeInBytes = 2 * 1024 * 1024; // 2MB
+        if (file.size > maxSizeInBytes) {
+          showImageError.value = true;
+          imageErrorMessage.value = 'Image size must be less than 2MB.';
+          return;
+        }
+
+        showImageError.value = false; // Reset error state if validations pass
+        imageFile.value = file; // Store the file for later use
         bannerImageUrl.value = URL.createObjectURL(file); // Set the preview URL
 
-        const imageId = uuidv4();
-        const { data: uploadData, error: uploadError } = await supabase.storage
-          .from('blog-post-banners')
-          .upload(`banners/${imageId}`, file);
-
-        if (uploadError) {
-          console.error('Error uploading image:', uploadError.message);
-        } else {
-          bannerImageUrl.value = supabase.storage
-            .from('blog-post-banners')
-            .getPublicUrl(`banners/${imageId}`).data.publicUrl; // Update with the uploaded URL
+        // Convert image to WebP
+        const webpImage = await convertImageToWebP(file);
+        if (webpImage) {
+          webpImageFile.value = webpImage; // Store the WebP image file
         }
       }
+    };
+
+    // Function to convert an image file to WebP format
+    const convertImageToWebP = (file: File): Promise<File | null> => {
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const img = new Image();
+          img.onload = () => {
+            const canvas = document.createElement('canvas');
+            canvas.width = img.width;
+            canvas.height = img.height;
+            const ctx = canvas.getContext('2d');
+            if (ctx) {
+              ctx.drawImage(img, 0, 0);
+              canvas.toBlob((blob) => {
+                if (blob) {
+                  const webpFile = new File([blob], file.name.replace(/\.\w+$/, '.webp'), { type: 'image/webp' });
+                  resolve(webpFile);
+                } else {
+                  resolve(null);
+                }
+              }, 'image/webp', 0.8); // Adjust quality as needed
+            }
+          };
+          img.src = e.target?.result as string;
+        };
+        reader.readAsDataURL(file);
+      });
     };
 
     const publishContent = async () => {
@@ -169,60 +169,62 @@ export default defineComponent({
       const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
       const userId = currentUser.id;
 
-      
-     const htmlContent = `
- <html>
-  <body>
-    <div class="blug_banner">
-      <img src="${bannerImageUrl.value}" alt="Banner Image" style="width: 100%; height: 200px;" />
-    </div>
-    <h1>${title.value}</h1>
-    <address>Created by: ${user.value.full_name}</address>
-    <time datetime="${new Date(timestamp.value).toISOString()}">Date: ${new Date(timestamp.value).toLocaleString()}</time>
-    <hr>
-    <article class="blog-body">${content.value}</article>
-  </body>
-</html>
-
-`;
-
+      const htmlContent = `
+        <html>
+          <body>
+            <h1>${title.value}</h1>
+            <address>Created by: ${user.value.full_name}</address>
+            <time datetime="${new Date(timestamp.value).toISOString()}">Date: ${new Date(timestamp.value).toLocaleString()}</time>
+            <hr>
+            <article class="blog-body">${content.value}</article>
+          </body>
+        </html>
+      `;
 
       const blogId = uuidv4();
-      const fileName = `${blogId}.html`;
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('blog-post')
-        .upload(`${userId}/${fileName}`, new Blob([htmlContent], { type: 'text/html' }));
+      const blogFolder = `${userId}/${blogId}/`;
 
-      if (uploadError) {
-        console.error('Error uploading file:', uploadError.message);
-        return;
+      try {
+        // Upload HTML content
+        const { error: htmlError } = await supabase.storage
+          .from('blog-post')
+          .upload(`${blogFolder}${blogId}.html`, new Blob([htmlContent], { type: 'text/html' }));
+
+        if (htmlError) throw htmlError;
+
+        // Upload WebP image file
+        if (webpImageFile.value) {
+          const { error: imageError } = await supabase.storage
+            .from('blog-post')
+            .upload(`${blogFolder}header-image.webp`, webpImageFile.value);
+
+          if (imageError) throw imageError;
+        }
+
+        // Insert blog post metadata
+        const { error: insertError } = await supabase
+          .from('blog_post')
+          .insert([
+            {
+              user_id: userId,
+              blog_id: blogId,
+              title: title.value,
+              likes: 0,
+              comments: [],
+              bookmarks: 0,
+              full_name: user.value.full_name,
+              chatter_name: user.value.chatter_name,
+              categories: selectedCategory.value,
+            },
+          ]);
+
+        if (insertError) throw insertError;
+
+        console.log('Blog post inserted successfully.');
+        router.push('/home');
+      } catch (error) {
+        console.error('Error publishing blog post:', error.message);
       }
-
-      console.log('File uploaded:', uploadData);
-
-      const { data: insertData, error: insertError } = await supabase
-        .from('blog_post')
-        .insert([
-          {
-            user_id: userId,
-            blog_id: blogId,
-            title: title.value,
-            likes: 0,
-            comments: [],
-            bookmarks: 0,
-            full_name: user.value.full_name,
-            chatter_name: user.value.chatter_name,
-            categories: selectedCategory.value,
-          },
-        ]);
-
-      if (insertError) {
-        console.error('Error inserting blog post:', insertError.message);
-        return;
-      }
-
-      console.log('Blog post inserted:', insertData);
-      router.push('/home');
     };
 
     const cancelCreation = () => {
@@ -239,6 +241,7 @@ export default defineComponent({
       showContentError,
       showCategoryError,
       showImageError,
+      imageErrorMessage,
       cancelCreation,
       handleImageUpload, // Return the image upload function
       bannerImageUrl, // Return the banner image URL for preview
