@@ -10,9 +10,9 @@
         <!-- Updated search bar design -->
         <div class="search-input-container">
           <input type="text" v-model="searchQuery" placeholder="Search..." />
-          <button class="search-icon">
+          <div class="search-icon">
             <font-awesome-icon :icon="['fas', 'magnifying-glass']" />
-          </button>
+          </div>
         </div>
       </div>
       <div class="container">
@@ -36,7 +36,11 @@
                 </div>
                 <div class="bottom-row">
                   <button class="read-button" @click="viewPost(post)">Read</button>
-                  <span class="likes-count">{{ formattedLikes(post.likes) }}</span>
+                  <div class="likes-count">
+                    <span class="like-icon">
+                      <font-awesome-icon :icon="['fas', 'heart']" />
+                    </span>
+                    {{ formattedLikes(post.likes) }}</div>
                 </div>
               </li>
             </ul>
@@ -266,6 +270,7 @@ export default defineComponent({
   width: 50%;
   height: 30px;
   overflow: hidden;
+  justify-content: space-between;
 }
 
 .search-input-container input {
@@ -303,7 +308,7 @@ export default defineComponent({
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 20px;
+  padding: 20px 20px 0px 20px;
   color: #d7c9b7;
 }
 
@@ -337,8 +342,10 @@ export default defineComponent({
 .blog-list {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 30px;
+  gap: 10px;
   justify-content: center;
+  padding-left: 40px;
+  padding-right: 40px;
 }
 
 ul {
@@ -351,7 +358,6 @@ li {
   flex-direction: column;
   align-items: center;
   background-color: #444;
-  padding: 0;
   border-radius: 10px;
   width: 250px;
   height: 300px;
@@ -393,10 +399,8 @@ li:hover {
 
 .category-container {
   height: 10%; /* Set height to 10% */
-  display: flex;
   justify-content: center;
   align-items: center;
-  
   flex-wrap: nowrap;
 }
 
@@ -405,21 +409,28 @@ li:hover {
   color: #ffffff; /* Text color */
   font-size: 10px;
   margin: 2px;
+  letter-spacing: -3px;
 }
 
 .bottom-row {
   display: flex;
   width: 100%;
-  justify-content: space-between;
   padding: 10px;
   background-color: #333;
   color: white;
   height: 10%; /* Set height to 10% */
+  justify-content: center;
+  
 }
 
 .likes-count {
   font-size: 14px;
-  padding-right: 10px;
+  padding: 10px;
+  margin-right: 0px;
+}
+
+.like-icon {
+  color: red;
 }
 
 .read-button {
@@ -464,9 +475,36 @@ li:hover {
   display: flex;
   justify-content: center;
   color: #cebfad;
+  margin-bottom: -10px;
+}
+
+@supports (-ms-ime-align: auto) {
+  /* This block will only be applied in Microsoft Edge */
+  .blog-list {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  justify-content: center;
+  padding-left: 40px;
+  padding-right: 40px;
+}
+
+
 }
 
 @media (max-width: 430px) {
+
+  .bottom-row {
+  display: flex;
+  width: 100%;
+  justify-content: center;
+  padding: 10px;
+  background-color: #333;
+  color: white;
+  height: 20%; /* Set height to 10% */
+}
+
+
   .blug-page {
     padding-right: 1px;
     padding-left: 1px;
@@ -477,6 +515,7 @@ li:hover {
     display: flex;
     flex-direction: column;
     align-items: center;
+    padding: 0px;
   }
 
   .search-input-container {

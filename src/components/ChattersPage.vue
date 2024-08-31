@@ -25,7 +25,9 @@
             <i class="fas fa-arrow-left" @click="showLeftColumn" title="Back"></i>
           </div>
           <div v-if="selectedPost" :key="currentComponentKey">
+            <div>
             <img v-if="selectedPost.imageUrl" :src="selectedPost.imageUrl" alt="Header Image" class="header-image" />
+          </div>
             <h2>{{ selectedPost.title }}</h2>
             <div v-html="selectedPost.bodyContent" class="postbody"></div>
             <InteractivePage />
@@ -239,9 +241,9 @@ export default defineComponent({
 }
 
 .header-image {
-  width: 900px; /* Set the width of the image */
+  width: 50%; /* Set the width of the image */
   height: 300px; /* Set the height of the image */
-  object-fit: cover; /* Ensures the image covers the specified dimensions */
+  object-fit: contain; /* Ensures the image covers the specified dimensions */
   display: block; /* Ensures the image is displayed as a block element */
   margin: 0 auto; /* Centers the image horizontally */
 }

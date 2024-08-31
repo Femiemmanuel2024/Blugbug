@@ -193,21 +193,13 @@ export default defineComponent({
     ];
 
     const categories = [
-      'Health and Wellness', 'Fitness and Exercise', 'Nutrition and Diet', 'Mental Health and Well-being',
-      'Yoga and Meditation', 'Beauty and Skincare', 'Fashion and Style', 'Travel and Adventure', 'Solo Travel Tips',
-      'Budget Travel', 'Luxury Travel Destinations', 'Digital Nomad Lifestyle', 'Home Decor and Interior Design',
-      'DIY Home Projects', 'Gardening and Landscaping', 'Parenting Tips and Advice', 'Pregnancy and Newborn Care',
-      'Toddler Activities', 'Education and Learning', 'Homeschooling Tips', 'Student Life and Study Hacks',
-      'Career Development', 'Resume Writing Tips', 'Job Interview Preparation', 'Personal Finance', 
-      'Investing and Wealth Management', 'Budgeting and Saving Tips', 'Side Hustles and Freelancing',
-      'Entrepreneurship and Startups', 'Marketing and Branding Strategies', 'Social Media Tips and Trends',
-      'Tech Gadgets and Reviews', 'Software and App Development', 'Coding and Programming', 
-      'Web Design and Development', 'Photography Tips and Techniques', 'Art and Creativity', 
-      'Music and Concert Reviews', 'Film and TV Show Reviews', 'Book Recommendations and Reviews', 
-      'Literary Analysis and Criticism', 'History and Historical Events', 'Philosophy and Ethics', 
-      'Religion and Spirituality', 'Cultural Traditions and Festivals', 'Environmental Issues and Conservation', 
-      'Climate Change Solutions', 'Wildlife and Nature Conservation', 'Adventure Sports and Extreme Activities', 
-      'Sports News and Updates'
+      "Health", "Fitness", "Nutrition", "MentalHealth", "Meditation", "Skincare", "Fashion",
+      "Travel", "SoloTravel", "BudgetTravel", "LuxuryTravel", "Nomad", "HomeDecor", "DIY",
+      "Gardening", "Parenting", "Pregnancy", "Toddler", "Education", "Homeschooling", "Student",
+      "Career", "Resume", "Interview", "Finance", "Investing", "Budgeting", "SideHustles",
+      "Entrepreneurship", "Marketing", "SocialMedia", "Tech", "Software", "Coding", "WebDesign",
+      "Photography", "Art", "Music", "Film", "Books", "Literature", "History", "Philosophy",
+      "Religion", "Culture", "Environment", "Climate", "Wildlife", "Adventure", "Sports"
     ];
 
     const selectedCategories = ref<string[]>([]);

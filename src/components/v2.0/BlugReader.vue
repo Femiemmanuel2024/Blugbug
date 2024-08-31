@@ -6,7 +6,9 @@
   </div>
   <div v-else class="blug-reader">
     <NavBar />
+    <div class="header-display">
     <img v-if="headerImageUrl" :src="headerImageUrl" alt="Blog Header Image" class="header-image" />
+    </div>
     <div class="blug-content" v-html="post?.content"></div>
     <InteractivePage :blogId="post?.id" ref="interactivePage" />
   </div>
@@ -227,10 +229,15 @@ export default defineComponent({
 }
 
 .header-image {
-  width: 100%;
+  width: 50%;
   max-height: 300px;
-  object-fit: cover;
-  margin-bottom: 20px;
+  object-fit: contain;
+  margin-bottom: -40px;
+  margin-top: 20px;
+}
+
+.header-display{
+  text-align: center;
 }
 
 .blug-content {
