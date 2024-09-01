@@ -19,6 +19,12 @@
             <font-awesome-icon :icon="['fas', 'circle-xmark']" />
           </button>
         </div>
+        <!-- New Icon for Notification History -->
+        <div class="control-column">
+          <button @click="navigateToNotificationHistory" class="control-button">
+            <font-awesome-icon :icon="['fas', 'clock-rotate-left']" />
+          </button>
+        </div>
       </div>
       <ul>
         <li v-for="notification in notifications" :key="notification.id">
@@ -38,11 +44,11 @@ import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { supabase } from '../supabase';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
-import { faArrowsRotate, faCircleXmark } from '@fortawesome/free-solid-svg-icons';
+import { faArrowsRotate, faCircleXmark, faClockRotateLeft } from '@fortawesome/free-solid-svg-icons';
 import { library } from '@fortawesome/fontawesome-svg-core';
 
 // Add icons to the library
-library.add(faArrowsRotate, faCircleXmark);
+library.add(faArrowsRotate, faCircleXmark, faClockRotateLeft);
 
 interface Notification {
   id: string;
@@ -50,11 +56,11 @@ interface Notification {
   read: boolean;
   created_at: string;
   user_id: string;
-  blog_id?: string;  // Ensure blog_id is included in the notification interface
+  blog_id?: string;
   blog_title?: string;
   not_identifier?: string;
-  comment_main?: string;  // Added comment_main
-  commented_by?: string;  // Added commented_by
+  comment_main?: string;
+  commented_by?: string;
 }
 
 const notifications = ref<Notification[]>([]);
@@ -62,7 +68,7 @@ const showNotifications = ref(false);
 const unreadCount = ref(0);
 const router = useRouter();
 const notificationAudio = ref<HTMLAudioElement | null>(null);
-const isLoggedIn = ref(false); // State to check if user is logged in
+const isLoggedIn = ref(false);
 
 const playNotificationSound = () => {
   if (notificationAudio.value) {
@@ -75,7 +81,7 @@ const fetchNotifications = async () => {
   if (currentUser.id) {
     const { data, error } = await supabase
       .from('notifications')
-      .select('id, user_id, message, read, blog_id, blog_title, not_identifier, comment_main, commented_by')  // Fetch blog_id
+      .select('id, user_id, message, read, blog_id, blog_title, not_identifier, comment_main, commented_by')
       .eq('user_id', currentUser.id)
       .eq('read', false)
       .order('created_at', { ascending: false });
@@ -88,7 +94,6 @@ const fetchNotifications = async () => {
     notifications.value = data as Notification[];
     unreadCount.value = notifications.value.length;
 
-    // Play notification sound if there are new notifications
     if (unreadCount.value > 0) {
       playNotificationSound();
     }
@@ -112,11 +117,9 @@ const markAsRead = async (notification: Notification) => {
   notifications.value = notifications.value.filter((n) => n.id !== id);
   unreadCount.value = notifications.value.length;
 
-  // Check the not_identifier and navigate accordingly
   if (notification.not_identifier === 'MENTION') {
-    handleMentionNotification(notification);  // Call new function for MENTION notifications
+    handleMentionNotification(notification);
   } else if (notification.not_identifier === 'REPLY') {
-    // Navigate to ReplyPage with required details
     router.push({
       name: 'ReplyPage',
       query: {
@@ -132,9 +135,7 @@ const markAsRead = async (notification: Notification) => {
 
 const handleMentionNotification = (notification: Notification) => {
   if (notification.blog_id) {
-    // Save blog_id to local storage
     localStorage.setItem('blog_id', notification.blog_id);
-    // Route to BlugReader.vue with blog_id as a query parameter
     router.push({ name: 'BlugReader', query: { blogId: notification.blog_id } });
   }
 };
@@ -142,7 +143,7 @@ const handleMentionNotification = (notification: Notification) => {
 const toggleNotifications = () => {
   showNotifications.value = !showNotifications.value;
   if (showNotifications.value) {
-    fetchNotifications(); // Fetch only when notifications are toggled on
+    fetchNotifications();
     playNotificationSound();
   }
 };
@@ -176,16 +177,20 @@ const checkForNotifications = () => {
 const handleClick = async () => {
   const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
   if (currentUser.id) {
-    isLoggedIn.value = true; // User is logged in
-    fetchNotifications(); // Fetch notifications on login
+    isLoggedIn.value = true;
+    fetchNotifications();
   } else {
     console.error('No user is currently logged in.');
-    isLoggedIn.value = false; // User is not logged in
+    isLoggedIn.value = false;
   }
 };
 
+const navigateToNotificationHistory = () => {
+  router.push({ name: 'NotificationHistory' });
+};
+
 onMounted(() => {
-  handleClick(); // Fetch notifications on login
+  handleClick();
 });
 </script>
 
@@ -266,12 +271,14 @@ onMounted(() => {
 .control-column {
   display: flex;
   justify-content: center;
-  width: 50%;
+  width: 33%; /* Adjust width for three icons */
+  background-color: #fd662f;
+  
 }
 
 .control-button {
   width: 100%;
-  background-color: #333;
+  background-color: #fd662f; /* Change background color to orange */
   color: white;
   border: none;
   padding: 5px;
@@ -330,7 +337,11 @@ onMounted(() => {
 
 @media (max-width: 430px) {
   .notification-list {
-    left: -139px;
+    left: -165px;
+  }
+
+  .notification-icon {
+    font-size: 22px;
   }
 }
 </style>

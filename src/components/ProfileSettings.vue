@@ -3,7 +3,7 @@
     <NavBar />
     <div class="content">
       <h1>Profile Settings</h1>
-      <table v-if="user">
+      <table v-if="user" class="settings-table">
         <!-- Full Name -->
         <tr>
           <th>Full Name</th>
@@ -140,6 +140,7 @@
         </div>
       </div>
     </div>
+    <FooterNav/>
   </div>
 </template>
 
@@ -149,6 +150,7 @@ import { useRouter } from 'vue-router';
 import { supabase } from './supabase';
 import NavBar from '../components/NavBar.vue';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
+import FooterNav from './v2.0/FooterNav.vue';
 
 interface User {
   id: string;
@@ -166,7 +168,8 @@ export default defineComponent({
   name: 'ProfileSettings',
   components: {
     NavBar,
-    FontAwesomeIcon
+    FontAwesomeIcon,
+    FooterNav,
   },
   setup() {
     const router = useRouter();
@@ -667,7 +670,7 @@ button:hover {
   height: 100vh;
   padding-right: 2px;
   padding-left: 2px;
-  padding-top: 160px;
+  padding-top: 110px;
 }
 
 .content {
@@ -712,6 +715,11 @@ button:hover {
   width: 100%;
   margin-bottom: 10px;
   border-bottom: 1px solid #cebfad;
+}
+
+.settings-table{
+  /* background-color: #c82333; */
+  font-size: 12px;
 }
   /* Add styles for phone screen size here */
 }

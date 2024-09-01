@@ -56,6 +56,7 @@
         </div>
       </div>
     </div>
+    <FooterNav /> 
   </div>
 </template>
 
@@ -66,6 +67,7 @@ import { useRouter } from 'vue-router';
 import NavBar from './NavBar.vue';
 import { supabase } from './supabase';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
+import FooterNav from './v2.0/FooterNav.vue';
 
 interface Post {
   id: number;
@@ -83,6 +85,7 @@ export default defineComponent({
   components: {
     NavBar,
     FontAwesomeIcon,
+    FooterNav,
   },
   setup() {
     const posts = ref<Post[]>([]);
@@ -508,7 +511,7 @@ li:hover {
   .blug-page {
     padding-right: 1px;
     padding-left: 1px;
-    padding-top: 140px;
+    padding-top: 100px;
   }
 
   .blog-list {

@@ -25,6 +25,7 @@
         <font-awesome-icon :icon="['fas', 'bars']" />
       </div>
     </div>
+    <FooterNav/>
   </div>
 </template>
 
@@ -36,6 +37,7 @@ import Feed from '../features/FeedPage.vue';
 import InterestPage from '../features/InterestPage.vue';
 import InfoData from '../infofeatures/InfoData.vue';
 import { supabase } from '../supabase';
+import FooterNav from '../v2.0/FooterNav.vue';
 
 interface User {
   id: string;
@@ -55,6 +57,7 @@ export default defineComponent({
     Feed,
     InterestPage,
     InfoData,
+    FooterNav,
   },
   setup() {
     const userId = JSON.parse(localStorage.getItem('currentUser') || '{}').id;
@@ -195,6 +198,7 @@ export default defineComponent({
   right: 0;
   margin-right: 19px;
   transition: right 0.3s ease-in-out;
+  z-index: 9999;
 }
 
 .right-column-visible {
@@ -220,7 +224,7 @@ h3 {
   .new-user-page {
     padding-right: 1px;
     padding-left: 1px;
-    margin-top: 100px;
+    margin-top: 56px;
   }
 
   .content {
@@ -260,8 +264,8 @@ h3 {
   .toggle-button {
     display: flex;
     position: fixed;
-    top: 49px;
-    right: 35px;
+    top: 20px;
+    right: 20px;
     font-size: 30px;
     cursor: pointer;
     z-index: 10000;

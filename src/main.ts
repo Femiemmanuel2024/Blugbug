@@ -40,7 +40,12 @@ import {
   faPlus,
   faUserMinus,
   faHeadset,
-  faMagnifyingGlass
+  faMagnifyingGlass,
+  faPenClip,
+  faPersonWalking,
+  faPersonCircleMinus,
+  faPersonCirclePlus,
+  faClockRotateLeft
 } from '@fortawesome/free-solid-svg-icons';
 
 library.add(
@@ -78,6 +83,11 @@ library.add(
   faUserMinus,
   faHeadset,
   faMagnifyingGlass,
+  faPenClip,
+  faPersonWalking,
+  faPersonCircleMinus,
+  faPersonCirclePlus,
+  faClockRotateLeft,
   faBars // Add faBars to library
 );
 

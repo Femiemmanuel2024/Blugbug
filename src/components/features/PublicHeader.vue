@@ -1,43 +1,76 @@
 <template>
   <div class="profile-header">
-    <div class="header-image-container">
-      <img :src="headerImage" alt="Header Image" class="header-image" />
-      <label v-if="!disableUpload" class="upload-header-icon" @click="showFileUploadModal('header')">
-        <i class="fas fa-camera"></i>
-      </label>
-    </div>
-    <div class="profile-picture-container">
-      <div class="profile-picture-circle">
-        <img :src="profilePicture" alt="Profile Picture" class="profile-image" />
-        <label v-if="!disableUpload" class="upload-icon" @click="showFileUploadModal('profile')">
+    <!-- Top Row -->
+    <div class="top-row">
+      <div class="header-image-container">
+        <img :src="headerImage" alt="Header Image" class="header-image" loading="lazy" />
+        <label v-if="!disableUpload" class="upload-header-icon" @click="showFileUploadModal('header')">
           <i class="fas fa-camera"></i>
         </label>
       </div>
-    </div>
-    <div class="name-container">
-      <h1 class="name">{{ user.fullName }}</h1>
-      <div v-if="checkmarkIconUrl" class="checkmark-icon-circle">
-        <img :src="checkmarkIconUrl" alt="Checkmark Icon" class="checkmark-icon" />
+      <div class="profile-picture-container">
+        <div class="profile-picture-circle">
+          <img :src="profilePicture" alt="Profile Picture" class="profile-image" loading="lazy" />
+          <label v-if="!disableUpload" class="upload-icon" @click="showFileUploadModal('profile')">
+            <i class="fas fa-camera"></i>
+          </label>
+        </div>
       </div>
-      <p class="chatter-name">@{{ user.chatterName }}</p>
     </div>
-    <p class="about-me">{{ user.aboutMe }}</p>
-    <div class="stats-container">
-      <p>
-        <strong>{{ formatCount(totalLikes) }}</strong> Likes
-        <strong>{{ formatCount(totalBookmarks) }}</strong> Bookmarks
-        <strong>{{ user.following }}</strong> Following
-        <strong>{{ user.followers }}</strong> Followers
-      </p>
+
+    <!-- Bottom Row -->
+    <div class="bottom-row">
+      <!-- First Column -->
+      <div class="info-column">
+        <div class="name-container">
+          <div class="name-wrapper">
+            <h1 class="name">{{ user.fullName }}</h1>
+            <div v-if="checkmarkIconUrl" class="checkmark-icon-circle">
+              <img :src="checkmarkIconUrl" alt="Checkmark Icon" class="checkmark-icon" />
+            </div>
+          </div>
+          <p class="chatter-name">@{{ user.chatterName }}</p>
+        </div>
+        <p class="about-me">{{ user.aboutMe }}</p>
+        <div class="stats-container">
+          <p>
+            <strong>{{ formatCount(totalLikes) }}</strong> Likes
+            <strong>{{ formatCount(totalBookmarks) }}</strong> Bookmarks
+            <button class="followers-button" @click="navigateToFollowing">
+              {{ user.following }} Following
+            </button>
+            <button class="followers-button" @click="navigateToFollowers">
+              {{ user.followers }} Followers
+            </button>
+          </p>
+          <div class="interest-container">
+            <div class="interest-column">
+              <span class="interest-title">My Interest</span>
+            </div>
+            <div class="interest-column2">
+              <p class="interest-list">{{ displayInterest(user.interestId) }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Second Column -->
+      <div class="action-column">
+        <!-- Replacing Create Blog Button with FollowButton Component -->
+        <FollowButton :userId="user.id" customClass="follow-button" />
+      </div>
     </div>
+
     <FileUpload v-if="showFileUpload" :type="uploadType" @uploadComplete="fetchUserData" @close="closeFileUploadModal" />
   </div>
 </template>
 
 <script lang="ts">
 import { defineComponent, ref, watch } from 'vue';
+import { useRouter } from 'vue-router';
 import { supabase } from '../supabase';
 import FileUpload from '../features/FileUpload.vue';
+import FollowButton from '../UserProfile/FollowButton.vue'; // Import FollowButton
 
 interface User {
   fullName: string;
@@ -49,12 +82,14 @@ interface User {
   checkmark_url: string | null;
   followers: number;
   following: number;
+  interestId: string | null;
 }
 
 export default defineComponent({
   name: 'ProfileHeader',
   components: {
     FileUpload,
+    FollowButton, // Register FollowButton
   },
   props: {
     userId: {
@@ -67,30 +102,40 @@ export default defineComponent({
     },
   },
   setup(props) {
+    const router = useRouter();
+
     const user = ref<User>({
-      fullName: '',
+      fullName: 'Default Name',
       chatterName: '',
       aboutMe: '',
       id: '',
-      profile_image_url: '/src/assets/Default_pfp.svg',
-      header_image_url: 'default-header-image-path',
+      profile_image_url: '/Default_pfp.svg',
+      header_image_url: '/Default_Header.svg',
       checkmark_url: null,
       followers: 0,
       following: 0,
+      interestId: null,
     });
     const totalLikes = ref(0);
     const totalBookmarks = ref(0);
     const showFileUpload = ref(false);
     const uploadType = ref<'profile' | 'header' | 'checkmark'>('profile');
-    const profilePicture = ref<string>('/src/assets/Default_pfp.svg');
-    const headerImage = ref<string>('default-header-image-path');
+    const profilePicture = ref<string>('/Default_pfp.svg');
+    const headerImage = ref<string>('/Default_Header.svg');
     const checkmarkIconUrl = ref<string | null>(null);
 
     const fetchUserData = async () => {
-      console.log(`Fetching data for user ID: ${props.userId}`);
+      const cachedData = localStorage.getItem(`user_data_${props.userId}`);
+      if (cachedData) {
+        user.value = JSON.parse(cachedData);
+        profilePicture.value = user.value.profile_image_url;
+        headerImage.value = user.value.header_image_url;
+        checkmarkIconUrl.value = user.value.checkmark_url;
+      }
+
       const { data, error } = await supabase
         .from('users')
-        .select('full_name, chatter_name, about_me, id, profile_image_url, header_image_url, checkmark_url, followers, following')
+        .select('full_name, chatter_name, about_me, id, profile_image_url, header_image_url, checkmark_url, followers, following, interest_id')
         .eq('id', props.userId)
         .single();
 
@@ -110,13 +155,14 @@ export default defineComponent({
           checkmark_url: data.checkmark_url || null,
           followers: data.followers || 0,
           following: data.following || 0,
+          interestId: data.interest_id || null,
         };
         profilePicture.value = user.value.profile_image_url;
         headerImage.value = user.value.header_image_url;
         checkmarkIconUrl.value = user.value.checkmark_url;
-        console.log('Fetched user data:', user.value);
 
-        // Fetch total likes and bookmarks after fetching user data
+        localStorage.setItem(`user_data_${props.userId}`, JSON.stringify(user.value));
+
         await fetchTotalLikesAndBookmarks();
       }
     };
@@ -159,6 +205,18 @@ export default defineComponent({
       }
     };
 
+    const displayInterest = (interestId: string | null) => {
+      return interestId ? interestId : 'User has not selected any interest yet';
+    };
+
+    const navigateToFollowers = () => {
+      router.push({ path: '/connections', query: { tab: 'followers' } });
+    };
+
+    const navigateToFollowing = () => {
+      router.push({ path: '/connections', query: { tab: 'following' } });
+    };
+
     watch(() => props.userId, fetchUserData, { immediate: true });
 
     return {
@@ -174,6 +232,9 @@ export default defineComponent({
       totalLikes,
       totalBookmarks,
       formatCount,
+      displayInterest,
+      navigateToFollowers,
+      navigateToFollowing,
     };
   },
 });
@@ -186,6 +247,18 @@ export default defineComponent({
   background-color: #2b3138;
   overflow: hidden;
   border: solid 5px #0c1118;
+  display: flex;
+  flex-direction: column;
+  border-radius: 90px 0px 0px 0px;
+}
+
+/* Top Row Styling */
+.top-row {
+  position: relative;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
 }
 
 .header-image-container {
@@ -193,24 +266,26 @@ export default defineComponent({
   height: 200px;
   position: relative;
   background-color: #f0f0f0;
+  border-radius: 90px 0px 0px 90px;
 }
 
 .header-image {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  border-radius: 90px 0px 0px 90px;
 }
 
 .upload-header-icon {
   position: absolute;
-  bottom: 80px;
-  right: 450px;
+  bottom: 10px;
+  right: 10px;
   background-color: rgba(0, 0, 0, 0.5);
   color: #fff;
   padding: 10px;
   border-radius: 50%;
   cursor: pointer;
-  opacity: 1;
+  opacity: 0;
   transition: opacity 0.3s ease;
 }
 
@@ -219,17 +294,17 @@ export default defineComponent({
 }
 
 .profile-picture-container {
-  position: relative;
-  bottom: 90px;
-  padding-left: 20px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
+  position: absolute;
+  top: 18px;
+  left: 20px;
+  width: 150px;
+  height: 150px;
+  z-index: 1;
 }
 
 .profile-picture-circle {
-  width: 150px;
-  height: 150px;
+  width: 100%;
+  height: 100%;
   background-color: #fff;
   border-radius: 50%;
   border: 3px solid rgb(255, 255, 255);
@@ -265,17 +340,33 @@ export default defineComponent({
   opacity: 1;
 }
 
+/* Bottom Row Styling */
+.bottom-row {
+  display: flex;
+  width: 100%;
+  margin-top: 0px;
+}
+
+.info-column {
+  width: 70%;
+  padding: 20px;
+  color: #ffffff;
+}
+
 .name-container {
-  align-items: left;
-  margin-top: -100px;
-  padding-left: 20px;
+  margin-bottom: 10px;
+  margin-top: -25px;
+}
+
+.name-wrapper {
+  display: flex;
+  align-items: center;
 }
 
 .name {
   font-size: 24px;
   color: #cebfad;
-  display: flex;
-  align-items: center;
+  margin-right: 10px;
 }
 
 .chatter-name {
@@ -285,14 +376,72 @@ export default defineComponent({
 }
 
 .about-me {
-  padding-left: 20px;
-  font-size: 16px;
+  font-size: 14px;
   color: gray;
+  margin-bottom: 0px;
+  margin-top: -15px;
 }
 
 .stats-container {
-  padding-left: 20px;
+  font-size: 14px;
   color: #cebfad;
+  margin-top: -10px;
+}
+
+.stat-label {
+  font-weight: lighter;
+  margin-right: 10px;
+}
+
+strong {
+  font-weight: bold;
+  margin-right: 5px;
+}
+
+.interest-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: left;
+}
+
+.interest-column {
+  flex: 1;
+  min-width: 200px;
+  max-width: 100%;
+  text-align: center;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.interest-column2 {
+  width: 100%;
+  text-align: center;
+}
+
+.interest-title {
+  font-weight: bold;
+  display: block;
+}
+
+.interest-list {
+  margin-top: 5px;
+  white-space: normal;
+  word-break: normal;
+  overflow-wrap: normal;
+}
+
+.followers-button {
+  background-color: transparent;
+  border: none;
+  color: #cebfad;
+  font-size: 14px;
+  cursor: pointer;
+  margin-left: 10px;
+}
+
+.followers-button:hover {
+  text-decoration: underline;
 }
 
 .checkmark-icon-circle {
@@ -300,9 +449,155 @@ export default defineComponent({
   height: 20px;
   background-color: #fff;
   border-radius: 50%;
-  position: absolute;
-  top: 320px;
-  left: 190px;
+  border: 1px solid whitesmoke;
+}
+
+.checkmark-icon {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.action-column {
+  width: 30%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Media Queries for smaller screens */
+@media screen and (max-width: 767px) {
+  .interest-title {
+    background-color: #0c1118;
+    padding: 5px 10px 5px 10px;
+    border-radius: 10px 10px 0px 0px;
+  }
+
+  .header-image-container {
+  width: 100%;
+  height: 100px;
+  position: relative;
+  background-color: #f0f0f0;
+  border-radius: 90px 0px 0px 90px;
+}
+
+  .profile-picture-container {
+    position: absolute;
+    top: 8px;
+    left: 10px;
+    width: 80px;
+    height: 80px;
+    z-index: 1;
+  }
+
+  .profile-header {
+    padding: 10px;
+    align-items: center;
+    border-radius: 70px 0px 0px 0px;
+    margin-top: 25px;
+  }
+
+  .top-row {
+    align-items: center;
+  }
+
+  .bottom-row {
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Center the content horizontally */
+    justify-content: center; /* Center the content vertically */
+    width: 100%; /* Make the bottom row take full width */
+    margin-top: 0px;
+  }
+
+  .info-column,
+  .action-column {
+    width: 100%;
+    text-align: center;
+    margin-bottom: 0px; /* Add spacing between columns */
+  }
+
+  .create-blug-button {
+    margin-top: -15px;
+    margin-bottom: 10px; /* Add spacing below the button */
+    border: 3px solid rgb(248, 247, 245);
+  }
+
+  .create-blug-button:hover {
+    border: 3px solid rgb(248, 247, 245);
+    transform: scale(1.1);
+  }
+
+  .stats-container,
+  .about-me,
+  .interest {
+    text-align: center;
+    font-size: 12px;
+  }
+
+  .followers-button {
+    margin: 10px auto; /* Following and followers counter not button */
+    font-size: 12px;
+    margin-top: -10px;
+  }
+
+  .follow-button{
+    width: 40px;
+    height: 40px;
+    font-size: 20px;
+    border: 1px solid rgb(255, 255, 255);
+    margin-top: -20px;
+  }
+
+  .name-container {
+    margin-top: -10px;
+    text-align: center;
+    text-align: center;
+    display: flex; /* Use flexbox to align items side by side */
+    justify-content: center; /* Center content horizontally */
+    align-items: center; /* Align content vertically */
+    gap: 10px; /* Add some space between full name and username */
+  }
+
+  .name-wrapper {
+    justify-content: center; /* Center the name wrapper */
+  }
+
+  .name {
+    text-align: center; /* Center the full name */
+    margin-right: 0; /* Remove margin for centering */
+    font-size: 14px;
+  }
+
+  .chatter-name {
+    text-align: center; /* Center the chatter name */
+    margin-top: 10px; /* Adjust margin for centering */
+    font-size: 10px;
+  }
+
+  .interest-container {
+    flex-direction: column;
+    align-items: center; /* Center align for smaller screens */
+  }
+
+  .interest-column {
+    width: 100%; /* Stack the columns on top of each other */
+    text-align: center; /* Center align the text */
+    word-break: normal; /* Prevent breaking words at mid-character */
+    white-space: normal; /* Allow wrapping */
+    margin-top: -15px;
+  }
+  .interest-column2{
+    margin-top: -1px;
+  }
+
+  .checkmark-icon-circle {
+  width: 15px;
+  height: 15px;
+  background-color: #fff;
+  border-radius: 50%;
+  padding: 1px;
+  margin-left: 5px;
 }
 
 .checkmark-icon {
@@ -310,58 +605,6 @@ export default defineComponent({
   height: 100%;
   object-fit: cover;
   border-radius: 50%;
-  
-}
-
-@media (max-width: 430px) {
-  .checkmark-icon-circle {
-  
-    top: 340px;
-    left: 140px;
-  }
-
-  upload-header-icon {
-  position: absolute;
-  bottom: 90px;
-  right: 10px;
-  background-color: rgba(0, 0, 0, 0.5);
-  color: #fff;
-  padding: 10px;
-  border-radius: 50%;
-  cursor: pointer;
-  opacity: 0.1;
-  transition: opacity 0.3s ease;
-}
-
-.chatter-name {
-  font-size: 14px;
-  color: #cebfad;
-}
-
-.about-me {
-  padding-left: 20px;
-  padding-right: 20px;
-  font-size: 16px;
-  color: gray;
-  text-align: left;
-}
-
-.stats-container {
-  padding-left: 20px;
-  padding-right: 20px;
-  color: #cebfad;
-  font-size: 14px;
 }
 }
-
-@media (max-width:1022px){
-  .about-me {
-  padding-left: 20px;
-  padding-right: 20px;
-  font-size: 16px;
-  color: gray;
-}
-}
-
-
 </style>

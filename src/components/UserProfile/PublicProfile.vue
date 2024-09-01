@@ -11,7 +11,7 @@
           :followersCount="followersCount"
           :disableUpload="true"
         />
-        <FollowButton :userId="userId" customClass="custom-follow-button" />
+        <!-- <FollowButton :userId="userId" customClass="custom-follow-button" /> -->
         <BlogPosts :posts="posts" @likePost="likePost" @bookmarkPost="bookmarkPost" />
         <h3>MyBlug</h3>
         <PublicFeed />

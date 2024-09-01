@@ -4,16 +4,20 @@
     @mouseover="onMouseOver" 
     @mouseleave="onMouseLeave"
     :class="[{'following': isFollowing }, customClass]">
-    {{ buttonText }}
+    <font-awesome-icon :icon="currentIcon" />
   </button>
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, onMounted } from 'vue';
+import { defineComponent, ref, computed, onMounted } from 'vue';
 import { supabase } from '../supabase';
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 
 export default defineComponent({
   name: 'FollowButton',
+  components: {
+    FontAwesomeIcon,
+  },
   props: {
     userId: {
       type: String,
@@ -145,12 +149,23 @@ export default defineComponent({
       fetchFollowingStatus();
     });
 
+    const currentIcon = computed(() => {
+      if (isFollowing.value && buttonText.value === 'Following') {
+        return ['fas', 'person-walking'];
+      } else if (isFollowing.value && buttonText.value === 'Unfollow') {
+        return ['fas', 'person-circle-minus'];
+      } else {
+        return ['fas', 'person-circle-plus'];
+      }
+    });
+
     return {
       isFollowing,
       buttonText,
       toggleFollow,
       onMouseOver,
       onMouseLeave,
+      currentIcon,
     };
   },
 });
@@ -158,16 +173,25 @@ export default defineComponent({
 
 <style scoped>
 button {
-  padding: 10px 20px;
-  font-size: 16px;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
   border: none;
-  border-radius: 5px;
   cursor: pointer;
   background-color: #fd662f;
   color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.3s ease;
+  font-size: 1.5rem;
 }
 
 button.following {
   background-color: #4caf50;
+}
+
+button:hover {
+  background-color: #e04a2e;
 }
 </style>

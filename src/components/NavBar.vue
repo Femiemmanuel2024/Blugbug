@@ -2,9 +2,6 @@
   <nav class="navbar">
     <div class="navbar-left">
       <img src="/brand_logo.svg" alt="BloggaBug Logo" class="brandlogo" />
-      <div class="nav-icon-alert alert-icon" @click="animateIcon($event)">
-        <ActionNotification />
-      </div>
     </div>
     <div class="navbar-right">
       <router-link to="/home" class="nav-icon" @click="navigate('/home', $event)">
@@ -19,6 +16,13 @@
         <font-awesome-icon :icon="['fas', 'globe']" class="icon" />
         <span class="icon-label">Blug</span>
       </router-link>
+
+      <!-- Alert icon and text side by side -->
+      <div class="nav-icon-alert alert-icon" @click="animateIcon($event)">
+        <ActionNotification />
+        <span class="alert-label">Alert</span> <!-- Updated class to alert-label -->
+      </div>
+
       <router-link to="/settings" class="nav-icon" @click="navigate('/settings', $event)">
         <font-awesome-icon :icon="['fas', 'gear']" class="icon" />
         <span class="icon-label">Settings</span>
@@ -30,24 +34,11 @@
         <span class="icon-label">Admin Manager</span>
       </router-link>
 
-      <!-- Trigger for LogComplaint modal -->
-      <div class="nav-icon" @click="toggleLogComplainModal">
-        <font-awesome-icon :icon="['fas', 'headset']" class="icon" />
-        <span class="icon-label">Help</span>
-      </div>
-
       <router-link to="/login" class="nav-icon" @click="logout">
         <font-awesome-icon :icon="['fas', 'sign-out-alt']" class="icon" />
         <span class="icon-label">Logout</span>
       </router-link>
     </div>
-
-    <!-- Include LogComplaint modal component and pass showModal prop -->
-    <LogComplaint 
-      v-if="showLogComplainModal" 
-      :showModal="showLogComplainModal" 
-      @close="toggleLogComplainModal" 
-    />
   </nav>
 </template>
 
@@ -56,20 +47,17 @@ import { defineComponent, ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import ActionNotification from './infofeatures/ActionNotification.vue';
-import LogComplaint from './v2.0/LogComplaint.vue'; // Ensure this path is correct
 
 export default defineComponent({
   name: 'NavBar',
   components: {
     FontAwesomeIcon,
     ActionNotification,
-    LogComplaint,
   },
   setup(_, { emit }) {
     const router = useRouter();
     const isAdmin = ref(false);
     const adminId = '73170619-38c9-45d5-afe8-324709ef325a';
-    const showLogComplainModal = ref(false); // Make sure this is reactive
 
     onMounted(() => {
       const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
@@ -97,24 +85,15 @@ export default defineComponent({
       }, 300);
     };
 
-    const toggleLogComplainModal = () => {
-      console.log("Toggle LogComplaint Modal", showLogComplainModal.value);
-      showLogComplainModal.value = !showLogComplainModal.value;
-    };
-
     return {
       isAdmin,
       logout,
       navigate,
       animateIcon,
-      showLogComplainModal,
-      toggleLogComplainModal,
     };
   },
 });
 </script>
-
-
 
 <style scoped>
 @import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css');
@@ -139,8 +118,6 @@ export default defineComponent({
 
 .navbar-left {
   padding-left: 60px;
-  display: flex;
-  column-gap: -30px;
 }
 
 .navbar-right {
@@ -161,6 +138,19 @@ export default defineComponent({
 .nav-icon .icon-label {
   margin-left: 5px;
   font-size: 14px;
+}
+
+.nav-icon-alert {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  margin: 0 10px;
+}
+
+.alert-label {
+  margin-left: 5px; /* Ensure text is right next to the icon */
+  font-size: 14px;
+  color: rgb(255, 255, 255);
 }
 
 .nav-icon:active {
@@ -218,11 +208,14 @@ export default defineComponent({
   .navbar-left {
     flex-direction: column;
     padding-left: 0;
+    padding-bottom: -20px;
+    margin-bottom: -10px;
   }
   .navbar-right {
     justify-content: center;
     width: 100%;
     padding-right: 0;
+    padding-top: 0px;
   }
   .nav-icon {
     font-size: 20px;
@@ -232,6 +225,12 @@ export default defineComponent({
     padding-left: 16px;
   }
   .icon-label {
+    display: none;
+  }
+
+
+
+  .alert-label{
     display: none;
   }
 }

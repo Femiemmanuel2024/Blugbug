@@ -19,6 +19,8 @@ import ReplyPage from './components/v2.0/ReplyPage.vue';
 import EditPostPage from './components/v2.0/EditPostPage.vue';
 import AdminManager from './components/v2.0/AdminManager.vue';
 import OnBoarding from './components/v2.0/OnBoarding.vue'; // Import the OnBoarding component
+import FooterNav from './components/v2.0/FooterNav.vue';
+import NotificationHistory from './components/v2.0/NotificationHistory.vue';
 
 const routes = [
   { path: '/', redirect: '/login' },
@@ -42,6 +44,8 @@ const routes = [
   { path: '/edit/:blogId', name: 'EditPostPage', component: EditPostPage },
   { path: '/admin-manager', name: 'AdminManager', component: AdminManager },
   { path: '/onboarding', name: 'OnBoarding', component: OnBoarding }, // Add route for OnBoarding
+  {path:'/footnav', name:'FooterNav', component:FooterNav},
+  { path: '/notifications', name: 'NotificationHistory', component: NotificationHistory },
   { path: '/:catchAll(.*)', name: 'NotFound', component: NotFound }
 ];
 
