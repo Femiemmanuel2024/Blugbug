@@ -281,7 +281,7 @@ export default defineComponent({
   position: absolute;
   bottom: 10px;
   right: 10px;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: rgba(0, 0, 0, 0.9);
   color: #fff;
   padding: 10px;
   border-radius: 50%;

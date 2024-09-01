@@ -198,7 +198,7 @@ export default defineComponent({
   right: 0;
   margin-right: 19px;
   transition: right 0.3s ease-in-out;
-  z-index: 9999;
+ 
 }
 
 .right-column-visible {
@@ -255,6 +255,7 @@ h3 {
     margin-top: 100px;
     margin-right: 1px;
     height: 480px;
+    z-index: 9999;
   }
 
   .right-column-visible {
@@ -312,6 +313,7 @@ h3 {
     margin-top: 100px;
     margin-right: 1px;
     height: 680px;
+    z-index: 9999;
   }
 
   .right-column-visible {
