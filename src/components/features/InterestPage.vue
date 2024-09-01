@@ -78,7 +78,8 @@ export default defineComponent({
       const allPosts: Post[] = [];
 
       for (const post of postData) {
-        const filePath = `${post.user_id}/${post.blog_id}.html`;
+        // Updated file path structure: user_id/blog_id/blog_id.html
+        const filePath = `${post.user_id}/${post.blog_id}/${post.blog_id}.html`;
 
         const { data: postContent, error: contentError } = await supabase.storage
           .from('blog-post')
@@ -113,11 +114,7 @@ export default defineComponent({
         });
       }
 
-      console.log('Fetched posts based on interests:', allPosts);
-
       feedPosts.value = allPosts.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-
-      console.log('Sorted feed posts:', feedPosts.value);
     };
 
     const formatDateTime = (dateTime: string) => {
@@ -127,7 +124,6 @@ export default defineComponent({
       return `${formattedTime} on ${formattedDate}`;
     };
 
-    // Updated readPost function to store blog_id and navigate to BlugReader
     const readPost = (postId: number) => {
       localStorage.setItem('blog_id', postId.toString()); // Store the blog_id in local storage
       router.push({ name: 'BlugReader', query: { blogId: postId.toString() } }); // Navigate to BlugReader page
@@ -249,11 +245,10 @@ li {
   margin-top: 10px;
 }
 
-@media (max-width: 780px){
+@media (max-width: 780px) {
   ul {
-  
-  padding-left: 0px;
-  padding-right: 0px;
-}
+    padding-left: 0px;
+    padding-right: 0px;
+  }
 }
 </style>
