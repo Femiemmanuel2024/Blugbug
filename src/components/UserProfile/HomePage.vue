@@ -17,6 +17,7 @@
         <div class="feed-container">
           <component :is="currentComponent" />
         </div>
+        <FooterNav/>
       </div>
       <div class="right-column" :class="{ 'right-column-visible': rightColumnVisible }">
         <InfoData />
@@ -25,7 +26,7 @@
         <font-awesome-icon :icon="['fas', 'bars']" />
       </div>
     </div>
-    <FooterNav/>
+    
   </div>
 </template>
 

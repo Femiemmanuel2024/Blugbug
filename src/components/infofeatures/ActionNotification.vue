@@ -11,18 +11,21 @@
       <div class="notification-controls">
         <div class="control-column">
           <button @click="checkForNotifications" class="control-button">
-            <font-awesome-icon :icon="['fas', 'arrows-rotate']" />
+            <font-awesome-icon :icon="['fas', 'arrows-rotate']" class="iconB" />
+            <div class="control-label">Refresh</div>
           </button>
         </div>
         <div class="control-column">
           <button @click="deleteAllNotifications" class="control-button">
-            <font-awesome-icon :icon="['fas', 'circle-xmark']" />
+            <font-awesome-icon :icon="['fas', 'circle-xmark']" class="iconB"/>
+           <div class="control-label">Clear</div>
           </button>
         </div>
         <!-- New Icon for Notification History -->
         <div class="control-column">
           <button @click="navigateToNotificationHistory" class="control-button">
-            <font-awesome-icon :icon="['fas', 'clock-rotate-left']" />
+            <font-awesome-icon :icon="['fas', 'clock-rotate-left']" class="iconB"/>
+            <div class="control-label">View</div>
           </button>
         </div>
       </div>
@@ -213,6 +216,8 @@ onMounted(() => {
   transition: transform 0.3s; /* Add transition for the hover effect */
 }
 
+
+
 .icon-wrapper {
   position: relative;
   display: flex;
@@ -264,32 +269,41 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   padding: 10px;
-  background-color: #333;
+  background-color:#fd662f;
   border-bottom: 1px solid #444;
+  
 }
 
 .control-column {
   display: flex;
   justify-content: center;
   width: 33%; /* Adjust width for three icons */
-  background-color: #fd662f;
+  /* background-color: #fd662f; */
   
 }
 
 .control-button {
   width: 100%;
   background-color: #fd662f; /* Change background color to orange */
-  color: white;
   border: none;
   padding: 5px;
   border-radius: 5px;
   cursor: pointer;
   font-size: 18px;
   text-align: center;
+  color: rgb(255, 255, 255);
+  transition: transform 0.2s;
+
 }
 
+
 .control-button:hover {
-  background-color: #e04a2e;
+  
+  transform: scale(1.05);
+}
+
+.control-label {
+  font-size: 10px
 }
 
 .notification-list ul {
