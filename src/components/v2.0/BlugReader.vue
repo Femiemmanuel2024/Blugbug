@@ -7,7 +7,7 @@
   <div v-else class="blug-reader">
     <NavBar />
     <div class="header-display">
-    <img v-if="headerImageUrl" :src="headerImageUrl" alt="Blog Header Image" class="header-image" />
+      <img v-if="headerImageUrl" :src="headerImageUrl" alt="Blog Header Image" class="header-image" />
     </div>
     <div class="blug-content" v-html="post?.content"></div>
     <InteractivePage :blogId="post?.id" ref="interactivePage" />
@@ -15,7 +15,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, onMounted, onBeforeUnmount, watch } from 'vue';
+import { defineComponent, ref, onMounted, watch, onBeforeUnmount } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { supabase } from '../supabase';
 import NavBar from '../../components/NavBar.vue';
@@ -147,9 +147,34 @@ export default defineComponent({
           headerImageUrl.value = headerImageData.publicUrl; // Set the header image URL
         }
 
+        setMetaTags(data.title, data.description || '', headerImageUrl.value); // Set meta tags
         clearAndSetBlogIdInLocalStorage(data.blog_id);
         isLoading.value = false;
       }
+    };
+
+    const setMetaTags = (title: string, description: string, imageUrl: string | null) => {
+      document.title = title;
+
+      const metaTags = [
+        { property: 'og:title', content: title },
+        { property: 'og:description', content: description },
+        { property: 'og:image', content: imageUrl || '' },
+        { property: 'og:url', content: window.location.href },
+        { property: 'og:type', content: 'article' },
+      ];
+
+      metaTags.forEach(tag => {
+        let metaElement = document.querySelector(`meta[property="${tag.property}"]`);
+        if (metaElement) {
+          metaElement.setAttribute('content', tag.content);
+        } else {
+          metaElement = document.createElement('meta');
+          metaElement.setAttribute('property', tag.property);
+          metaElement.setAttribute('content', tag.content);
+          document.head.appendChild(metaElement);
+        }
+      });
     };
 
     const clearLocalStorageOnNavigate = () => {
@@ -236,7 +261,7 @@ export default defineComponent({
   margin-top: 20px;
 }
 
-.header-display{
+.header-display {
   text-align: center;
 }
 

@@ -3,13 +3,18 @@
     <div class="content">
       <div class="interaction-container">
         <div class="like-section">
-          <button @click="updateLikes" :class="{ liked: isLiked }">
+          <button @click="toggleLike" :class="{ liked: isLiked }">
             <font-awesome-icon :icon="['fas', 'heart']" />
             <span class="likescounter">{{ likes }}</span>
           </button>
         </div>
+        <div class="share-section">
+          <button @click="sharePost">
+            <font-awesome-icon :icon="['fas', 'share-from-square']" />
+          </button>
+        </div>
         <div class="bookmark-section">
-          <button @click="updateBookmark" :class="{ bookmarked: isBookmarked }">
+          <button @click="toggleBookmark" :class="{ bookmarked: isBookmarked }">
             <font-awesome-icon :icon="['fas', 'bookmark']" />
           </button>
         </div>
@@ -47,12 +52,19 @@
         </div>
       </div>
     </div>
+    <!-- Modal for "Link copied" -->
+    <div v-if="isModalVisible" class="modal-overlay">
+      <div class="modal">
+        <p>Link copied to clipboard!</p>
+        <button @click="isModalVisible = false">Close</button>
+      </div>
+    </div>
   </div>
 </template>
 
 <script lang="ts">
 import { defineComponent, ref, computed, onMounted } from 'vue';
-import { useRouter } from 'vue-router'; // Import useRouter for navigation
+import { useRouter } from 'vue-router';
 import { supabase } from '../supabase';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 
@@ -85,7 +97,7 @@ export default defineComponent({
     FontAwesomeIcon,
   },
   setup() {
-    const router = useRouter(); // Initialize router instance
+    const router = useRouter();
     const likes = ref(0);
     const isLiked = ref(false);
     const isBookmarked = ref(false);
@@ -98,6 +110,7 @@ export default defineComponent({
     const chatterName = ref<string | null>(null);
     const blogOwnerId = ref<string | null>(null);
     const blogTitle = ref<string | null>(null);
+    const isModalVisible = ref(false); // State for modal visibility
 
     const mentionedUsers = ref<User[]>([]);
     const showMentionsList = ref(false);
@@ -153,10 +166,10 @@ export default defineComponent({
     };
 
     const replyToComment = (commentText: string, commentMeta: string) => {
-      const commentedBy = commentMeta.match(/was commented by (.*) on/)[1]; // Extract the commenter from meta
-      localStorage.setItem('comment_main', commentText); // Store comment text in local storage as comment_main
-      localStorage.setItem('commented_by', commentedBy); // Store commented_by in local storage
-      router.push({ name: 'ReplyPage' }); // Navigate to ReplyPage without parameters
+      const commentedBy = commentMeta.match(/was commented by (.*) on/)[1];
+      localStorage.setItem('comment_main', commentText);
+      localStorage.setItem('commented_by', commentedBy);
+      router.push({ name: 'ReplyPage' });
     };
 
     const deleteComment = async (index: number) => {
@@ -165,9 +178,8 @@ export default defineComponent({
       const commentToDelete = commentDetails.value[index];
       if (!commentToDelete) return;
 
-      const commentMain = commentToDelete.text; // Extract the main comment text
+      const commentMain = commentToDelete.text;
 
-      // Delete replies that have the same comment_main
       const { error: deleteRepliesError } = await supabase
         .from('reply_table')
         .delete()
@@ -178,11 +190,9 @@ export default defineComponent({
         return;
       }
 
-      // Update comment arrays
       const updatedComments = comments.value.filter((_, i) => i !== index);
       const updatedCommentDetails = commentDetails.value.filter((_, i) => i !== index);
 
-      // Update Supabase
       const { error } = await supabase
         .from('blog_post')
         .update({
@@ -218,14 +228,9 @@ export default defineComponent({
       }
     };
 
-    const updateLikes = async () => {
+    const toggleLike = async () => {
       if (!blogId.value || !userId.value) {
         console.error('Blog ID or User ID not found in local storage');
-        return;
-      }
-
-      if (isLiked.value) {
-        console.log('User has already liked the post');
         return;
       }
 
@@ -243,30 +248,53 @@ export default defineComponent({
       if (data) {
         const currentLikedBy = data.liked_by || [];
         const currentLikedByChatterNames = data.liked_by_chatter_names || [];
-        const updatedLikedBy = [...currentLikedBy, userId.value];
-        const updatedLikedByChatterNames = [...currentLikedByChatterNames, chatterName.value];
 
-        const { error: updateError } = await supabase
-          .from('blog_post')
-          .update({
-            likes: likes.value + 1,
-            liked_by: updatedLikedBy,
-            liked_by_chatter_names: updatedLikedByChatterNames,
-          })
-          .eq('blog_id', blogId.value);
+        if (isLiked.value) {
+          const updatedLikedBy = currentLikedBy.filter(id => id !== userId.value);
+          const updatedLikedByChatterNames = currentLikedByChatterNames.filter(name => name !== chatterName.value);
 
-        if (updateError) {
-          console.error('Error updating likes:', updateError.message);
-          return;
+          const { error: updateError } = await supabase
+            .from('blog_post')
+            .update({
+              likes: likes.value - 1,
+              liked_by: updatedLikedBy,
+              liked_by_chatter_names: updatedLikedByChatterNames,
+            })
+            .eq('blog_id', blogId.value);
+
+          if (updateError) {
+            console.error('Error updating likes:', updateError.message);
+            return;
+          }
+
+          likes.value -= 1;
+          isLiked.value = false;
+        } else {
+          const updatedLikedBy = [...currentLikedBy, userId.value];
+          const updatedLikedByChatterNames = [...currentLikedByChatterNames, chatterName.value];
+
+          const { error: updateError } = await supabase
+            .from('blog_post')
+            .update({
+              likes: likes.value + 1,
+              liked_by: updatedLikedBy,
+              liked_by_chatter_names: updatedLikedByChatterNames,
+            })
+            .eq('blog_id', blogId.value);
+
+          if (updateError) {
+            console.error('Error updating likes:', updateError.message);
+            return;
+          }
+
+          likes.value += 1;
+          isLiked.value = true;
+          createNotification(`Your blug was liked by ${chatterName.value}`, blogOwnerId.value!, blogId.value!);
         }
-
-        likes.value += 1;
-        isLiked.value = true;
-        createNotification(`Your blug was liked by ${chatterName.value}`, blogOwnerId.value!, blogId.value!);
       }
     };
 
-    const updateBookmark = async () => {
+    const toggleBookmark = async () => {
       if (!blogId.value || !userId.value) {
         console.error('Blog ID or User ID not found in local storage');
         return;
@@ -307,6 +335,37 @@ export default defineComponent({
 
         isBookmarked.value = !isBookmarked.value;
       }
+    };
+
+    const sharePost = async () => {
+      if (!blogId.value || !blogTitle.value) {
+        console.error('Blog ID or title not found');
+        return;
+      }
+
+      const shareLink = `${window.location.origin}/read?blogId=${blogId.value}`;
+      
+      document.title = blogTitle.value;
+      setMetaTag('og:title', blogTitle.value);
+      setMetaTag('og:url', shareLink);
+      setMetaTag('og:image', 'path/to/default-image.jpg');
+
+      try {
+        await navigator.clipboard.writeText(shareLink);
+        isModalVisible.value = true; // Show modal instead of alert
+      } catch (error) {
+        console.error('Failed to copy: ', error);
+      }
+    };
+
+    const setMetaTag = (name: string, content: string) => {
+      let element = document.querySelector(`meta[property='${name}']`);
+      if (!element) {
+        element = document.createElement('meta');
+        element.setAttribute('property', name);
+        document.head.appendChild(element);
+      }
+      element.setAttribute('content', content);
     };
 
     const postComment = async () => {
@@ -358,11 +417,10 @@ export default defineComponent({
 
         createNotification(`${chatterName.value} commented on your blug`, blogOwnerId.value!, blogId.value!);
 
-        // Handle mentions
         const mentionedUsernames = newCommentText.match(/@(\w+)/g);
         if (mentionedUsernames) {
           for (const mentionedUsername of mentionedUsernames) {
-            const username = mentionedUsername.slice(1); // Remove the "@" symbol
+            const username = mentionedUsername.slice(1);
             console.log(`Searching for mentioned user: ${username}`);
             const { data: mentionedUser, error: userError } = await supabase
               .from<User>('users')
@@ -452,7 +510,6 @@ export default defineComponent({
       return new Date(dateString).toLocaleTimeString(undefined, options);
     };
 
-    // Function to format the comments and make mentions clickable
     const formattedCommentDetails = computed(() => {
       return commentDetails.value.map((comment) => {
         const formattedText = comment.text.replace(/@(\w+)/g, (match, username) => {
@@ -466,7 +523,7 @@ export default defineComponent({
     });
 
     onMounted(async () => {
-      await new Promise((resolve) => setTimeout(resolve, 1000)); // Add a 1-second delay
+      await new Promise((resolve) => setTimeout(resolve, 1000));
       blogId.value = localStorage.getItem('blog_id');
       await fetchUserDetails();
       fetchLikesBookmarksComments();
@@ -481,8 +538,9 @@ export default defineComponent({
       formattedCommentDetails,
       newComment,
       commentWarning,
-      updateLikes,
-      updateBookmark,
+      toggleLike,
+      toggleBookmark,
+      sharePost,
       postComment,
       checkCommentLength,
       handleMention,
@@ -494,7 +552,8 @@ export default defineComponent({
       formatTime,
       isBlogOwner,
       deleteComment,
-      replyToComment, // Include replyToComment function
+      replyToComment,
+      isModalVisible, // Add isModalVisible to return
     };
   },
 });
@@ -522,8 +581,24 @@ export default defineComponent({
   width: 100%;
 }
 
-.bookmark-section{
-  background-color: #e04a2e;
+.bookmark-section {
+  background-color: #444;
+}
+
+.like-section {
+  display: flex;
+  justify-content: end;
+  align-items: end;
+  margin-top: 10px;
+}
+
+.share-section {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 10px;
+  background-color: #444;
+  width: 100%;
 }
 
 .comments-section {
@@ -556,9 +631,9 @@ export default defineComponent({
   cursor: pointer;
   width: 100%;
   text-align: center;
-  display: flex; /* Use flexbox to center the text */
-  align-items: center; /* Center text vertically */
-  justify-content: center; /* Center text horizontally */
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .reply-button:hover {
@@ -592,7 +667,8 @@ button {
 }
 
 button .fa-heart,
-button .fa-bookmark {
+button .fa-bookmark,
+button .fa-share-from-square {
   color: #cebfad;
   font-size: 25px;
   margin-right: 8px;
@@ -651,6 +727,7 @@ button.delete-comment:hover {
 .interaction-container {
   display: flex;
   flex-direction: row;
+  justify-content: space-between;
 }
 
 .likescounter {
@@ -681,9 +758,44 @@ button.delete-comment:hover {
   background: #fd662f;
 }
 
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.modal button {
+  margin-top: 10px;
+  padding: 10px 20px;
+  background: #fd662f;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.modal button:hover {
+  background: #e04a2e;
+}
+
 @media (max-width: 430px) {
   button .fa-heart,
-  button .fa-bookmark {
+  button .fa-bookmark,
+  button .fa-share-from-square {
     color: #cebfad;
     font-size: 25px;
   }

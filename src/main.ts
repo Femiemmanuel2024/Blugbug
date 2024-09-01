@@ -45,7 +45,8 @@ import {
   faPersonWalking,
   faPersonCircleMinus,
   faPersonCirclePlus,
-  faClockRotateLeft
+  faClockRotateLeft,
+  faShareFromSquare
 } from '@fortawesome/free-solid-svg-icons';
 
 library.add(
@@ -88,6 +89,7 @@ library.add(
   faPersonCircleMinus,
   faPersonCirclePlus,
   faClockRotateLeft,
+  faShareFromSquare,
   faBars // Add faBars to library
 );
 
