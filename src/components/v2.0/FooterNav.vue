@@ -92,8 +92,9 @@
   
   @media (max-width: 480px) {
     .footer-nav {
-      padding: 50px 50px;
+      padding: 50px 30px;
       align-items: center;
+      
     }
     .footer-left, .footer-right {
       

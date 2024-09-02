@@ -283,7 +283,7 @@ h3 {
   .new-user-page {
     padding-right: 1px;
     padding-left: 1px;
-    margin-top: 100px;
+    margin-top: 59px;
   }
 
   .content {

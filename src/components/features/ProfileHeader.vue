@@ -52,16 +52,16 @@
 
     <!-- Bottom B Row -->
     <div class="bottom-row bottom-b">
-      <span class="interest-title">My Interests</span>
+      <!-- Removed "My Interests" text -->
       <div class="interest-container">
         <!-- Loop through each interest and display it in a colored box -->
-        <div
+        <span
           v-for="(interest, index) in user.interests"
           :key="index"
           :class="['interest-box', getColorClass(index)]"
         >
           {{ interest }}
-        </div>
+        </span>
       </div>
     </div>
 
@@ -85,7 +85,7 @@ interface User {
   checkmark_url: string | null;
   followers: number;
   following: number;
-  interests: string[];  // Update to an array of strings for interests
+  interests: string[];
 }
 
 export default defineComponent({
@@ -116,7 +116,7 @@ export default defineComponent({
       checkmark_url: null,
       followers: 0,
       following: 0,
-      interests: [],  // Initialize as an empty array
+      interests: [],
     });
     const totalLikes = ref(0);
     const totalBookmarks = ref(0);
@@ -157,7 +157,7 @@ export default defineComponent({
           checkmark_url: data.checkmark_url || null,
           followers: data.followers || 0,
           following: data.following || 0,
-          interests: data.interest_id ? data.interest_id.split(',') : [],  // Split the comma-separated interests
+          interests: data.interest_id ? data.interest_id.split(',') : [],
         };
         profilePicture.value = user.value.profile_image_url;
         headerImage.value = user.value.header_image_url;
@@ -220,7 +220,6 @@ export default defineComponent({
     };
 
     const getColorClass = (index: number) => {
-      // Return a color class based on the index
       const colors = ['red-bg', 'blue-bg', 'purple-bg', 'green-bg', 'yellow-bg'];
       return colors[index % colors.length];
     };
@@ -431,14 +430,8 @@ export default defineComponent({
   flex-direction: column;
   align-items: center;
   width: 100%;
-  margin-top: -20px;
-}
-
-.interest-title {
-  font-weight: bold;
-  display: block;
-  margin-bottom: 10px;
-  color: #ffffff;
+  margin-top: 0px;
+  
 }
 
 .interest-container {
@@ -448,7 +441,6 @@ export default defineComponent({
   justify-content: center;
   align-items: center;
   margin-bottom: 10px;
-  font-size: 10px;
 }
 
 .interest-box {
@@ -456,6 +448,7 @@ export default defineComponent({
   padding: 10px;
   border-radius: 5px;
   text-align: center;
+  flex: 1 1 auto; /* Flexbox settings to auto adjust width */
   min-width: 100px;
   max-width: 150px;
   word-wrap: break-word;
@@ -463,7 +456,7 @@ export default defineComponent({
 
 /* Color classes for interests */
 .red-bg {
-  background-color:#0c1118;
+  background-color: #0c1118;
 }
 
 .blue-bg {
@@ -513,12 +506,6 @@ export default defineComponent({
 
 /* Media Queries for smaller screens */
 @media screen and (max-width: 767px) {
-  .interest-title {
-    background-color: #0c1118;
-    padding: 5px 10px;
-    border-radius: 10px 10px 0px 0px;
-  }
-
   .header-image-container {
     width: 100%;
     height: 100px;
@@ -563,13 +550,17 @@ export default defineComponent({
   }
 
   .create-blug-button {
-    border-radius: 10px;
-    width: 320px;
+    border-radius: 50%;
+    width: 50px;
     height: 50px;
     margin-top: -15px;
     margin-bottom: 10px;
     border: none;
     font-size: 15px;
+    position: fixed;
+    bottom: 20px;
+    left: 185px;
+    z-index: 9999;
   }
 
   .create-blug-button:hover {
@@ -581,7 +572,7 @@ export default defineComponent({
   .about-me,
   .interest {
     text-align: center;
-    font-size: 12px;
+    font-size: 16px;
   }
 
   .followers-button {
@@ -591,7 +582,7 @@ export default defineComponent({
   }
 
   .name-container {
-    margin-top: -10px;
+    margin-top: -20px;
     text-align: center;
     display: flex;
     justify-content: center;
@@ -606,33 +597,32 @@ export default defineComponent({
   .name {
     text-align: center;
     margin-right: 0;
-    font-size: 14px;
+    font-size: 25px;
   }
 
   .chatter-name {
     text-align: center;
-    margin-top: 10px;
-    font-size: 10px;
+    margin-top: 13px;
+    font-size: 15px;
   }
 
   .interest-container {
-    flex-direction: row-reverse;
-    align-items: center;
-   
+    display: none;
+    flex-wrap: wrap;
+    justify-content: center;
     width: 100%;
-    display: flex;
+    margin-top: 0px;
+    /* border-top: 1px solid #cebfad; */
   }
+
   .interest-box {
-  color: white;
-  padding: 10px;
-  border-radius: 5px;
-  text-align: center;
-  max-width: 150px;
-  padding: 3px;
-  margin-top: -5px;
-  font-size: 8px;
-}
-  
+    flex: 1 0 auto;
+    padding: 0;
+    margin: 0;
+    box-sizing: border-box;
+    text-align: center;
+    margin-top: 0px;
+  }
 
   .checkmark-icon-circle {
     width: 15px;
@@ -648,6 +638,75 @@ export default defineComponent({
     height: 100%;
     object-fit: cover;
     border-radius: 50%;
+  }
+
+  .red-bg, .blue-bg, .purple-bg, .green-bg, .yellow-bg {
+    background-color: #2b3138;
+    font-size: 12px;
+  }
+}
+
+@media screen and (max-width: 430px) {
+  .create-blug-button {
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    margin-top: -15px;
+    margin-bottom: 10px;
+    border: none;
+    font-size: 15px;
+    position: fixed;
+    bottom: 20px;
+    left: 190px;
+    z-index: 9999;
+  }
+}
+
+@media screen and (max-width: 390px) {
+  .create-blug-button {
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    margin-top: -15px;
+    margin-bottom: 10px;
+    border: none;
+    font-size: 15px;
+    position: fixed;
+    bottom: 20px;
+    left: 170px;
+    z-index: 9999;
+  }
+}
+
+@media screen and (max-width: 375px) {
+  .create-blug-button {
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    margin-top: -15px;
+    margin-bottom: 10px;
+    border: none;
+    font-size: 15px;
+    position: fixed;
+    bottom: 20px;
+    left: 165px;
+    z-index: 9999;
+  }
+}
+
+@media screen and (max-width: 360px) {
+  .create-blug-button {
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    margin-top: -15px;
+    margin-bottom: 10px;
+    border: none;
+    font-size: 15px;
+    position: fixed;
+    bottom: 20px;
+    left: 155px;
+    z-index: 9999;
   }
 }
 </style>
