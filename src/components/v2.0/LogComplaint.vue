@@ -169,7 +169,6 @@ export default defineComponent({
     const createNewComplaint = async () => {
       const newCaseId = generateCaseId(username.value);
       const { error: insertError } = await supabase.from('support_table').insert({
-        id: userId.value,
         name: username.value,
         case_id: newCaseId,
         complain_messages: [],
