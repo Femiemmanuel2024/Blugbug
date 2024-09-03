@@ -161,18 +161,20 @@ const deleteAllNotifications = async () => {
 
   const { error } = await supabase
     .from('notifications')
-    .delete()
+    .update({ read: true })  // Update the 'read' column to true
     .eq('user_id', currentUser.id);
 
   if (error) {
-    console.error('Error deleting all notifications:', error.message);
+    console.error('Error marking all notifications as read:', error.message);
     return;
   }
 
-  notifications.value = [];
-  unreadCount.value = 0;
-  console.log('All notifications deleted successfully.');
+  // Fetch the updated notifications to reflect the change in the UI
+  fetchNotifications();
+
+  console.log('All notifications marked as read successfully.');
 };
+
 
 const checkForNotifications = () => {
   fetchNotifications();
