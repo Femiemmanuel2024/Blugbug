@@ -127,12 +127,15 @@ export default defineComponent({
   margin: 0;
   max-height: 200px; /* Add max-height to limit visible space */
   overflow-y: auto; /* Allow scrolling for overflow */
+  border-radius: 0px 0px 10px 10px;
 }
 
 .results-list li {
   font-size: 14px;
   padding: 10px;
-  border-bottom: 0.5px solid #d7c9b7; /* Add border for separation */
+  
+  /* border-bottom: 0.5px solid #d7c9b7;  */
+  /* Add border for separation */
 }
 
 .results-list li a {
@@ -140,7 +143,8 @@ export default defineComponent({
   text-decoration: none;
 }
 
-.results-list li a:hover {
-  color: #ed6834;
+.results-list li:hover {
+  background-color: #ed6834;
+  font-size: 16px;
 }
 </style>

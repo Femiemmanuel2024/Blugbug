@@ -36,8 +36,8 @@
           <p>
             <strong>{{ formatCount(totalLikes) }}</strong> Likes
             <strong>{{ formatCount(totalBookmarks) }}</strong> Bookmarks
-            <button class="followers-button" @click="navigateToFollowing">{{ user.following }} Following</button>
-            <button class="followers-button" @click="navigateToFollowers">{{ user.followers }} Followers</button>
+            <strong class="followers-button" @click="navigateToFollowing">{{ user.following }} Following</strong>
+            <strong class="followers-buttons" @click="navigateToFollowers">{{ user.followers }} Followers</strong>
           </p>
         </div>
       </div>
@@ -364,7 +364,8 @@ export default defineComponent({
 
 .name-container {
   margin-bottom: 10px;
-  margin-top: -25px;
+  width: 100%;
+  
 }
 
 .name-wrapper {
@@ -381,41 +382,49 @@ export default defineComponent({
 .chatter-name {
   font-size: 18px;
   color: #cebfad;
-  margin-top: -15px;
+  margin-top: 10px;
 }
 
 .about-me {
   font-size: 14px;
   color: gray;
   margin-bottom: 0px;
-  margin-top: -15px;
+  margin-top: 0px;
 }
 
 .stats-container {
   font-size: 14px;
   color: #cebfad;
-  margin-top: 0px;
+  margin-top: 10px;
 }
 
 .followers-button {
   background-color: transparent;
   border: none;
   color: #cebfad;
-  font-size: 14px;
   cursor: pointer;
-  margin-left: 10px;
+  margin-left: 0px;
+}
+
+.followers-buttons {
+  background-color: transparent;
+  border: none;
+  color: #cebfad;
+  cursor: pointer;
+  margin-left: 5px;
 }
 
 .followers-button:hover {
-  text-decoration: underline;
+  color: #fd662f;
 }
 
 .checkmark-icon-circle {
-  width: 20px;
-  height: 20px;
+  width: 15px;
+  height: 15px;
   background-color: #fff;
   border-radius: 50%;
   border: 1px solid whitesmoke;
+  margin-top: 5px;
 }
 
 .checkmark-icon {
@@ -428,19 +437,21 @@ export default defineComponent({
 .bottom-b {
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: left;
   width: 100%;
   margin-top: 0px;
+  margin-left: px;
   
 }
 
 .interest-container {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
-  justify-content: center;
+  gap: 5px;
+  justify-content: left;
   align-items: center;
   margin-bottom: 10px;
+  margin-left: 15px;
 }
 
 .interest-box {
@@ -449,9 +460,10 @@ export default defineComponent({
   border-radius: 5px;
   text-align: center;
   flex: 1 1 auto; /* Flexbox settings to auto adjust width */
-  min-width: 100px;
-  max-width: 150px;
+  min-width: 80px;
+  max-width: 100px;
   word-wrap: break-word;
+  font-size: 12px;
 }
 
 /* Color classes for interests */
@@ -571,27 +583,25 @@ export default defineComponent({
   .stats-container,
   .about-me,
   .interest {
-    text-align: center;
+    text-align: left;
     font-size: 16px;
   }
 
   .followers-button {
-    margin: 10px auto;
-    font-size: 12px;
-    margin-top: -10px;
+    margin-top: 0px;
   }
 
   .name-container {
-    margin-top: -20px;
-    text-align: center;
+    margin-top: 0px;
+    text-align: left;
     display: flex;
-    justify-content: center;
-    align-items: center;
+    justify-content: left;
+    align-items: left;
     gap: 10px;
   }
 
   .name-wrapper {
-    justify-content: center;
+    justify-content: left;
   }
 
   .name {
@@ -602,7 +612,7 @@ export default defineComponent({
 
   .chatter-name {
     text-align: center;
-    margin-top: 13px;
+    margin-top: 5px;
     font-size: 15px;
   }
 

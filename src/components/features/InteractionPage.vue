@@ -56,7 +56,7 @@
     <div v-if="isModalVisible" class="modal-overlay">
       <div class="modal">
         <p>Link copied to clipboard!</p>
-        <button @click="isModalVisible = false">Close</button>
+        <button class="button-modal" @click="isModalVisible = false">Close</button>
       </div>
     </div>
   </div>
@@ -776,6 +776,7 @@ button.delete-comment:hover {
   padding: 20px;
   border-radius: 8px;
   text-align: center;
+  
 }
 
 .modal button {
@@ -786,11 +787,15 @@ button.delete-comment:hover {
   border: none;
   border-radius: 5px;
   cursor: pointer;
+  width: 100%;
 }
 
 .modal button:hover {
   background: #e04a2e;
 }
+
+
+
 
 @media (max-width: 430px) {
   button .fa-heart,

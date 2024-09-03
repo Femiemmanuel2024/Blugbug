@@ -101,11 +101,11 @@ export default defineComponent({
         const file = files[0];
 
         // Check the file type
-        if (file.type !== 'image/jpeg') {
-          showImageError.value = true;
-          imageErrorMessage.value = 'Only JPG images are allowed.';
-          return;
-        }
+        // if (file.type !== 'image/jpeg') {
+        //   showImageError.value = true;
+        //   imageErrorMessage.value = 'Only JPG images are allowed.';
+        //   return;
+        // }
 
         // Check the file size (limit: 2MB)
         const maxSizeInBytes = 2 * 1024 * 1024; // 2MB

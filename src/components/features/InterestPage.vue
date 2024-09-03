@@ -213,6 +213,7 @@ li {
 .post-meta {
   font-size: 14px;
   color: gray;
+  margin-top: 10px;
 }
 
 .post-actions {

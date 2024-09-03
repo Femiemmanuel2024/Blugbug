@@ -211,7 +211,7 @@ export default defineComponent({
 </script>
 
 <style scoped>
-/* Your existing styles remain unchanged */
+
 * {
   margin: 0;
   padding: 0;

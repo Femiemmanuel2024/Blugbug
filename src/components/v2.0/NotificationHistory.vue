@@ -164,7 +164,7 @@ export default defineComponent({
   min-height: 100vh;
   padding-right: 50px;
   padding-left: 50px;
-  padding-top: 73px;
+  padding-top: 100px;
   background-color: #1e2127;
   margin-left: 50px;
   margin-right: 50px;
@@ -173,7 +173,7 @@ export default defineComponent({
 .header {
   display: flex;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: 10px;
 }
 
 .back-button {
@@ -184,6 +184,10 @@ export default defineComponent({
   font-size: 18px;
   display: flex;
   align-items: center;
+  background-color: #fd662f;
+  padding: 10px;
+  border-radius: 50%;
+  margin-left: 20px;
 }
 
 .header-title {
@@ -194,6 +198,7 @@ export default defineComponent({
 
 .date-header {
   color: #e0e0e0;
+  margin-bottom: 10px;
   font-size: 16px; /* Adjust font size for the actual date */
 }
 

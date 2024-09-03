@@ -346,7 +346,7 @@ export default defineComponent({
 .bottom-row {
   display: flex;
   width: 100%;
-  margin-top: 0px;
+  margin-top: 10px;
 }
 
 .info-column {
@@ -358,6 +358,7 @@ export default defineComponent({
 .name-container {
   margin-bottom: 10px;
   margin-top: -25px;
+  
 }
 
 .name-wrapper {

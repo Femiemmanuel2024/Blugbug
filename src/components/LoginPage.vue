@@ -17,6 +17,7 @@
           <form @submit.prevent="onSubmit">
             <div class="form-group">
               <input
+                class="input-bar"
                 type="text"
                 placeholder="Email Address or Blugger Name"
                 v-model="username"
@@ -246,6 +247,7 @@ html, body {
   align-items: center;
 }
 
+
 .login-container {
   height: 80%;
   width: 100%;
@@ -262,6 +264,7 @@ html, body {
   color: #cebfad;
   margin-top: 60px;
   margin-bottom: 20px;
+  font-weight: bold;
 }
 
 .login-container .btn {
@@ -293,11 +296,13 @@ html, body {
   padding: 10px;
   font-size: 12px;
   border: none;
-  border-radius: 20px;
+  border-radius: 50px;
   box-sizing: border-box;
   background-color: #2b3138;
   color: #d7c9b7;
 }
+
+
 
 .password-group i {
   position: absolute;
@@ -305,7 +310,7 @@ html, body {
   top: 50%;
   transform: translateY(-50%);
   cursor: pointer;
-  color: #d7c9b7;
+  color: #ee4429;
 }
 
 a {
@@ -342,6 +347,10 @@ a {
 p {
   margin-top: 10px;
   color: #d7c9b7;
+}
+
+.input-bar{
+  background-color: red;
 }
 
 @media (max-width: 430px) {

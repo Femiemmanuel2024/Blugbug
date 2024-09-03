@@ -105,7 +105,7 @@ export default defineComponent({
 .top-row {
   flex: 0 0 auto;
   margin-bottom: 30px;
-  margin-top: -20px;
+  margin-top: 0px;
   height: 10px;
 }
 
@@ -124,6 +124,7 @@ h3 {
   border-bottom: 1px solid wheat;
   padding-bottom: 7px;
   padding-left: 5px;
+  padding-top: 7px;
 }
 
 .latest-blogs ul {

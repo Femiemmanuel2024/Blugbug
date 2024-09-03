@@ -389,7 +389,7 @@ h2 {
     height: 100vh;
     padding-right: 1px;
     padding-left: 1px;
-    padding-top: 100px;
+    padding-top: 120px;
   }
 
   .container {

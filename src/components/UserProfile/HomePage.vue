@@ -136,7 +136,7 @@ export default defineComponent({
   background-color: #000000;
   padding-right: 50px;
   padding-left: 50px;
-  padding-top: 63px;
+  padding-top: 70px;
 }
 
 .navbar {
@@ -225,7 +225,7 @@ h3 {
   .new-user-page {
     padding-right: 1px;
     padding-left: 1px;
-    margin-top: 56px;
+    margin-top: 50px;
   }
 
   .content {
@@ -283,7 +283,7 @@ h3 {
   .new-user-page {
     padding-right: 1px;
     padding-left: 1px;
-    margin-top: 59px;
+    margin-top: 50px;
   }
 
   .content {
@@ -324,8 +324,8 @@ h3 {
   .toggle-button {
     display: flex;
     position: fixed;
-    top: 49px;
-    right: 35px;
+    top: 20px;
+    right: 25px;
     font-size: 30px;
     cursor: pointer;
     z-index: 10000;

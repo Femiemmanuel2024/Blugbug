@@ -510,8 +510,9 @@ export default defineComponent({
   height: 100%;
   /* height: 900px; */
   border: none;
-  text-align: left;
+  /* text-align: left; */
   overflow: scroll;
+  text-align: justify;
 }
 
 @media (max-width: 400px) {

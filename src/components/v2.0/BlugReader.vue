@@ -102,11 +102,13 @@ export default defineComponent({
         const headers = doc.querySelectorAll('h1');
         headers.forEach(header => {
           header.style.textAlign = 'center';
+          header.style.fontSize = '25px';
+          header.style.fontWeight='bold';
         });
 
         const paragraphs = doc.querySelectorAll('p');
         paragraphs.forEach(paragraph => {
-          paragraph.style.textAlign = 'left';
+          paragraph.style.textAlign = 'justify';
         });
 
         // Modify image elements
@@ -268,7 +270,7 @@ export default defineComponent({
 .blug-content {
   margin-top: 20px;
   line-height: 1.6;
-  padding: 20px;
+  padding: 20px 150px ;
 }
 
 .loading-page {
@@ -333,11 +335,18 @@ export default defineComponent({
     background-color: #2b3138;
     color: #cebfad;
     border: solid 5px #0c1118;
-    margin-top: 160px;
+    margin-top: 120px;
     height: 100%;
     margin-right: 2px;
     margin-left: 2px;
   }
+
+  .blug-content {
+  margin-top: 20px;
+  line-height: 1.6;
+  padding: 20px 10px ;
+  text-align: justify;
+}
   /* Add styles for phone screen size here */
 }
 </style>
