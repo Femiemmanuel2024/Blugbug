@@ -3,6 +3,7 @@
     <button @click="toggleNotifications" class="notification-icon">
       <div class="icon-wrapper">
         <i class="fas fa-bell"></i>
+        <span class="icon-label">Alerts</span>
         <span v-if="unreadCount" class="unread-count">{{ unreadCount }}</span>
       </div>
       <span class="notification-label">Alerts</span>
@@ -209,7 +210,7 @@ onMounted(() => {
   border: none;
   color: #ffffff;
   cursor: pointer;
-  font-size: 18px;
+  font-size: 14px;
   display: flex; /* Ensure label is part of the icon */
   align-items: center;
   position: relative; /* Add relative positioning */
@@ -232,7 +233,7 @@ onMounted(() => {
   font-size: 10px;
   position: absolute;
   top: -5px;
-  right: -5px;
+  right: 35px;
   border: 1px solid white;
 }
 
@@ -333,14 +334,35 @@ onMounted(() => {
   font-size: 12px;
 }
 
+.icon-label {
+  margin-left: 5px;
+  font-size: 14px;
+}
+
 @media (max-width: 767.98px) {
   .notification-label {
+    display: none;
+  }
+
+  .icon-label{
     display: none;
   }
 
   .notification-icon {
     font-size: 30px;
   }
+
+  .unread-count {
+  background-color: red;
+  color: white;
+  border-radius: 50%;
+  padding: 1px 4px;
+  font-size: 10px;
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  border: 1px solid white;
+}
 }
 
 @media (max-width: 1024px) {

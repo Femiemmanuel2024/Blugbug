@@ -17,10 +17,10 @@
         <span class="icon-label">Blug</span>
       </router-link>
 
-      <!-- Alert icon and text side by side -->
-      <div class="nav-icon-alert alert-icon" @click="animateIcon($event)">
+      <!-- Grouping ActionNotification with nav icons -->
+      <div class="nav-icon" @click="animateIcon($event)">
         <ActionNotification />
-        <span class="alert-label">Alert</span> <!-- Updated class to alert-label -->
+        <!-- <span class="icon-label">Alert</span> -->
       </div>
 
       <router-link to="/settings" class="nav-icon" @click="navigate('/settings', $event)">
@@ -28,7 +28,6 @@
         <span class="icon-label">Settings</span>
       </router-link>
 
-      <!-- Conditionally display the Admin Manager link -->
       <router-link v-if="isAdmin" to="/admin-manager" class="nav-icon" @click="navigate('/admin-manager', $event)">
         <font-awesome-icon :icon="['fas', 'toolbox']" class="icon" />
         <span class="icon-label">Admin Manager</span>
@@ -41,6 +40,7 @@
     </div>
   </nav>
 </template>
+
 
 <script lang="ts">
 import { defineComponent, ref, onMounted } from 'vue';
@@ -144,7 +144,7 @@ export default defineComponent({
   display: flex;
   align-items: center;
   cursor: pointer;
-  margin: 0 10px;
+  margin: 0 0px;
 }
 
 .alert-label {
@@ -218,11 +218,11 @@ export default defineComponent({
     padding-top: 0px;
   }
   .nav-icon {
-    font-size: 20px;
+    font-size: 18px;
     margin-top: 20px;
     margin-bottom: 20px;
     width: 100%;
-    padding-left: 16px;
+    padding-left: 12px;
   }
   .icon-label {
     display: none;

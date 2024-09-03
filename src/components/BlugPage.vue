@@ -313,6 +313,7 @@ export default defineComponent({
   justify-content: center;
   padding: 20px 20px 0px 20px;
   color: #d7c9b7;
+  font-weight: bold;
 }
 
 .profile-image {
@@ -320,6 +321,7 @@ export default defineComponent({
   height: 50px;
   border-radius: 50%;
   margin-right: 10px;
+  border: 2px solid #ffffff;
 }
 
 .container {

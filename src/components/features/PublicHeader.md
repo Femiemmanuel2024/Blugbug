@@ -378,7 +378,6 @@ export default defineComponent({
   font-size: 24px;
   color: #cebfad;
   margin-right: 10px;
-  font-weight: bold;
 }
 
 .chatter-name {
@@ -601,7 +600,6 @@ export default defineComponent({
     justify-content: left;
     align-items: left;
     gap: 10px;
-   
   }
 
   .name-wrapper {
@@ -609,7 +607,6 @@ export default defineComponent({
   }
 
   .name {
-    font-weight: bold;
     text-align: center;
     margin-right: 0;
     font-size: 25px;
@@ -660,33 +657,6 @@ export default defineComponent({
     font-size: 12px;
   }
 }
-
-@media screen and (max-width: 767px) {
-  .name-container {
-    display: flex;
-    flex-direction: column; /* Stack elements vertically */
-    align-items: left; /* Center align text horizontally */
-    text-align: left; /* Center align text */
-  }
-
-  .name-wrapper {
-    display: flex;
-    flex-direction: column; /* Stack elements vertically */
-    align-items: left; /* Center align elements */
-  }
-
-  .name {
-    
-    font-size: 20px; /* Adjust font size for smaller screens */
-    margin-bottom: 0px; /* Add space between fullName and chatterName */
-  }
-
-  .chatter-name {
-    font-size: 16px; /* Adjust font size for smaller screens */
-    margin-top: 0; /* Remove margin for cleaner stacking */
-  }
-}
-
 
 @media screen and (max-width: 430px) {
   .create-blug-button {

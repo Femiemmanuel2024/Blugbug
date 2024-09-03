@@ -158,7 +158,7 @@ export default defineComponent({
 
 .feed-container {
   padding: 0px;
-  border: solid 5px #0c1118;
+  /* border: solid 5px #0c1118; */
   padding-right: 70px;
   padding-left: 10px;
 }
@@ -170,7 +170,7 @@ export default defineComponent({
   background-color: #2b3138;
   padding: 10px;
   color: #cebfad;
-  border: solid 5px #0c1118;
+  /* border: solid 5px #0c1118; */
 }
 
 .header-toggle h3 {
@@ -197,8 +197,9 @@ export default defineComponent({
   position: fixed;
   top: 63px;
   right: 0;
-  margin-right: 19px;
+  margin-right: 30px;
   transition: right 0.3s ease-in-out;
+  border-left: 1px solid black;
  
 }
 

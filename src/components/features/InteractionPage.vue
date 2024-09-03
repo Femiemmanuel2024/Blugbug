@@ -614,6 +614,7 @@ export default defineComponent({
   background: #444;
   border-radius: 5px;
   position: relative;
+  margin-top: 20px;
 }
 
 .comment-meta {
@@ -798,6 +799,27 @@ button.delete-comment:hover {
 
 
 @media (max-width: 430px) {
+  button.delete-comment {
+  position: absolute;
+  top: -10px;
+  right: 5px;
+  color: #ffffff;
+  cursor: pointer;
+  background-color: red;
+  border-radius: 100%;
+  width: 20px;
+  height: 29px;
+  z-index: 999;
+  padding: 10px 21px 10px 10px;
+  
+
+}
+
+button.delete-comment:hover {
+  color: #fd662f;
+}
+
+
   button .fa-heart,
   button .fa-bookmark,
   button .fa-share-from-square {
@@ -810,5 +832,8 @@ button.delete-comment:hover {
     flex-direction: row;
     justify-content: center;
   }
+
 }
+
+
 </style>

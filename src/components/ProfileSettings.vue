@@ -8,7 +8,12 @@
         <tr>
           <th>Full Name</th>
           <td>
-            <input v-if="editing.full_name" v-model="user.full_name" />
+            <input 
+              v-if="editing.full_name" 
+              v-model="user.full_name"
+              :class="{ 'error-input': user.full_name.length > 20 }"
+              @input="limitInputLength('full_name', 20)"
+            />
             <span v-else>{{ user.full_name }}</span>
           </td>
           <td>
@@ -19,7 +24,12 @@
         <tr>
           <th>Blugger Name</th>
           <td>
-            <input v-if="editing.chatter_name" v-model="user.chatter_name" />
+            <input 
+              v-if="editing.chatter_name" 
+              v-model="user.chatter_name"
+              :class="{ 'error-input': user.chatter_name.length > 15 }"
+              @input="limitInputLength('chatter_name', 15)"
+            />
             <span v-else>{{ user.chatter_name }}</span>
           </td>
           <td>
@@ -30,7 +40,10 @@
         <tr>
           <th>Email</th>
           <td>
-            <input v-if="editing.email" v-model="user.email" />
+            <input 
+              v-if="editing.email" 
+              v-model="user.email"
+            />
             <span v-else>{{ user.email }}</span>
           </td>
           <td>
@@ -41,7 +54,11 @@
         <tr>
           <th>Password</th>
           <td>
-            <input v-if="editing.password" type="password" v-model="user.password" />
+            <input 
+              v-if="editing.password" 
+              type="password" 
+              v-model="user.password" 
+            />
             <span v-else>********</span>
           </td>
           <td>
@@ -52,7 +69,12 @@
         <tr>
           <th>About Me</th>
           <td>
-            <textarea v-if="editing.about_me" v-model="user.about_me"></textarea>
+            <textarea 
+              v-if="editing.about_me" 
+              v-model="user.about_me"
+              :class="{ 'error-input': wordCount(user.about_me) > 100 }"
+              @input="limitInputWords('about_me', 100)"
+            ></textarea>
             <span v-else>{{ user.about_me }}</span>
           </td>
           <td>
@@ -79,7 +101,10 @@
         <tr>
           <th>Secret Answer</th>
           <td>
-            <input v-if="editing.secret_answer" v-model="user.secret_answer" />
+            <input 
+              v-if="editing.secret_answer" 
+              v-model="user.secret_answer" 
+            />
             <span v-else>{{ user.secret_answer ? '******' : '' }}</span>
           </td>
           <td>
@@ -145,7 +170,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, onMounted } from 'vue';
+import { defineComponent, ref, onMounted, onBeforeUnmount } from 'vue';
 import { useRouter } from 'vue-router';
 import { supabase } from './supabase';
 import NavBar from '../components/NavBar.vue';
@@ -222,6 +247,7 @@ export default defineComponent({
         .single();
 
       if (error) {
+        console.error('Error fetching user data:', error.message);
         return;
       }
 
@@ -242,11 +268,31 @@ export default defineComponent({
           .eq('id', user.value.id);
 
         if (error) {
+          console.error('Error saving data:', error.message);
           return;
         }
       }
 
       editing.value[field] = !editing.value[field];
+    };
+
+    const limitInputLength = (field: keyof User, maxLength: number) => {
+      if (!user.value) return;
+      if (user.value[field].length > maxLength) {
+        user.value[field] = user.value[field].slice(0, maxLength);
+      }
+    };
+
+    const limitInputWords = (field: keyof User, maxWords: number) => {
+      if (!user.value) return;
+      const words = user.value[field].split(/\s+/);
+      if (words.length > maxWords) {
+        user.value[field] = words.slice(0, maxWords).join(' ');
+      }
+    };
+
+    const wordCount = (text: string) => {
+      return text.split(/\s+/).length;
     };
 
     const checkSecuritySettings = () => {
@@ -278,55 +324,6 @@ export default defineComponent({
     const confirmDeactivation = async () => {
       if (!user.value) return;
 
-      // Delete notifications associated with the user
-      const { error: deleteNotificationsError } = await supabase
-        .from('notifications')
-        .delete()
-        .eq('user_id', user.value.id);
-
-      if (deleteNotificationsError) {
-        console.error('Error deleting notifications:', deleteNotificationsError.message);
-        return;
-      }
-
-      // Delete blog posts associated with the user
-      const { error: deleteBlogPostsError } = await supabase
-        .from('blog_post')
-        .delete()
-        .eq('user_id', user.value.id);
-
-      if (deleteBlogPostsError) {
-        console.error('Error deleting blog posts:', deleteBlogPostsError.message);
-        return;
-      }
-
-      // Remove the user ID from followers_id arrays in the users table
-      const { data: usersWithFollower, error: followersError } = await supabase
-        .from('users')
-        .select('id, followers_id');
-
-      if (followersError) {
-        console.error('Error fetching followers:', followersError.message);
-        return;
-      }
-
-      if (usersWithFollower) {
-        for (const otherUser of usersWithFollower) {
-          const updatedFollowers = otherUser.followers_id?.filter((followerId: string) => followerId !== user.value!.id);
-          
-          const { error: updateError } = await supabase
-            .from('users')
-            .update({ followers_id: updatedFollowers })
-            .eq('id', otherUser.id);
-
-          if (updateError) {
-            console.error('Error updating followers:', updateError.message);
-            return;
-          }
-        }
-      }
-
-      // Delete the user from the users table
       const { error } = await supabase
         .from('users')
         .delete()
@@ -350,14 +347,51 @@ export default defineComponent({
         .eq('id', user.value.id);
 
       if (error) {
+        console.error('Error saving categories:', error.message);
         return;
+      }
+    };
+
+    const cropTextAndSave = async () => {
+      if (!user.value) return;
+
+      let needsUpdate = false;
+      const updatedUser: Partial<User> = {};
+
+      if (user.value.full_name.length > 20) {
+        updatedUser.full_name = user.value.full_name.slice(0, 20);
+        needsUpdate = true;
+      }
+
+      if (user.value.chatter_name.length > 15) {
+        updatedUser.chatter_name = user.value.chatter_name.slice(0, 15);
+        needsUpdate = true;
+      }
+
+      const wordCount = user.value.about_me.split(/\s+/).length;
+      if (wordCount > 100) {
+        updatedUser.about_me = user.value.about_me.split(/\s+/).slice(0, 100).join(' ');
+        needsUpdate = true;
+      }
+
+      if (needsUpdate) {
+        const { error } = await supabase
+          .from('users')
+          .update(updatedUser)
+          .eq('id', user.value.id);
+
+        if (error) {
+          console.error('Error updating user data:', error.message);
+        } else {
+          Object.assign(user.value, updatedUser);
+        }
       }
     };
 
     const showTooltip = (event: MouseEvent, category: string) => {
       const tooltip = (event.currentTarget as HTMLElement).querySelector('.tooltip') as HTMLElement;
       tooltip.style.visibility = 'visible';
-      tooltip.textContent = category; // Use the category parameter to set the tooltip text
+      tooltip.textContent = category;
     };
 
     const hideTooltip = (event: MouseEvent) => {
@@ -367,6 +401,10 @@ export default defineComponent({
 
     onMounted(() => {
       fetchUserData();
+    });
+
+    onBeforeUnmount(() => {
+      cropTextAndSave();
     });
 
     return {
@@ -386,6 +424,9 @@ export default defineComponent({
       saveCategories,
       showTooltip,
       hideTooltip,
+      limitInputLength,
+      limitInputWords,
+      wordCount,
     };
   },
 });
@@ -456,6 +497,10 @@ td select {
 
 td {
   color: white;
+}
+
+.error-input {
+  border: 2px solid red;
 }
 
 button {

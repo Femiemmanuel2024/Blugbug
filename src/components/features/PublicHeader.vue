@@ -1,5 +1,3 @@
-
-
 <template>
   <div class="profile-header">
     <!-- Top Row -->
@@ -20,9 +18,9 @@
       </div>
     </div>
 
-    <!-- Bottom Row -->
-    <div class="bottom-row">
-      <!-- First Column -->
+    <!-- Bottom A Row -->
+    <div class="bottom-row bottom-a">
+      <!-- A-left Column -->
       <div class="info-column">
         <div class="name-container">
           <div class="name-wrapper">
@@ -38,28 +36,31 @@
           <p>
             <strong>{{ formatCount(totalLikes) }}</strong> Likes
             <strong>{{ formatCount(totalBookmarks) }}</strong> Bookmarks
-            <button class="followers-button" @click="navigateToFollowing">
-              {{ user.following }} Following
-            </button>
-            <button class="followers-button" @click="navigateToFollowers">
-              {{ user.followers }} Followers
-            </button>
+            <strong class="followers-button" @click="navigateToFollowing">{{ user.following }} Following</strong>
+            <strong class="followers-buttons" @click="navigateToFollowers">{{ user.followers }} Followers</strong>
           </p>
-          <div class="interest-container">
-            <div class="interest-column">
-              <span class="interest-title">My Interest</span>
-            </div>
-            <div class="interest-column2">
-              <p class="interest-list">{{ displayInterest(user.interestId) }}</p>
-            </div>
-          </div>
         </div>
       </div>
 
-      <!-- Second Column -->
+      <!-- A-right Column -->
       <div class="action-column">
         <!-- Replacing Create Blog Button with FollowButton Component -->
         <FollowButton :userId="user.id" customClass="follow-button" />
+      </div>
+    </div>
+
+    <!-- Bottom B Row -->
+    <div class="bottom-row bottom-b">
+      <!-- Removed "My Interests" text -->
+      <div class="interest-container">
+        <!-- Loop through each interest and display it in a colored box -->
+        <span
+          v-for="(interest, index) in user.interests"
+          :key="index"
+          :class="['interest-box', getColorClass(index)]"
+        >
+          {{ interest }}
+        </span>
       </div>
     </div>
 
@@ -84,7 +85,7 @@ interface User {
   checkmark_url: string | null;
   followers: number;
   following: number;
-  interestId: string | null;
+  interests: string[];
 }
 
 export default defineComponent({
@@ -116,7 +117,7 @@ export default defineComponent({
       checkmark_url: null,
       followers: 0,
       following: 0,
-      interestId: null,
+      interests: [],
     });
     const totalLikes = ref(0);
     const totalBookmarks = ref(0);
@@ -157,7 +158,7 @@ export default defineComponent({
           checkmark_url: data.checkmark_url || null,
           followers: data.followers || 0,
           following: data.following || 0,
-          interestId: data.interest_id || null,
+          interests: data.interest_id ? data.interest_id.split(',') : [],
         };
         profilePicture.value = user.value.profile_image_url;
         headerImage.value = user.value.header_image_url;
@@ -207,16 +208,17 @@ export default defineComponent({
       }
     };
 
-    const displayInterest = (interestId: string | null) => {
-      return interestId ? interestId : 'User has not selected any interest yet';
-    };
-
     const navigateToFollowers = () => {
       router.push({ path: '/connections', query: { tab: 'followers' } });
     };
 
     const navigateToFollowing = () => {
       router.push({ path: '/connections', query: { tab: 'following' } });
+    };
+
+    const getColorClass = (index: number) => {
+      const colors = ['red-bg', 'blue-bg', 'purple-bg', 'green-bg', 'yellow-bg'];
+      return colors[index % colors.length];
     };
 
     watch(() => props.userId, fetchUserData, { immediate: true });
@@ -234,13 +236,14 @@ export default defineComponent({
       totalLikes,
       totalBookmarks,
       formatCount,
-      displayInterest,
       navigateToFollowers,
       navigateToFollowing,
+      getColorClass,
     };
   },
 });
 </script>
+
 
 <style scoped>
 .profile-header {
@@ -248,7 +251,7 @@ export default defineComponent({
   margin: 0;
   background-color: #2b3138;
   overflow: hidden;
-  border: solid 5px #0c1118;
+  /* border: solid 5px #0c1118; */
   display: flex;
   flex-direction: column;
   border-radius: 90px 0px 0px 0px;
@@ -282,7 +285,7 @@ export default defineComponent({
   position: absolute;
   bottom: 10px;
   right: 10px;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: rgba(0, 0, 0, 0.9);
   color: #fff;
   padding: 10px;
   border-radius: 50%;
@@ -342,11 +345,13 @@ export default defineComponent({
   opacity: 1;
 }
 
-/* Bottom Row Styling */
+/* Bottom A Row Styling */
 .bottom-row {
   display: flex;
   width: 100%;
-  margin-top: 10px;
+  margin-top: 0px;
+  margin-bottom: 0px;
+  border-bottom: 1px solid rgb(0, 0, 0);
 }
 
 .info-column {
@@ -357,7 +362,7 @@ export default defineComponent({
 
 .name-container {
   margin-bottom: 10px;
-  margin-top: -25px;
+  width: 100%;
   
 }
 
@@ -375,84 +380,49 @@ export default defineComponent({
 .chatter-name {
   font-size: 18px;
   color: #cebfad;
-  margin-top: -15px;
+  margin-top: 10px;
 }
 
 .about-me {
   font-size: 14px;
   color: gray;
   margin-bottom: 0px;
-  margin-top: -15px;
+  margin-top: 0px;
 }
 
 .stats-container {
   font-size: 14px;
   color: #cebfad;
-  margin-top: -10px;
-}
-
-.stat-label {
-  font-weight: lighter;
-  margin-right: 10px;
-}
-
-strong {
-  font-weight: bold;
-  margin-right: 5px;
-}
-
-.interest-container {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  align-items: left;
-}
-
-.interest-column {
-  flex: 1;
-  min-width: 200px;
-  max-width: 100%;
-  text-align: center;
-  word-wrap: break-word;
-  overflow-wrap: break-word;
-}
-
-.interest-column2 {
-  width: 100%;
-  text-align: center;
-}
-
-.interest-title {
-  font-weight: bold;
-  display: block;
-}
-
-.interest-list {
-  margin-top: 5px;
-  white-space: normal;
-  word-break: normal;
-  overflow-wrap: normal;
+  margin-top: 10px;
 }
 
 .followers-button {
   background-color: transparent;
   border: none;
   color: #cebfad;
-  font-size: 14px;
   cursor: pointer;
-  margin-left: 10px;
+  margin-left: 0px;
+}
+
+.followers-buttons {
+  background-color: transparent;
+  border: none;
+  color: #cebfad;
+  cursor: pointer;
+  margin-left: 5px;
 }
 
 .followers-button:hover {
-  text-decoration: underline;
+  color: #fd662f;
 }
 
 .checkmark-icon-circle {
-  width: 20px;
-  height: 20px;
+  width: 15px;
+  height: 15px;
   background-color: #fff;
   border-radius: 50%;
   border: 1px solid whitesmoke;
+  margin-top: 5px;
 }
 
 .checkmark-icon {
@@ -461,6 +431,62 @@ strong {
   object-fit: cover;
 }
 
+/* Bottom B Row Styling */
+.bottom-b {
+  display: flex;
+  flex-direction: column;
+  align-items: left;
+  width: 100%;
+  margin-top: 0px;
+  margin-left: px;
+  
+}
+
+.interest-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  justify-content: left;
+  align-items: center;
+  margin-bottom: 10px;
+  margin-left: 15px;
+  margin-top: 10px;
+}
+
+.interest-box {
+  color: white;
+  padding: 10px;
+  border-radius: 5px;
+  text-align: center;
+  flex: 1 1 auto; /* Flexbox settings to auto adjust width */
+  min-width: 80px;
+  max-width: 100px;
+  word-wrap: break-word;
+  font-size: 12px;
+}
+
+/* Color classes for interests */
+.red-bg {
+  background-color: #0c1118;
+}
+
+.blue-bg {
+  background-color: #0c1118;
+}
+
+.purple-bg {
+  background-color: #0c1118;
+}
+
+.green-bg {
+  background-color: #0c1118;
+}
+
+.yellow-bg {
+  background-color: #0c1118;
+}
+
+/* General Styles */
 .action-column {
   width: 30%;
   display: flex;
@@ -468,21 +494,36 @@ strong {
   justify-content: center;
 }
 
+.create-blug-button {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background-color: #fd662f;
+  color: white;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  border: 2px solid #cebfad;
+}
+
+.create-blug-button:hover {
+  background-color: #e04a2e;
+  transform: scale(1.1);
+}
+
 /* Media Queries for smaller screens */
 @media screen and (max-width: 767px) {
-  .interest-title {
-    background-color: #0c1118;
-    padding: 5px 10px 5px 10px;
-    border-radius: 10px 10px 0px 0px;
-  }
-
   .header-image-container {
-  width: 100%;
-  height: 100px;
-  position: relative;
-  background-color: #f0f0f0;
-  border-radius: 90px 0px 0px 90px;
-}
+    width: 100%;
+    height: 100px;
+    position: relative;
+    background-color: #f0f0f0;
+    border-radius: 90px 0px 0px 90px;
+  }
 
   .profile-picture-container {
     position: absolute;
@@ -497,7 +538,6 @@ strong {
     padding: 10px;
     align-items: center;
     border-radius: 70px 0px 0px 0px;
-    margin-top: 25px;
   }
 
   .top-row {
@@ -507,23 +547,32 @@ strong {
   .bottom-row {
     display: flex;
     flex-direction: column;
-    align-items: center; /* Center the content horizontally */
-    justify-content: center; /* Center the content vertically */
-    width: 100%; /* Make the bottom row take full width */
+    align-items: center;
+    justify-content: center;
+    width: 100%;
     margin-top: 0px;
+    border-bottom: none;
   }
 
   .info-column,
   .action-column {
     width: 100%;
     text-align: center;
-    margin-bottom: 0px; /* Add spacing between columns */
+    margin-bottom: 0px;
   }
 
   .create-blug-button {
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
     margin-top: -15px;
-    margin-bottom: 10px; /* Add spacing below the button */
-    border: 3px solid rgb(248, 247, 245);
+    margin-bottom: 10px;
+    border: none;
+    font-size: 15px;
+    position: fixed;
+    bottom: 20px;
+    left: 185px;
+    z-index: 9999;
   }
 
   .create-blug-button:hover {
@@ -534,80 +583,142 @@ strong {
   .stats-container,
   .about-me,
   .interest {
-    text-align: center;
-    font-size: 12px;
+    text-align: left;
+    font-size: 16px;
   }
 
   .followers-button {
-    margin: 10px auto; /* Following and followers counter not button */
-    font-size: 12px;
-    margin-top: -10px;
-  }
-
-  .follow-button{
-    width: 40px;
-    height: 40px;
-    font-size: 20px;
-    border: 1px solid rgb(255, 255, 255);
-    margin-top: -20px;
+    margin-top: 0px;
   }
 
   .name-container {
-    margin-top: -10px;
-    text-align: center;
-    text-align: center;
-    display: flex; /* Use flexbox to align items side by side */
-    justify-content: center; /* Center content horizontally */
-    align-items: center; /* Align content vertically */
-    gap: 10px; /* Add some space between full name and username */
+    margin-top: 0px;
+    text-align: left;
+    display: flex;
+    justify-content: left;
+    align-items: left;
+    gap: 10px;
   }
 
   .name-wrapper {
-    justify-content: center; /* Center the name wrapper */
+    justify-content: left;
   }
 
   .name {
-    text-align: center; /* Center the full name */
-    margin-right: 0; /* Remove margin for centering */
-    font-size: 14px;
+    text-align: center;
+    margin-right: 0;
+    font-size: 25px;
   }
 
   .chatter-name {
-    text-align: center; /* Center the chatter name */
-    margin-top: 10px; /* Adjust margin for centering */
-    font-size: 10px;
+    text-align: center;
+    margin-top: 5px;
+    font-size: 15px;
   }
 
   .interest-container {
-    flex-direction: column;
-    align-items: center; /* Center align for smaller screens */
+    display: none;
+    flex-wrap: wrap;
+    justify-content: center;
+    width: 100%;
+    margin-top: 0px;
+    /* border-top: 1px solid #cebfad; */
   }
 
-  .interest-column {
-    width: 100%; /* Stack the columns on top of each other */
-    text-align: center; /* Center align the text */
-    word-break: normal; /* Prevent breaking words at mid-character */
-    white-space: normal; /* Allow wrapping */
-    margin-top: -15px;
-  }
-  .interest-column2{
-    margin-top: -1px;
+  .interest-box {
+    flex: 1 0 auto;
+    padding: 0;
+    margin: 0;
+    box-sizing: border-box;
+    text-align: center;
+    margin-top: 0px;
   }
 
   .checkmark-icon-circle {
-  width: 15px;
-  height: 15px;
-  background-color: #fff;
-  border-radius: 50%;
-  padding: 1px;
-  margin-left: 5px;
+    width: 15px;
+    height: 15px;
+    background-color: #fff;
+    border-radius: 50%;
+    padding: 1px;
+    margin-left: 5px;
+  }
+
+  .checkmark-icon {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+  }
+
+  .red-bg, .blue-bg, .purple-bg, .green-bg, .yellow-bg {
+    background-color: #2b3138;
+    font-size: 12px;
+  }
+
+  
 }
 
-.checkmark-icon {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  border-radius: 50%;
+@media screen and (max-width: 430px) {
+  .create-blug-button {
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    margin-top: -15px;
+    margin-bottom: 10px;
+    border: none;
+    font-size: 15px;
+    position: fixed;
+    bottom: 20px;
+    left: 190px;
+    z-index: 9999;
+  }
 }
+
+@media screen and (max-width: 390px) {
+  .create-blug-button {
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    margin-top: -15px;
+    margin-bottom: 10px;
+    border: none;
+    font-size: 15px;
+    position: fixed;
+    bottom: 20px;
+    left: 170px;
+    z-index: 9999;
+  }
+}
+
+@media screen and (max-width: 375px) {
+  .create-blug-button {
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    margin-top: -15px;
+    margin-bottom: 10px;
+    border: none;
+    font-size: 15px;
+    position: fixed;
+    bottom: 20px;
+    left: 165px;
+    z-index: 9999;
+  }
+}
+
+@media screen and (max-width: 360px) {
+  .create-blug-button {
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    margin-top: -15px;
+    margin-bottom: 10px;
+    border: none;
+    font-size: 15px;
+    position: fixed;
+    bottom: 20px;
+    left: 155px;
+    z-index: 9999;
+  }
 }
 </style>

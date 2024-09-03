@@ -1,7 +1,7 @@
 <template>
     <div class="following-list">
       <!-- Similar structure and functionality as FollowersList -->
-      <h1>Following</h1>
+      <!-- <h1>Following</h1> -->
       <table class="following-table">
         <thead>
           <tr>
@@ -109,11 +109,13 @@
   <style scoped>
   /* Similar styles as FollowersList */
   .following-list {
-    padding: 20px;
+    padding: 0px;
     background-color: #2b3138;
     color: #cebfad;
-    border: solid 5px #0c1118;
+    
   }
+
+ 
   
   .following-table {
     width: 100%;
@@ -123,7 +125,7 @@
   
   .following-table th,
   .following-table td {
-    border: 1px solid #cebfad;
+    
     padding: 10px;
     text-align: left;
   }
@@ -146,12 +148,13 @@
   
   .remove-button {
     padding: 5px 10px;
-    background-color: #fd662f;
-    color: white;
+    background-color: #2b3138;
+    color: #cebfad;
     border: none;
     border-radius: 4px;
     cursor: pointer;
     transition: background-color 0.3s;
+    border:1px solid #cebfad;
   }
   
   .remove-button.clicked {

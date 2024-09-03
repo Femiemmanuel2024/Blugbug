@@ -15,6 +15,7 @@
         <BlogPosts :posts="posts" @likePost="likePost" @bookmarkPost="bookmarkPost" />
         <h3>MyBlug</h3>
         <PublicFeed />
+      <FooterNav/>
       </div>
       <div class="right-column">
         <InfoData />
@@ -33,6 +34,7 @@ import FollowButton from './FollowButton.vue';
 import BlogPosts from '../features/BlogPosts.vue';
 import InfoData from '../infofeatures/InfoData.vue';
 import PublicFeed from './PublicFeed.vue';
+import FooterNav from '../v2.0/FooterNav.vue';
 
 interface User {
   id: string;
@@ -66,6 +68,7 @@ export default defineComponent({
     BlogPosts,
     InfoData,
     PublicFeed,
+    FooterNav,
   },
   setup() {
     const route = useRoute();
@@ -214,10 +217,17 @@ h3 {
   padding: 10px;
 }
 
+/* @media (max-width:380px){
+  .new-user-page {
+   padding-top: 60px;
+  }
+} */
+
 @media (max-width: 430px) {
   .new-user-page {
     padding-right: 1px;
     padding-left: 1px;
+    
   }
 
   .content {
@@ -238,6 +248,10 @@ h3 {
     position: absolute;
     top: 285px;
     right: 35px;
+  }
+
+  .right-column{
+    display: none;
   }
 }
 
@@ -245,6 +259,7 @@ h3 {
   .new-user-page {
     padding-right: 1px;
     padding-left: 1px;
+    margin-top: 30px;
   }
 
   .content {
@@ -265,6 +280,10 @@ h3 {
     position: absolute;
     top: 285px;
     right: 35px;
+  }
+
+  .right-column{
+    display: none;
   }
 }
 
