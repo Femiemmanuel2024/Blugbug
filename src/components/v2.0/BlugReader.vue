@@ -6,6 +6,9 @@
   </div>
   <div v-else class="blug-reader">
     <NavBar />
+    <button @click="goBack" class="back-button">
+          <i class="fas fa-arrow-left"></i> <!-- Font Awesome icon for the back arrow -->
+        </button>
     <div class="header-display">
       <img v-if="headerImageUrl" :src="headerImageUrl" alt="Blog Header Image" class="header-image" />
     </div>
@@ -90,6 +93,12 @@ export default defineComponent({
         addresses.forEach(address => {
           address.style.textAlign = 'center';
         });
+
+        const links = doc.querySelectorAll('a');
+        links.forEach(link => {
+        link.style.color = '#fd662f'; // Change the color to your desired one
+        });
+
 
         // Center-align all <time> elements
         const times = doc.querySelectorAll('time');
@@ -228,6 +237,10 @@ export default defineComponent({
       }
     );
 
+    const goBack = () => {
+      router.back(); // Use Vue Router's back method to navigate to the previous page
+    };
+
     onBeforeUnmount(() => {
       clearLocalStorageOnNavigate();
     });
@@ -238,6 +251,7 @@ export default defineComponent({
       headerImageUrl, // Return the header image URL
       toggleBookmark,
       interactivePageRef,
+      goBack,
     };
   },
 });
@@ -323,6 +337,25 @@ export default defineComponent({
   overflow: hidden;
 }
 
+.back-button {
+  margin-left: 150px;
+  margin-top: 30px;
+  background: none;
+  border: none;
+  color: #ffffff;
+  cursor: pointer;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center; /* Center the content */
+  background-color: #fd662f;
+  width: 40px; /* Equal width */
+  height: 40px; /* Equal height */
+  border-radius: 50%; /* Makes it a perfect circle */
+  margin-bottom: 20px; /* Spacing below the back button */
+}
+
+
 /* CSS for iPad screen size */
 @media screen and (min-width: 768px) and (max-width: 1024px) {
   /* Add styles for iPad screen size here */
@@ -346,6 +379,32 @@ export default defineComponent({
   line-height: 1.6;
   padding: 20px 10px ;
   text-align: justify;
+}
+
+.back-button {
+  margin-left: 10px;
+  margin-top: 30px;
+  background: none;
+  border: none;
+  color: #ffffff;
+  cursor: pointer;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center; /* Center the content */
+  background-color: #fd662f;
+  width: 40px; /* Equal width */
+  height: 40px; /* Equal height */
+  border-radius: 50%; /* Makes it a perfect circle */
+  margin-bottom: 20px; /* Spacing below the back button */
+}
+
+.header-image {
+  width: 100%;
+  max-height: 300px;
+  object-fit: contain;
+  margin-bottom: -40px;
+  margin-top: 20px;
 }
   /* Add styles for phone screen size here */
 }

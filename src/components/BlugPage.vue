@@ -414,7 +414,7 @@ li:hover {
   color: #ffffff; /* Text color */
   font-size: 10px;
   margin: 2px;
-  letter-spacing: -3px;
+  letter-spacing: -2px;
 }
 
 .bottom-row {

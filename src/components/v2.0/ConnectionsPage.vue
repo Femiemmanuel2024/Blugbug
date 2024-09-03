@@ -135,11 +135,14 @@ export default defineComponent({
   font-size: 18px;
   display: flex;
   align-items: center;
+  justify-content: center; /* Center the content */
   background-color: #fd662f;
-  padding: 10px;
-  border-radius: 50%;
+  width: 40px; /* Equal width */
+  height: 40px; /* Equal height */
+  border-radius: 50%; /* Makes it a perfect circle */
   margin-bottom: 20px; /* Spacing below the back button */
 }
+
 
 /* CSS for iPad screen size */
 @media screen and (min-width: 768px) and (max-width: 1024px) {

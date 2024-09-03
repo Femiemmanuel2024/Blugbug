@@ -2,7 +2,10 @@
   <div class="reply-page">
     <NavBar />
     <div class="reply-content">
-      <button @click="goBack" class="back-button">Back</button>
+      <button @click="goBack" class="back-button">
+        <i class="fas fa-arrow-left"></i>
+        Back
+      </button>
       <!-- Display the original comment and the user who commented -->
       <h2 class="comment-header" v-html="parsedComment"></h2>
       <p class="commented-by">Commented by: {{ commentedBy }}</p>
@@ -360,15 +363,16 @@ export default defineComponent({
 
 .reply-content {
   margin-top: 20px;
+  margin-bottom: 20px;
 }
 
 .comment-header {
-  font-size: 24px;
-  font-weight: bold;
+  font-size: 20px;
   color: #ccc;
   background-color: #1e2127;
   padding:10px 10px 0px 10px;
   border-radius: 10px 10px 0px 0px;
+  text-align: justify;
 }
 
 .commented-by {
@@ -403,7 +407,7 @@ export default defineComponent({
   width: 80%;
   background-color: #1DA1F2;
   color: rgb(0, 0, 0);
-  border-radius: 5px 5px 5px 0px;
+  border-radius: 5px 5px 0px 5px;
   margin-left: auto;
 }
 
@@ -413,13 +417,14 @@ export default defineComponent({
   width: 80%;
   background-color: #FD662F;
   color: rgb(255, 255, 255);
-  border-radius: 5px 5px 0px 5px;
+  border-radius: 5px 5px 5px 0px;
 }
 
 .reply-meta {
   font-size: 12px;
   color: rgb(255, 255, 255);
-  margin-top: 2px;
+  margin-top: 5px;
+  
 }
 
 .reply-input {
@@ -503,8 +508,8 @@ export default defineComponent({
   padding: 20px;
   margin-top: 140px;
   height: 100vh;
-  padding-right: 2px;
-  padding-left: 2px;
+  padding-right: 10px;
+  padding-left: 10px;
 }
 
   /* Add styles for phone screen size here */
