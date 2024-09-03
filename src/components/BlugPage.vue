@@ -478,7 +478,10 @@ li:hover {
   display: flex;
   justify-content: center;
   color: #cebfad;
-  margin-bottom: -10px;
+  margin-bottom: 0px;
+  margin-top: 20px;
+  font-size: 20px;
+  font-weight: bold;
 }
 
 @supports (-ms-ime-align: auto) {
@@ -511,7 +514,7 @@ li:hover {
   .blug-page {
     padding-right: 1px;
     padding-left: 1px;
-    padding-top: 100px;
+    padding-top: 120px;
   }
 
   .blog-list {
@@ -547,7 +550,7 @@ li:hover {
     background: none;
     border: none;
     padding: 30px 100px 30px 40px;
-    margin-left: 40px;
+    margin-left: 0px;
     cursor: pointer;
     color: #d7c9b7;
     background-color: #e04a2e;
