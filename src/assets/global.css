@@ -1,0 +1,74 @@
+/* Ensure the HTML and body take up the full height */
+html, body {
+    height: 100%;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  /* The main app container should also take up full height */
+  #app {
+    display: flex;
+    flex-direction: column;
+    /* min-height: 100vh;  */
+    /* Ensure it takes up the full viewport height */
+  }
+  
+  /* The main content will grow to fill the remaining space between header and footer */
+  .content {
+    flex-grow: 1; /* This makes the content take up the available space */
+  }
+  
+  /* Footer styles to keep it at the bottom */
+  .footer-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #1e2127;
+    padding: 20px 90px; /* Adjust the padding as needed */
+   
+    border-top: 1px solid rgb(0, 0, 0);
+    position: relative;
+    bottom: 0;
+    z-index: 9998;
+  }
+  
+  /* Footer items layout */
+  .footer-left, .footer-right {
+    display: flex;
+    align-items: center;
+  }
+  
+  /* Footer icon hover effect */
+  .footer-help-icon {
+    display: flex;
+    align-items: center;
+    color: white;
+    text-decoration: none;
+    font-size: 14px;
+    margin: 0 10px;
+    transition: transform 0.3s;
+    cursor: pointer;
+  }
+  
+  .footer-help-icon:hover {
+    color: #fd662f;
+  }
+  
+  .icon-label {
+    margin-left: 5px;
+    font-size: 14px;
+  }
+  
+  /* Responsive styling for small screens */
+  @media (max-width: 480px) {
+    .footer-nav {
+      padding: 20px 30px;
+      align-items: center;
+    }
+  
+    .footer-left, .footer-right {
+      align-items: center;
+    }
+  }
+  

@@ -1,13 +1,18 @@
 <template>
   <div class="blug-page">
     <NavBar />
+    <CreateBlogButton/>
+
     <div class="content">
+      
+      <!-- Chatter Info -->
       <div class="centered-chatter-name">
         <img :src="profileImageUrl || defaultProfileImageUrl" alt="Profile Image" class="profile-image" />
         <h2>{{ chatterName ? 'Hi, ' + chatterName : '' }}</h2>
       </div>
+
+      <!-- Search Bar -->
       <div class="search-bar">
-        <!-- Updated search bar design -->
         <div class="search-input-container">
           <input type="text" v-model="searchQuery" placeholder="Search..." />
           <div class="search-icon">
@@ -15,7 +20,22 @@
           </div>
         </div>
       </div>
+
+      <!-- Filter Buttons -->
+      <div class="filter-buttons">
+        <button @click="fetchPosts('date')" :class="{ active: currentFilter === 'date' }">Recent</button>
+        <button @click="fetchPosts('interest')" :class="{ active: currentFilter === 'interest' }">Interest</button>
+        <button @click="fetchPosts('trending')" :class="{ active: currentFilter === 'trending' }">Trending</button>
+      </div>
+
+       <!-- Loading Modal -->
+       
+
+      <!-- Post List -->
       <div class="container">
+        <div v-if="loading" class="loading-modal">
+        <p>Loading...</p>
+      </div>
         <div class="top-column">
           <div class="top-title">
             <h1 class="blog-header">BlugWorld</h1>
@@ -24,15 +44,14 @@
             <ul class="blog-list">
               <li class="list-container" v-for="(post, index) in displayedPosts" :key="index">
                 <div class="image-row">
-                  <!-- Use placeholder if imageUrl is not found -->
                   <img :src="post.imageUrl" alt="Blog Image" class="post-image" />
                 </div>
                 <div class="title-row">
-                  <span class="post-title">{{ post.title }}</span>
+                  <div :style="getTitleStyle(post.title)" class="post-title">{{ post.title }}</div>
+                  <div class="post-categories" style="font-style: italic; font-size: 13px; color:#e04a2e;">{{ post.categories }}</div>
                 </div>
-                <!-- Display categories in a simple container -->
-                <div class="category-container">
-                  <span v-for="category in post.categories" :key="category" class="category-badge">{{ category }}</span>
+                <div class="written-by">
+                  <span>Written by {{ post.userFullName }}</span>
                 </div>
                 <div class="bottom-row">
                   <button class="read-button" @click="viewPost(post)">Read</button>
@@ -40,7 +59,8 @@
                     <span class="like-icon">
                       <font-awesome-icon :icon="['fas', 'heart']" />
                     </span>
-                    {{ formattedLikes(post.likes) }}</div>
+                    {{ formattedLikes(post.likes) }}
+                  </div>
                 </div>
               </li>
             </ul>
@@ -56,10 +76,9 @@
         </div>
       </div>
     </div>
-    <FooterNav /> 
+    <FooterNav />
   </div>
 </template>
-
 
 <script lang="ts">
 import { defineComponent, ref, computed, onMounted, watch } from 'vue';
@@ -68,16 +87,17 @@ import NavBar from './NavBar.vue';
 import { supabase } from './supabase';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import FooterNav from './v2.0/FooterNav.vue';
+import CreateBlogButton from './features/CreateBlogButton.vue';
 
 interface Post {
-  id: number;
+  blog_id: string;
   title: string | null;
   userId: string;
   userFullName: string;
   date: string;
   imageUrl: string;
   likes: number;
-  categories: string[]; // Add categories field
+  categories: string;
 }
 
 export default defineComponent({
@@ -86,6 +106,7 @@ export default defineComponent({
     NavBar,
     FontAwesomeIcon,
     FooterNav,
+    CreateBlogButton,
   },
   setup() {
     const posts = ref<Post[]>([]);
@@ -93,11 +114,13 @@ export default defineComponent({
     const searchQuery = ref<string>('');
     const chatterName = ref<string | null>(null);
     const profileImageUrl = ref<string | null>(null);
-    const defaultProfileImageUrl = '/Default_pfp.svg'; // Default profile image path
+    const defaultProfileImageUrl = '/Default_pfp.svg';
     const router = useRouter();
-    const postsPerPage = ref<number>(16); // Adjusted to display 16 cards per page
+    const postsPerPage = ref<number>(16);
     const currentPage = ref<number>(0);
-    const placeholderImageUrl = '/blug_default.png'; // Ensure this file exists in the public directory
+    const placeholderImageUrl = '/blug_default.png';
+    const currentFilter = ref<string>('date');
+    const loading = ref<boolean>(false); // Loading state
 
     const loadChatterNameAndProfileImage = async () => {
       const currentUser = localStorage.getItem('currentUser');
@@ -115,59 +138,98 @@ export default defineComponent({
       }
     };
 
-    const loadPosts = async () => {
-      const { data, error } = await supabase.from('blog_post').select('*');
+    const fetchPosts = async (filter: string) => {
+      currentFilter.value = filter;
+      loading.value = true; // Start loading
+
+      let query = supabase.from('blog_post').select('blog_id, title, user_id, created_at, likes, categories');
+
+      // Fetch posts based on selected filter
+      if (filter === 'date') {
+        query = query.order('created_at', { ascending: false });
+      } else if (filter === 'interest') {
+        const currentUser = localStorage.getItem('currentUser');
+        const userId = currentUser ? JSON.parse(currentUser).id : null;
+        if (!userId) return;
+
+        const { data: userInterest, error: interestError } = await supabase
+          .from('users')
+          .select('interest_id')
+          .eq('id', userId)
+          .single();
+
+        if (interestError || !userInterest) {
+          console.error('Error fetching user interest:', interestError?.message);
+          loading.value = false; // End loading if error
+          return;
+        }
+
+        const interestArray = userInterest.interest_id.split(',');
+
+        query = query.or(
+          interestArray
+            .map((interest) => `categories.ilike.%${interest.trim()}%`)
+            .join(',')
+        );
+      } else if (filter === 'trending') {
+        query = query.order('likes', { ascending: false });
+      }
+
+      const { data: postsData, error } = await query;
       if (error) {
         console.error('Error fetching posts:', error.message);
+        loading.value = false; // End loading if error
         return;
       }
+
+      // Fetch images and full names for the posts
       const loadedPosts = await Promise.all(
-        (data || []).map(async (post) => {
-          const filePath = `${post.user_id}/${post.blog_id}/header-image.webp`; // Update to fetch image from blog ID folder
+        (postsData || []).map(async (post) => {
+          const filePath = `${post.user_id}/${post.blog_id}/header-image.webp`;
           const imageUrl = await fetchImage(filePath);
+          const userFullName = await fetchUserFullName(post.user_id);
 
           return {
-            id: post.id,
+            blog_id: post.blog_id,
             title: post.title,
             userId: post.user_id,
-            userFullName: post.user_full_name || 'Unknown',
+            userFullName: userFullName || 'Unknown',
             date: post.created_at,
-            imageUrl: imageUrl || placeholderImageUrl, // Use placeholder if image URL is not found
+            imageUrl: imageUrl || placeholderImageUrl,
             likes: post.likes || 0,
-            categories: post.categories || [], // Add categories to post data
+            categories: post.categories || 'Uncategorized',
           };
         })
       );
-      loadedPosts.sort(() => Math.random() - 0.5); // Shuffle posts
+
       posts.value = loadedPosts;
       updateDisplayedPosts();
+      loading.value = false; // End loading
     };
 
     const fetchImage = async (filePath: string) => {
       const { data } = supabase.storage.from('blog-post').getPublicUrl(filePath);
       if (!data || !data.publicUrl) {
-        return placeholderImageUrl;  // Return placeholder if image URL is not found
+        return placeholderImageUrl;
       }
       return data.publicUrl;
     };
 
-    const viewPost = async (post: Post) => {
-      const { data, error } = await supabase
-        .from('blog_post')
-        .select('id, user_id, blog_id')
-        .eq('id', post.id)
-        .single();
-
+    const fetchUserFullName = async (userId: string) => {
+      const { data, error } = await supabase.from('users').select('full_name').eq('id', userId).single();
       if (error) {
-        console.error('Error fetching post details:', error.message);
-        return;
+        console.error('Error fetching user full name:', error.message);
+        return 'Unknown';
       }
+      return data.full_name;
+    };
 
-      const { user_id, blog_id } = data;
-      localStorage.setItem('user_id', user_id);
-      localStorage.setItem('blog_id', blog_id);
+    const viewPost = (post: Post) => {
+      const blogId = post.blog_id;
+      localStorage.setItem('user_id', post.userId);
+      localStorage.setItem('blog_id', blogId);
 
-      router.push({ name: 'BlugReader', query: { blogId: blog_id.toString() } });
+      router.push({ name: 'BlugReader', query: { blogId: blogId } });
     };
 
     const formattedLikes = (likes: number) => {
@@ -175,6 +237,13 @@ export default defineComponent({
         return (likes / 1000).toFixed(1) + 'k';
       }
       return likes.toString();
+    };
+
+    const getTitleStyle = (title: string | null) => {
+      if (title && title.length > 23) {
+        return { fontSize: '12px' };
+      }
+      return { fontSize: '16px' };
     };
 
     const updateDisplayedPosts = () => {
@@ -207,9 +276,9 @@ export default defineComponent({
 
     onMounted(() => {
       loadChatterNameAndProfileImage();
-      loadPosts();
+      fetchPosts('date'); // Load default filter (Recent) on mount
       const updatePostsPerPage = () => {
-        postsPerPage.value = 16; // Display 16 posts per page
+        postsPerPage.value = 16;
         updateDisplayedPosts();
       };
 
@@ -236,10 +305,18 @@ export default defineComponent({
       profileImageUrl,
       placeholderImageUrl,
       defaultProfileImageUrl,
+      fetchPosts,
+      currentFilter,
+      getTitleStyle,
+      loading, // Expose loading state
     };
   },
 });
 </script>
+
+
+
+
 
 <style scoped>
 .blug-page {
@@ -284,7 +361,7 @@ export default defineComponent({
   padding: 10px;
   font-size: 16px;
   border-radius: 25px 0 0 25px;
-  outline: none; /* Remove input outline */
+  outline: none;
 }
 
 .search-icon {
@@ -301,10 +378,6 @@ export default defineComponent({
 
 .search-icon:hover {
   color: #ffffff;
-}
-
-.search-icon .fa-magnifying-glass {
-  font-size: 16px;
 }
 
 .centered-chatter-name {
@@ -377,7 +450,7 @@ li:hover {
 
 .image-row {
   width: 100%;
-  height: 70%; /* Set height to 70% */
+  height: 70%;
   overflow: hidden;
 }
 
@@ -393,8 +466,7 @@ li:hover {
 }
 
 .title-row {
-  height: 10%; /* Set height to 10% */
-  padding: 10px;
+  padding: 5px;
   text-align: center;
   background-color: #333;
   color: white;
@@ -402,19 +474,13 @@ li:hover {
   font-size: 16px;
 }
 
-.category-container {
-  height: 10%; /* Set height to 10% */
+.written-by {
+  padding: 5px;
   justify-content: center;
   align-items: center;
   flex-wrap: nowrap;
-}
-
-.category-badge {
-  background: none;
-  color: #ffffff; /* Text color */
-  font-size: 10px;
-  margin: 2px;
-  letter-spacing: -2px;
+  color: #ffffff;
+  font-size: 12px;
 }
 
 .bottom-row {
@@ -423,9 +489,8 @@ li:hover {
   padding: 10px;
   background-color: #333;
   color: white;
-  height: 10%; /* Set height to 10% */
+  height: 10%;
   justify-content: center;
-  
 }
 
 .likes-count {
@@ -486,32 +551,49 @@ li:hover {
   font-weight: bold;
 }
 
-@supports (-ms-ime-align: auto) {
-  /* This block will only be applied in Microsoft Edge */
-  .blog-list {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
-  justify-content: center;
-  padding-left: 40px;
-  padding-right: 40px;
+.post-categories {
+  padding-top: 5px;
 }
 
+.loading-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.6); /* Semi-transparent background */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
 
+.loading-modal p {
+  font-size: 24px;
+  color: white;
+}
+
+@supports (-ms-ime-align: auto) {
+  .blog-list {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    justify-content: center;
+    padding-left: 40px;
+    padding-right: 40px;
+  }
 }
 
 @media (max-width: 430px) {
-
   .bottom-row {
-  display: flex;
-  width: 100%;
-  justify-content: center;
-  padding: 10px;
-  background-color: #333;
-  color: white;
-  height: 20%; /* Set height to 10% */
-}
-
+    display: flex;
+    width: 100%;
+    justify-content: center;
+    padding: 10px;
+    background-color: #333;
+    color: white;
+    height: 20%;
+  }
 
   .blug-page {
     padding-right: 1px;
@@ -557,5 +639,30 @@ li:hover {
     color: #d7c9b7;
     background-color: #e04a2e;
   }
+}
+
+.filter-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.filter-buttons button {
+  background-color: #fd662f;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.filter-buttons button:hover {
+  background-color: #e04a2e;
+}
+
+.filter-buttons button.active {
+  background-color: blue;
+  color: white;
 }
 </style>
