@@ -19,10 +19,18 @@
                 <span class="post-title">{{ post.title }}</span>
               </div>
               <div class="post-actions">
-                <button class="read-button" @click="viewPost(index)">Read</button>
-                <!-- Edit and Delete buttons -->
-                <i class="fas fa-edit" @click="editPost(index)" title="Edit"></i>
-                <i class="fas fa-trash" @click="deletePost(index)" title="Delete"></i>
+                <div class="action">
+                  <i class="fas fa-eye" @click="viewPost(index)" title="Read"></i>
+                  <span class="action-label">Read</span>
+                </div>
+                <div class="action">
+                  <i class="fas fa-edit" @click="editPost(index)" title="Edit"></i>
+                  <span class="action-label">Edit</span>
+                </div>
+                <div class="action">
+                  <i class="fas fa-trash" @click="deletePost(index)" title="Delete"></i>
+                  <span class="action-label">Delete</span>
+                </div>
               </div>
             </li>
           </ul>
@@ -253,7 +261,7 @@ export default defineComponent({
 
 .left-column {
   width: 100%;
-  padding: 20px;
+  padding: 0px;
   background-color: none;
   transition: width 0.5s;
   background: linear-gradient(45deg, #202329, #4e545b);
@@ -271,6 +279,8 @@ export default defineComponent({
   text-align: center;
   font-size: 24px;
   color: #cebfad;
+  background-color: #1e2127;
+  padding: 20px;
 }
 
 .right-column {
@@ -298,12 +308,13 @@ li {
   flex-direction: column;
   justify-content: space-between;
   margin-bottom: 10px;
-  border: 1px solid #444;
   border-radius: 10px;
   padding: 10px;
-  width: 250px;
-  height: 300px;
+  width: 300px;
+  height: 220px;
   transition: transform 0.2s;
+  background-color: #1e2127;
+  align-items: center;
 }
 
 li:hover {
@@ -313,34 +324,35 @@ li:hover {
 .post-title {
   font-size: 16px;
   color: #cebfad;
+  text-align: center;
 }
 
 .post-actions {
   display: flex;
   justify-content: space-between;
   margin-top: 10px;
+  width: 100%;
 }
 
-.read-button {
-  padding: 5px 10px;
-  background-color: #fd662f;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
+.action {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 0 10px;
 }
 
-.read-button:hover {
-  background-color: #e04a2e;
+.action-label {
+  font-size: 12px;
+  color: #cebfad;
+  margin-top: 5px;
 }
 
-.post-actions i {
+i {
   cursor: pointer;
   color: #cebfad;
-  margin-left: 10px;
 }
 
-.post-actions i:hover {
+i:hover {
   color: #fd662f;
 }
 
@@ -353,8 +365,9 @@ h2 {
 }
 
 .blog-list {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
   gap: 20px;
 }
 
@@ -377,6 +390,15 @@ h2 {
 }
 
 @media (max-width: 430px) {
+  .chatters-page {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    padding-right: 1px;
+    padding-left: 1px;
+    padding-top: 120px;
+  }
+
   .blog-list {
     grid-template-columns: 1fr;
   }

@@ -1,13 +1,5 @@
 <template>
   <div class="notification-container" v-if="isLoggedIn">
-    <button @click="toggleNotifications" class="notification-icon">
-      <div class="icon-wrapper">
-        <i class="fas fa-bell"></i>
-        <span class="icon-label">Alerts</span>
-        <span v-if="unreadCount" class="unread-count">{{ unreadCount }}</span>
-      </div>
-      <span class="notification-label">Alerts</span>
-    </button>
     <div v-if="showNotifications" class="notification-list">
       <div class="notification-controls">
         <div class="control-column">
@@ -22,7 +14,7 @@
            <div class="control-label">Clear</div>
           </button>
         </div>
-        <!-- New Icon for Notification History -->
+        <!-- Notification History -->
         <div class="control-column">
           <button @click="navigateToNotificationHistory" class="control-button">
             <font-awesome-icon :icon="['fas', 'clock-rotate-left']" class="iconB"/>
@@ -48,11 +40,6 @@ import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { supabase } from '../supabase';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
-import { faArrowsRotate, faCircleXmark, faClockRotateLeft } from '@fortawesome/free-solid-svg-icons';
-import { library } from '@fortawesome/fontawesome-svg-core';
-
-// Add icons to the library
-library.add(faArrowsRotate, faCircleXmark, faClockRotateLeft);
 
 interface Notification {
   id: string;
@@ -69,7 +56,7 @@ interface Notification {
 
 const notifications = ref<Notification[]>([]);
 const showNotifications = ref(false);
-const unreadCount = ref(0);
+const unreadCount = ref(0); // Keep track of unread count
 const router = useRouter();
 const notificationAudio = ref<HTMLAudioElement | null>(null);
 const isLoggedIn = ref(false);
@@ -161,7 +148,7 @@ const deleteAllNotifications = async () => {
 
   const { error } = await supabase
     .from('notifications')
-    .update({ read: true })  // Update the 'read' column to true
+    .update({ read: true })
     .eq('user_id', currentUser.id);
 
   if (error) {
@@ -169,12 +156,8 @@ const deleteAllNotifications = async () => {
     return;
   }
 
-  // Fetch the updated notifications to reflect the change in the UI
   fetchNotifications();
-
-  console.log('All notifications marked as read successfully.');
 };
-
 
 const checkForNotifications = () => {
   fetchNotifications();
@@ -207,52 +190,6 @@ onMounted(() => {
   align-items: center;
 }
 
-.notification-icon {
-  background: none;
-  border: none;
-  color: #ffffff;
-  cursor: pointer;
-  font-size: 14px;
-  display: flex; /* Ensure label is part of the icon */
-  align-items: center;
-  position: relative; /* Add relative positioning */
-  transition: transform 0.3s; /* Add transition for the hover effect */
-}
-
-
-
-.icon-wrapper {
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-
-.unread-count {
-  background-color: red;
-  color: white;
-  border-radius: 50%;
-  padding: 1px 4px;
-  font-size: 10px;
-  position: absolute;
-  top: -5px;
-  right: 35px;
-  border: 1px solid white;
-}
-
-.notification-icon:hover {
-  color: #fd662f;
-}
-
-.notification-label {
-  display: none;
-  font-size: 14px; /* Match font size with navbar */
-  color: #ffffff;
-}
-
-.notification-label:hover {
-  color: #fd662f;
-}
-
 .notification-list {
   position: absolute;
   top: 40px;
@@ -274,20 +211,17 @@ onMounted(() => {
   padding: 10px;
   background-color:#fd662f;
   border-bottom: 1px solid #444;
-  
 }
 
 .control-column {
   display: flex;
   justify-content: center;
-  width: 33%; /* Adjust width for three icons */
-  /* background-color: #fd662f; */
-  
+  width: 33%;
 }
 
 .control-button {
   width: 100%;
-  background-color: #fd662f; /* Change background color to orange */
+  background-color: #fd662f;
   border: none;
   padding: 5px;
   border-radius: 5px;
@@ -296,17 +230,14 @@ onMounted(() => {
   text-align: center;
   color: rgb(255, 255, 255);
   transition: transform 0.2s;
-
 }
 
-
 .control-button:hover {
-  
   transform: scale(1.05);
 }
 
 .control-label {
-  font-size: 10px
+  font-size: 10px;
 }
 
 .notification-list ul {
@@ -336,50 +267,15 @@ onMounted(() => {
   font-size: 12px;
 }
 
-.icon-label {
-  margin-left: 5px;
-  font-size: 14px;
-}
-
 @media (max-width: 767.98px) {
-  .notification-label {
-    display: none;
-  }
-
-  .icon-label{
-    display: none;
-  }
-
-  .notification-icon {
-    font-size: 30px;
-  }
-
-  .unread-count {
-  background-color: red;
-  color: white;
-  border-radius: 50%;
-  padding: 1px 4px;
-  font-size: 10px;
-  position: absolute;
-  top: -5px;
-  right: -5px;
-  border: 1px solid white;
-}
-}
-
-@media (max-width: 1024px) {
-  .notification-label {
-    display: none;
+  .notification-list {
+    left: -165px;
   }
 }
 
 @media (max-width: 430px) {
   .notification-list {
     left: -165px;
-  }
-
-  .notification-icon {
-    font-size: 22px;
   }
 }
 </style>
