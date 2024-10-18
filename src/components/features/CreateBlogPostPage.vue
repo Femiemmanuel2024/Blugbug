@@ -355,7 +355,7 @@ button:hover {
     align-items: center;
     height: 100%;
     background-color: #1e1e1e;
-    margin-top: 160px;
+    margin-top: 120px;
   }
 
   .content-container {
@@ -384,5 +384,12 @@ button:hover {
     width: 100%;
     height: fit-content;
   }
+
+  .banner-preview {
+  width: 100%;
+  height: 100px;
+  object-fit: cover; /* Ensure the image covers the specified dimensions */
+  margin-bottom: 10px; /* Space between image and editor */
+}
 }
 </style>

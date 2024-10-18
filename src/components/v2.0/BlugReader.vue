@@ -111,7 +111,7 @@ export default defineComponent({
         const headers = doc.querySelectorAll('h1');
         headers.forEach(header => {
           header.style.textAlign = 'center';
-          header.style.fontSize = '25px';
+          header.style.fontSize = '35px';
           header.style.fontWeight='bold';
         });
 
